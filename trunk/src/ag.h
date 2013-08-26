@@ -3,9 +3,9 @@
 
 #include <stdlib.h>
 
-int obtem_valor_numerico(char *individuo);
+int obtem_valor_numerico(short *individuo);
 
-int funcao_de_avaliacao(char *individuo);
+int funcao_de_avaliacao(short *individuo);
 
 void cria_populacao_inicial();
 

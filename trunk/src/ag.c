@@ -2,11 +2,12 @@
 #include "parametros_ag.h"
 #include "operadores_geneticos.h"
 #include "ag.h"
+#include <math.h>
 
 int n = 1;
 
-char populacao[TAMANHO_POPULACAO][TAMANHO_INDIVIDUO+1];
-char copia_populacao[TAMANHO_POPULACAO][TAMANHO_INDIVIDUO+1];
+short populacao[TAMANHO_POPULACAO][TAMANHO_INDIVIDUO];
+short copia_populacao[TAMANHO_POPULACAO][TAMANHO_INDIVIDUO];
 
 /*
  aptidao[i][0] = aptidao absoluta
@@ -14,43 +15,55 @@ char copia_populacao[TAMANHO_POPULACAO][TAMANHO_INDIVIDUO+1];
 */
 int aptidao[TAMANHO_POPULACAO][2];
 
-int obtem_valor_numerico(char *individuo){
+int binario_para_decimal(short *individuo, int inicio, int fim){
 
     int i,n=1, valorNumerico=0;
 
-    for(i=TAMANHO_INDIVIDUO-1; i>=0; i--){
+    for(i=fim-1; i>=inicio; i--, n=n<<1){
 
-        if(individuo[i]=='1'){
-            valorNumerico += n;
-        }
+       valorNumerico += n*((int)individuo[i]);
 
-        n = n*2;
     }
 
     return valorNumerico;
 }
 
-//f(x) = (x²)(-1)
-int funcao_de_avaliacao(char *individuo){
+int obtem_valor_numerico_individuo(short *individuo){
 
-    int valorNumerico = obtem_valor_numerico(individuo);
+    int i;
 
-    return  (valorNumerico*valorNumerico)*(-1);
+    double valorNumerico = 0;
+
+    for(i=0; i<TAMANHO_INDIVIDUO; i+=TAMANHO_VALOR){
+
+       valorNumerico += pow(binario_para_decimal(individuo, i, i+TAMANHO_VALOR), 2);
+
+    }
+
+    return (int) sqrt(valorNumerico);
+}
+
+int funcao_de_avaliacao(short *individuo){
+
+    int x = obtem_valor_numerico_individuo(individuo);
+
+    return FUNCAO_DE_AVALIACAO(x);
 }
 
 void cria_populacao_inicial(){
 
     int i,j;
 
-    for(i=0; i< TAMANHO_POPULACAO; i++){
+    for(i=0; i < TAMANHO_POPULACAO; i++){
 
          for(j=0; j< TAMANHO_INDIVIDUO; j++){
 
-            populacao[i][j] = rand() % 2 ? '1' : '0';
-            //printf("%c", populacao[i][j] );
+            populacao[i][j] = rand() % 2;
+            //printf("%d", populacao[i][j] );
         }
-        populacao[i][j] =  '\0';
-        //printf("\n");
+
+        //populacao[i][j] =  '\0';
+        //printf(", aptidao:%d,\n", funcao_de_avaliacao(populacao[i]));
     }
 }
 
@@ -76,12 +89,10 @@ int soma_avaliacoes(){
     int i;
     for(i=0;i<TAMANHO_POPULACAO;i++){
         aux += aptidao[i][0];
-        //printf("%d \n", aux);
     }
 
     return aux;
 }
-
 
 int roleta() {
 	int i;
@@ -93,7 +104,6 @@ int roleta() {
     for(i=0; i<TAMANHO_POPULACAO; i++) {
 
         if(aptidao[i][1]>limite){
-            //printf("limite=%d, selecionado=%d \n",limite, i);
             return i;
         }
 	}
@@ -104,7 +114,7 @@ int roleta() {
 /*
     Adiciona o i-ésimo indivíduo na população
 */
-void adiciona_individuo(char *populacao, char *individuo){
+void adiciona_individuo(short *populacao, short *individuo){
 
     int j;
     for(j=0;j<TAMANHO_INDIVIDUO;j++){
@@ -127,18 +137,18 @@ void cria_nova_geracao(){
 
      //Copia a geração atual para a matriz copia_populacao
      for(i=0;i<TAMANHO_POPULACAO;i++)
-        for(j=0;j<=TAMANHO_INDIVIDUO;j++)
+        for(j=0;j<TAMANHO_INDIVIDUO;j++)
             copia_populacao[i][j] = populacao[i][j];
 
-    char filho1[TAMANHO_INDIVIDUO];
-    char filho2[TAMANHO_INDIVIDUO];
 
+     short filho1[TAMANHO_INDIVIDUO];
+     short filho2[TAMANHO_INDIVIDUO];
 
      for(i=0;i<TAMANHO_POPULACAO;i++) {
 
         //Seleção
-		char *pai1 = copia_populacao[roleta()];
-        char *pai2 = copia_populacao[roleta()];
+		short* pai1 = copia_populacao[roleta()];
+        short* pai2 = copia_populacao[roleta()];
 
         //Recombinação
         recombinacao(pai1, pai2, filho1, filho2, TAXA_DE_RECOMBINACAO);
@@ -156,10 +166,10 @@ void cria_nova_geracao(){
 
 int obtem_mais_apto(){
 
-    int mais_apto = 0;
+    int mais_apto = aptidao[0][0];
     int i;
 
-    for(i=0;i<TAMANHO_POPULACAO;i++){
+    for(i=1;i<TAMANHO_POPULACAO;i++){
 
         if(aptidao[i][0]>mais_apto){
             mais_apto = aptidao[i][0];
@@ -175,13 +185,12 @@ void AG(){
     srand(3);
 
     cria_populacao_inicial();
-            avalia_populacao();
 
     for(;;){
 
-        n++;
+        avalia_populacao();
 
-        //avalia_populacao();
+        printf("Mais apto da geracao %d: %d\n", n,obtem_mais_apto());
 
         if(CRITERIO_DE_PARADA){
             return;
@@ -191,5 +200,8 @@ void AG(){
             cria_nova_geracao();
 
         }
+
+        n++;
+
     }
 }
