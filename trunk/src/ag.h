@@ -15,6 +15,8 @@ int obtem_soma_avaliacoes();
 
 int roleta();
 
+int torneio();
+
 int obtem_mais_apto();
 
 void AG();
