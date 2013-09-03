@@ -1,8 +1,11 @@
 #ifndef OPERADORES_GENETICOS_H_INCLUDED
 #define OPERADORES_GENETICOS_H_INCLUDED
 
-void mutacao(short* individuo, double chance);
-void crossover_um_ponto(short *pai1, short*pai2, short*filho1, short*filho2);
-void recombinacao(short *pai1, short *pai2, short *filho1, short *filho2, float chance);
+#include "parametros_ag.h"
+#include "representacao.h"
+
+void mutacao(individuo* individuo, double chance);
+void crossover_um_ponto(individuo *pai1, individuo*pai2,individuo *filho1, individuo *filho2);
+void recombinacao(individuo *pai1, individuo *pai2, individuo *filho1, individuo *filho2, float chance);
 
 #endif // OPERADORES_GENETICOS_H_INCLUDED

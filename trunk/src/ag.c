@@ -1,54 +1,92 @@
 #include<stdio.h>
+#include "representacao.h"
 #include "parametros_ag.h"
 #include "operadores_geneticos.h"
 #include "ag.h"
 #include <math.h>
+#include <stdlib.h>
+
+individuo populacao[TAMANHO_POPULACAO];
+individuo copia_populacao[TAMANHO_POPULACAO];
 
 int n = 1;
 
-short populacao[TAMANHO_POPULACAO][TAMANHO_INDIVIDUO];
-short copia_populacao[TAMANHO_POPULACAO][TAMANHO_INDIVIDUO];
+long binario_para_decimal(individuo *p, int inicio, int fim){
 
-/*
- aptidao[i][0] = aptidao absoluta
- aptidao[i][1] = aptidao acumulada
-*/
-int aptidao[TAMANHO_POPULACAO][2];
-int aptidao_copia[TAMANHO_POPULACAO][2];
-
-int binario_para_decimal(short *individuo, int inicio, int fim){
-
-    int i,n=1, valorNumerico=0;
+    int i,n=1; long valorNumerico=0;
 
     for(i=fim-1; i>=inicio; i--, n=n<<1){
 
-       valorNumerico += n*((int)individuo[i]);
+        valorNumerico += n*((int)p->genotipo_binario[i]);
 
     }
 
     return valorNumerico;
 }
 
-int obtem_valor_numerico_individuo(short *individuo){
+void binario_para_inteiro(short *binarios, long *inteiros){
+
+    int start,n,i, j;
+
+    int end = 0;
+    for (j = 0; j < TAMANHO_INDIVIDUO; j++) {
+        inteiros[j] = 0;
+        start = end;
+        end += TAMANHO_VALOR;
+        n=1;
+        for (i = start; i < end; i++, n=n<<1) {
+            inteiros[j] += binarios[i] * n;
+        }
+    }
+}
+
+
+void gray_para_binario(short *gray, short *binarios){
+
+        int i,j;
+
+        for(i=0; i< TAMANHO_INDIVIDUO; i++){
+            binarios[i] = gray[i];
+        }
+
+        int start;
+        int end = 0;
+        for (j = 0; j < DIMENSOES_PROBLEMA; j++) {
+            start = end;
+            end += TAMANHO_VALOR;
+            for (i = start + 1; i < end; i++) {
+                binarios[i] = binarios[i - 1] ^ binarios[i];
+            }
+        }
+}
+
+void obtem_fenotipo_individuo(individuo *p){
+
+    int i, j=0;
+
+    gray_para_binario(p->genotipo, p->genotipo_binario);
+    //binario_para_inteiro(p->genotipo_binario, p->fenotipo);
+
+    for(i=0; i<DIMENSOES_PROBLEMA; i++, j+=TAMANHO_VALOR){
+
+       p->fenotipo[i] = binario_para_decimal(p, j, j+TAMANHO_VALOR);
+
+    }
+}
+
+int funcao_de_avaliacao(individuo *p){
+
+    obtem_fenotipo_individuo(p);
+
+    int soma = 0;
 
     int i;
 
-    double valorNumerico = 0;
-
-    for(i=0; i<TAMANHO_INDIVIDUO; i+=TAMANHO_VALOR){
-
-       valorNumerico += pow(binario_para_decimal(individuo, i, i+TAMANHO_VALOR), 2);
-
+    for(i=0;i < DIMENSOES_PROBLEMA; i++){
+        soma += pow(p->fenotipo[i],2);
     }
 
-    return (int) sqrt(valorNumerico);
-}
-
-int funcao_de_avaliacao(short *individuo){
-
-    int x = obtem_valor_numerico_individuo(individuo);
-
-    return FUNCAO_DE_AVALIACAO(x);
+    return soma * (-1);
 }
 
 void cria_populacao_inicial(){
@@ -59,12 +97,8 @@ void cria_populacao_inicial(){
 
          for(j=0; j< TAMANHO_INDIVIDUO; j++){
 
-            populacao[i][j] = rand() % 2;
-            //printf("%d", populacao[i][j] );
+            populacao[i].genotipo[j] = rand() % 2;
         }
-
-        //populacao[i][j] =  '\0';
-        //printf("%d,\n", funcao_de_avaliacao(populacao[i]));
     }
 }
 
@@ -72,15 +106,11 @@ void avalia_populacao(){
 
     int i;
 
-    aptidao[0][0] = aptidao[0][1] = funcao_de_avaliacao(populacao[0]);
+    for(i=0; i < TAMANHO_POPULACAO; i++){
 
-    for(i=1; i< TAMANHO_POPULACAO; i++){
+        //Avaliação do indivíduo
+        populacao[i].aptidao = funcao_de_avaliacao(&populacao[i]);
 
-        //aptidão absoluta
-        aptidao[i][0] = funcao_de_avaliacao(populacao[i]);
-
-        //aptidão acumulada
-        aptidao[i][1] = aptidao[i-1][1] + aptidao[i][0];
     }
 }
 
@@ -89,11 +119,13 @@ int soma_avaliacoes(){
     int aux = 0;
     int i;
     for(i=0;i<TAMANHO_POPULACAO;i++){
-        aux += aptidao[i][0];
+        aux += populacao[i].aptidao;
     }
 
     return aux;
 }
+
+/*
 
 int roleta() {
 	int i;
@@ -113,38 +145,43 @@ int roleta() {
 }
 
 
-int torneio(int indice_participante) {
+*/
 
-	int i, vencedor = indice_participante, aleatorio = 0;
+
+void torneio(int indice_participante, individuo *populacao, individuo *retorno) {
+
+    individuo vencedor = populacao[indice_participante];
+	int i, aleatorio = 0;
 
     //printf("----------------------Torneio %d--------------------------\n\n", indice_participante);
 
-    for(i=0; i< TAMANHO_TORNEIO; i++) {
+    for(i=0; i < TAMANHO_TORNEIO; i++) {
 
         aleatorio = rand() % TAMANHO_POPULACAO;
 
-        //printf("%d vs %d \n", aptidao[vencedor][0], aptidao[aleatorio][0]);
-
-        if(aptidao[aleatorio][0]>aptidao[vencedor][0]){
-            vencedor = aleatorio;
+        if(populacao[aleatorio].aptidao > vencedor.aptidao){
+            vencedor = populacao[aleatorio];
         }
 	}
 
-	//printf("Vencedor: %d \n",aptidao[vencedor][0]);
-   // printf("----------------------------------------------------------\n\n");
 
-	return vencedor;
+	for(i=0;i< TAMANHO_INDIVIDUO;i++){
+        retorno->genotipo[i] = vencedor.genotipo[i];
+	}
+
 }
 
 /*
     Adiciona o i-ésimo indivíduo na população
 */
-void adiciona_individuo(short *populacao, short *individuo){
+void adiciona_individuo(individuo *individuo, int indice){
 
     int j;
     for(j=0;j<TAMANHO_INDIVIDUO;j++){
-        populacao[j] = individuo[j];
+        copia_populacao[indice].genotipo[j] = individuo->genotipo[j];
     }
+
+    copia_populacao[indice].aptidao = individuo->aptidao;
 }
 
 /*
@@ -156,52 +193,70 @@ void adiciona_individuo(short *populacao, short *individuo){
     até se obter uma população de tamanho TAMANHO_POPULACAO
 */
 
-short filho1[TAMANHO_INDIVIDUO];
-short filho2[TAMANHO_INDIVIDUO];
+individuo pai1,pai2,filho1,filho2;
+
+
+int compara_individuo(const void* a, const void* b){
+
+    individuo* p1 = (individuo*)a;
+    individuo* p2 = (individuo*)b;
+
+    return p1->aptidao < p2->aptidao;
+}
+
 
 void cria_nova_geracao(){
 
-     int i,j;
-
-     //Copia a geração atual para a matriz copia_populacao
-     for(i=0;i<TAMANHO_POPULACAO;i++)
-        for(j=0;j<TAMANHO_INDIVIDUO;j++)
-            copia_populacao[i][j] = populacao[i][j];
-
+     int i;
 
      for(i=0;i<TAMANHO_POPULACAO-1;i++) {
 
         //Seleção
-		short* pai1 = copia_populacao[torneio(i)];
-        short* pai2 = copia_populacao[torneio(i+1)];
-
-        //short* pai1 = copia_populacao[roleta()];
-        //short* pai2 = copia_populacao[roleta()];
+		torneio(i,   populacao, &pai1);
+        torneio(i+1, populacao, &pai2);
 
         //Recombinação
-        recombinacao(pai1, pai2, filho1, filho2, TAXA_DE_RECOMBINACAO);
+        recombinacao(&pai1, &pai2, &filho1, &filho2, TAXA_DE_RECOMBINACAO);
 
         //Mutação
-		mutacao(filho1, TAXA_DE_MUTACAO);
-		mutacao(filho2, TAXA_DE_MUTACAO);
+		mutacao(&filho1, TAXA_DE_MUTACAO);
+		mutacao(&filho2, TAXA_DE_MUTACAO);
 
-		//printf("\n\n\nFilhos: %d e %d \n\n\n", funcao_de_avaliacao(filho1), funcao_de_avaliacao(filho2) );
 
-        //Adiciona os novos indivíduos na população
-        adiciona_individuo(populacao[i], filho1);
-        adiciona_individuo(populacao[++i], filho2);
-	}
+        filho1.aptidao = funcao_de_avaliacao(&filho1);
+        filho2.aptidao = funcao_de_avaliacao(&filho2);
+
+        adiciona_individuo(&filho1,i);
+        adiciona_individuo(&filho2,++i);
+	 }
+
+	 //Ordena a geração atual
+     qsort(populacao, TAMANHO_POPULACAO, sizeof(individuo), (int(*)(const void*, const void*))compara_individuo);
+
+     //Ordena a nova geração
+     qsort(copia_populacao, TAMANHO_POPULACAO, sizeof(individuo), (int(*)(const void*, const void*))compara_individuo);
+
+     //Mantém a elite e substitui o restante pelos melhores da nova geração
+     int j = 0, l;
+     for(i = ELITE; i < TAMANHO_POPULACAO;i++,j++){
+
+        for(l=0;l<TAMANHO_INDIVIDUO;l++){
+            populacao[i].genotipo[l] = copia_populacao[j].genotipo[l];
+        }
+
+     }
 }
 
-int obtem_mais_apto(){
 
-    int mais_apto = aptidao[0][0];
+long obtem_mais_apto(){
+
+    long mais_apto = populacao[0].aptidao;
     int i;
 
     for(i=1;i<TAMANHO_POPULACAO;i++){
 
-        if(aptidao[i][0]>mais_apto){
-            mais_apto = aptidao[i][0];
+        if(populacao[i].aptidao > mais_apto){
+            mais_apto = populacao[i].aptidao;
         }
     }
 
@@ -210,24 +265,13 @@ int obtem_mais_apto(){
 
 void exibe_dados_geracao(){
 
-    int mais_apto = aptidao[0][0];
-    int i;
-
     printf("---------------------------------");
     printf("\nGeracao %d: \n", n);
 
-    printf("%d \n", aptidao[0][0]);
+    long mais_apto = obtem_mais_apto();
 
-    for(i=1;i<TAMANHO_POPULACAO;i++){
 
-        if(aptidao[i][0]>mais_apto){
-            mais_apto = aptidao[i][0];
-        }
-
-        printf("%d \n",aptidao[i][0]);
-    }
-
-    printf("\nMelhor da geracao %d: %d\n", n, mais_apto);
+    printf("\nMelhor da geracao: %d: %ld\n", n, mais_apto);
     printf("---------------------------------");
 }
 
@@ -235,7 +279,6 @@ void exibe_dados_geracao(){
 void AG(){
 
     srand(3);
-
     cria_populacao_inicial();
 
     for(;;){
@@ -251,6 +294,5 @@ void AG(){
         }
 
         n++;
-
     }
 }

@@ -1,8 +1,9 @@
 #include<stdlib.h>
+#include "representacao.h"
 #include "parametros_ag.h"
 #include <stdio.h>
 
-void mutacao(short* individuo, double chance){
+void mutacao(individuo * p, double chance){
 
     int i;
 
@@ -12,13 +13,12 @@ void mutacao(short* individuo, double chance){
         float aleatorio = (float)rand()/RAND_MAX;
 
         if (aleatorio<chance) {
-           individuo[i] = (individuo[i]+1)%2;
+           p->genotipo[i] = (p->genotipo[i] +1)%2;
         }
-
     }
 }
 
-void crossover_um_ponto(short *pai1, short*pai2, short*filho1, short*filho2){
+void crossover_um_ponto(individuo *pai1, individuo *pai2, individuo *filho1, individuo *filho2){
 
     int i;
 
@@ -26,17 +26,17 @@ void crossover_um_ponto(short *pai1, short*pai2, short*filho1, short*filho2){
     int ponto = rand() % (TAMANHO_INDIVIDUO);
 
     for(i=0;i<=ponto;i++){
-       filho1[i] = pai1[i];
-       filho2[i] = pai2[i];
+       filho1->genotipo[i] = pai1->genotipo[i];
+       filho2->genotipo[i] = pai2->genotipo[i];
     }
 
      for(i=ponto;i<TAMANHO_INDIVIDUO;i++){
-       filho1[i] = pai2[i];
-       filho2[i] = pai1[i];
+       filho1->genotipo[i] = pai2->genotipo[i];
+       filho2->genotipo[i] = pai1->genotipo [i];
     }
 }
 
-void recombinacao(short *pai1, short*pai2, short*filho1, short*filho2, double chance){
+void recombinacao(individuo *pai1, individuo*pai2, individuo*filho1, individuo*filho2, double chance){
 
     //gera um número entre 0 e 1
     double aleatorio = (float)rand()/RAND_MAX;
@@ -46,11 +46,11 @@ void recombinacao(short *pai1, short*pai2, short*filho1, short*filho2, double ch
     }
     else{
 
-         int j;
+        int j;
 
-         for(j=0;j<TAMANHO_INDIVIDUO;j++){
-           filho1[j] = pai1[j];
-           filho2[j] = pai2[j];
+        for(j=0;j<TAMANHO_INDIVIDUO;j++){
+           filho1->genotipo[j] = pai1->genotipo[j];
+           filho2->genotipo[j] = pai2->genotipo[j];
         }
 
     }
