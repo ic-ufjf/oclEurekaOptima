@@ -4,6 +4,9 @@
 int main()
 {
 
+    #ifdef ASDF
+        printf("ASDF");
+    #endif
 
 
 
