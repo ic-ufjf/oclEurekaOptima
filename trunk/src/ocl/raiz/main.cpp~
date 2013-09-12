@@ -1,0 +1,95 @@
+#define __CL_ENABLE_EXCEPTIONS
+#include <iostream>
+#include <CL/cl.hpp>
+#include <vector>
+#include <utility>
+#include <cstdlib>
+#include <math.h>
+
+#define N 20
+
+using namespace std;
+
+const char * kernel_srt = "__kernel void "
+                          "raiz(__global const float *x, __global float *y) "
+                          "{ "
+                          "    int i = get_global_id(0); "
+                          "    y[i] = sqrt(x[i]); "
+                         "}";
+
+void raiz_sequencial(const float  *x, float * y, int tamanho ){
+
+    for(int i=0; i<tamanho;i++)
+        for(int j=0;j<N;j++)  y[i] = sqrt(x[i]);
+
+}
+
+void raiz_paralelo(float *x, float *y, const int elementos){
+
+    //descobrir e escolher plataformas e dispositivos
+    vector<cl::Platform> plataformas;
+    vector<cl::Device> dispositivos;
+
+    cl::Platform::get(&plataformas);
+
+    plataformas[1].getDevices(CL_DEVICE_TYPE_ALL, &dispositivos);
+
+    //Cria o contexto
+    cl::Context contexto(dispositivos);
+
+    cl::CommandQueue fila(contexto, dispositivos[0]);
+
+    cl::Program::Sources fonte(1, make_pair(kernel_srt, strlen(kernel_srt)));
+    cl::Program programa(contexto, fonte);
+
+    programa.build(vector<cl::Device>());
+
+    cl::Kernel kernel(programa, "raiz");
+
+    cl::Buffer bufferX(contexto, CL_MEM_READ_ONLY, elementos * sizeof(float));
+    cl::Buffer bufferY(contexto, CL_MEM_WRITE_ONLY, elementos * sizeof(float));
+
+    fila.enqueueWriteBuffer(bufferX, CL_TRUE,0, elementos * sizeof(float), x);
+
+    //Execução do kernel
+    kernel.setArg(0, bufferX);
+    kernel.setArg(1, bufferY);
+
+    fila.enqueueNDRangeKernel(kernel, cl::NDRange(), cl::NDRange(elementos), cl::NDRange());
+
+    //bloqueia e espera a finalização da execução do kernel
+    fila.finish();
+
+    //Transferência dos resultados para o hospedeiro
+    fila.enqueueReadBuffer(bufferY, CL_TRUE, 0, elementos * sizeof(float), y);
+
+}
+
+
+int main(int argc, char * argv[])
+{
+    const int elementos = atoi(argv[1]);
+
+    char tipo;
+
+    if(argc>2) tipo = argv[2][0];
+    else tipo = 'p';
+
+    //Inicialização
+    float * x = new float[elementos];
+
+    for(int i=0;i<elementos; ++i) x[i] = i;
+
+    float * y = new float[elementos];
+
+    if(tipo == 'p') raiz_paralelo(x,y, elementos);
+
+    else raiz_sequencial(x,y,elementos);
+
+    //Impressão dos resultados
+    for(int i=0;i<elementos;++i) cout << '[' << y[i] << ']'; cout<< endl;
+
+    delete[] x,y;
+
+    return 0;
+}
