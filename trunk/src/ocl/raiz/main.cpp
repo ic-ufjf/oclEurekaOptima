@@ -53,7 +53,7 @@ void raiz_paralelo(float *x, float *y, const int elementos){
     kernel.setArg(0, bufferX);
     kernel.setArg(1, bufferY);
 
-    fila.enqueueNDRangeKernel(kernel, cl::NDRange(), cl::NDRange(elementos), cl::NDRange());
+    fila.enqueueNDRangeKernel(kernel, cl::NDRange(), cl::NDRange(elementos), cl::NullRange);
 
     //bloqueia e espera a finalização da execução do kernel
     fila.finish();

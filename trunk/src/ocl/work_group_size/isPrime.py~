@@ -1,0 +1,8 @@
+def isPrime(x):
+    for y in range(2,x):
+        if x % y == 0:
+            print 'Nao eh primo (divisivel por %s, = %s)', y, x/y
+	    return
+    print 'Eh primo'
+
+isPrime(317)

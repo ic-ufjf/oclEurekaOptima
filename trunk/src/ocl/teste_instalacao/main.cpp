@@ -82,7 +82,7 @@ void DisplayPlatformInfo(
      DisplayPlatformInfo(
        platformIds[i], CL_PLATFORM_VERSION, "CL_PLATFORM_VERSION");
      DisplayPlatformInfo(
-       platformIds[i], CL_PLATFORM_VENDOR, "CL_PLATFORM_VENDOR");
+       platformIds[i], CL_DEVICE_LOCAL_MEM_SIZE, "CL_DEVICE_LOCAL_MEM_SIZE");
      DisplayPlatformInfo(
        platformIds[i],
        CL_PLATFORM_EXTENSIONS,
