@@ -8,7 +8,7 @@ t = zeros(len(t2))
 for i in range(0,len(t)):
     t[i] = i+1
 
-title('Reducao paralela')
+title('Reducao paralela - CPU')
 
 plot(t, t1, 'r-')
 legend(['Grupos'])
