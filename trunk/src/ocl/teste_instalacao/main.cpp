@@ -1,5 +1,5 @@
  #include <iostream>
- #include <CL/cl.hpp>
+ #include <CL/cl.h>
  #include <boost/foreach.hpp>
 
 void DisplayPlatformInfo(
@@ -83,6 +83,8 @@ void DisplayPlatformInfo(
        platformIds[i], CL_PLATFORM_VERSION, "CL_PLATFORM_VERSION");
      DisplayPlatformInfo(
        platformIds[i], CL_DEVICE_LOCAL_MEM_SIZE, "CL_DEVICE_LOCAL_MEM_SIZE");
+DisplayPlatformInfo(
+       platformIds[i], CL_DEVICE_LOCAL_MEM_SIZE, "CL_DEVICE_DOUBLE_FP_CONFIG");
      DisplayPlatformInfo(
        platformIds[i],
        CL_PLATFORM_EXTENSIONS,

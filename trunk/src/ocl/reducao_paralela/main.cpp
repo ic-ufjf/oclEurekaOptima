@@ -2,8 +2,8 @@
 #include <iostream>
 #include <fstream>
 #include<sstream>
-#include<string>
-#include <CL/cl.hpp>
+#include<string.h>
+#include <CL/cl.h>
 #include <vector>
 #include <utility>
 #include <cstdlib>
@@ -20,22 +20,6 @@ std::string LoadKernel()
     ss << file.rdbuf();
     return ss.str();
 }
-
-int max_compute_units(cl::Device device){
-
-    return device.getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>();
-
-}
-
-void ExibeInformacoesDispositivo(cl::Device device){
-
-     cout << "-----------------------------------------------------------" << endl;
-     cout<<"\nPlatform: "<< device.getInfo<CL_DEVICE_NAME>() << endl;
-     cout<<"Max Compute units: "<< device.getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>() << endl;
-     cout<<"Max Work group size: "<< device.getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>() << endl;
-     cout << "\n-----------------------------------------------------------\n" << endl;
-}
-
 
 void soma_paralela(int *x, const int elementos){
 
@@ -71,31 +55,32 @@ void soma_paralela(int *x, const int elementos){
 
     error=clBuildProgram(prog, 0, NULL, "", NULL, NULL);
 
-     if (error != CL_SUCCESS) {
+    if (error != CL_SUCCESS) {
         printf("\n Error number %d", error);
     }
 
-     cl_mem mem1;
-     mem1=clCreateBuffer(context, CL_MEM_READ_WRITE, elementos * sizeof(int), NULL, &error);
+    cl_mem mem1;
+    mem1=clCreateBuffer(context, CL_MEM_READ_WRITE, elementos * sizeof(int), NULL, &error);
 
-     //mem1=clCreateBuffer(context, CL_MEM_READ_WRITE, elementos , NULL, &error);
+    cl_mem mem2;
+    mem2=clCreateBuffer(context, CL_MEM_READ_WRITE, elementos * sizeof(int), NULL, &error);
 
-     error=clEnqueueWriteBuffer(cq, mem1, CL_TRUE, 0,  elementos * sizeof(int), x, 0, NULL, &event1);
+    error=clEnqueueWriteBuffer(cq, mem1, CL_TRUE, 0,  elementos * sizeof(int), x, 0, NULL, &event1);
 
-     cl_kernel k =clCreateKernel(prog, "soma", &error);
+    cl_kernel k =clCreateKernel(prog, "soma", &error);
 
-     error = clSetKernelArg(k, 0,  sizeof(mem1), &mem1);
-     error = clSetKernelArg(k, 1,  sizeof(mem1), NULL);
+    error = clSetKernelArg(k, 0, sizeof(mem1), &mem1);
+    error = clSetKernelArg(k, 1, sizeof(cl_int)*elementos*2, NULL);
+     
+    error=clEnqueueNDRangeKernel(cq, k, 1, NULL, &worksize, &worksize, 0, NULL, &event2);
 
-     error=clEnqueueNDRangeKernel(cq, k, 1, NULL, &worksize, &worksize, 0, NULL, &event2);
+    error=clEnqueueReadBuffer(cq, mem1, CL_TRUE, 0,  elementos * sizeof(int), x, 0, NULL, &event3);
 
-     error=clEnqueueReadBuffer(cq, mem1, CL_TRUE, 0,  elementos * sizeof(int), x, 0, NULL, &event3);
+    clFinish(cq);
 
-     clFinish(cq);
+    clWaitForEvents(1 , &event3);
 
-     clWaitForEvents(1 , &event3);
-
-     cl_ulong time_start, time_end;
+    cl_ulong time_start, time_end;
 
      double total_time=0;
      int global = elementos;
@@ -138,7 +123,6 @@ int soma_seq(int *x, int tamanho){
 int main(int argc, char * argv[])
 {
 
-
     const int elementos = atoi(argv[1]);
 
    // cout << "--------------------------------" << endl;
@@ -148,7 +132,7 @@ int main(int argc, char * argv[])
     //Inicialização
     int * x = new int[elementos];
 
-    for(int i=0;i<elementos; ++i) x[i] = i+1;
+    for(int i=0;i<elementos; i++) x[i] = i+1;
 
     int valor_seq = soma_seq(x,elementos);
 
@@ -159,7 +143,7 @@ int main(int argc, char * argv[])
 
     //cout << "Soma: " << x[0] << ", soma sequencial = "  << valor_seq << endl;
 
-    //if(x[0] != valor_seq) cout << "Soma incorreta" << endl;
+    if(x[0] != valor_seq) cout << "Soma incorreta" << endl;
 
 
 

@@ -1,23 +1,18 @@
 import numpy as np
 from matplotlib.pylab import *
 
-t1   = np.genfromtxt("logGruposGPU.txt",delimiter="\n")
-t2   = np.genfromtxt("logTwoStageGPU1.txt",delimiter="\n")
+t1   = np.genfromtxt("logFloatGPUGrupos.txt",delimiter="\n")
+t2   = np.genfromtxt("logFloatTwoStageGPU.txt",delimiter="\n")
 t3   = np.genfromtxt("logCUDA.txt", delimiter = "\n");
-
-print len(t1), len(t3)
-
-print t1
-
+t4   = np.genfromtxt("logCudaTwoStageFloat.txt", delimiter = "\n");
 
 t = zeros(len(t1))
 for i in range(0,len(t)):
     t[i] = i+1
     
-title('Reducao paralela - GPU')
+title('Reducao paralela - GPU (float)')
 
 plot(t, t1, 'r-')
-legend(['Grupos'])
 hold('on')
 
 plot(t, t2, 'b-')
@@ -26,13 +21,16 @@ hold('on')
 plot(t, t3, 'g-')
 hold('on')
 
+plot(t, t4, 'y-')
+hold('on')
+
 
 xlabel('tamanho')
 ylabel('tempo (ms)')
 
 
-legend(['Grupos (OpenCL)','Two stage(OpenCL)', 'Grupos (CUDA)'])
-savefig('reducao_paralela_gpus.png')
+legend(['Grupos (OpenCL)','Two stage(OpenCL)', 'Grupos (CUDA)', 'Two Stage (CUDA)'])
+savefig('reducao_paralela_gpus_float.png')
     
 show()
 

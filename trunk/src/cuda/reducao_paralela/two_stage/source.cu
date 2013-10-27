@@ -1,0 +1,117 @@
+#include <iostream>
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include<stdlib.h>
+#include<stdio.h>
+#define min(a,b) (a<b?a:b)
+
+const int threadsPerBlock = 256;
+int blocksPerGrid = 32;
+
+__global__ void reduce(float *data, float *output, int N){	
+  
+ __shared__ float scratch[threadsPerBlock];		
+	
+    int global_index = threadIdx.x + blockIdx.x * blockDim.x;
+    int local_index  = threadIdx.x;			
+	
+    //if(global_index >= N) return;  
+
+    float   soma_bloco = 0;
+    while (global_index < N) {
+        soma_bloco += data[global_index];					
+        global_index += blockDim.x * gridDim.x;			
+    }   
+    
+     scratch[local_index] = soma_bloco;
+    __syncthreads();		
+    
+    //Redução paralela
+
+    int i = blockDim.x/2;	
+    while (i != 0) {
+        if (local_index < i && local_index+i < N )
+            scratch[local_index] += scratch[local_index + i];
+        __syncthreads();
+        i /= 2;
+    }
+
+    if (local_index == 0)
+        output[blockIdx.x] = scratch[0];
+
+}
+
+float soma_seq(float *x, int tamanho){
+    int i;
+    float sum=0;
+    for(i=0;i<tamanho;i++) {
+
+        sum+=x[i];
+    }
+
+    return sum;
+}
+
+int main(int argc, char * argv[])
+{
+        const int N = atoi(argv[1]);
+	
+	blocksPerGrid = min(32, (N+threadsPerBlock-1) / threadsPerBlock);
+	
+	float *a, *b;
+	int size = N;
+	float *dev_a, *dev_b; int *dev_size;
+
+	a = (float*)malloc(N*sizeof(float));
+	b = (float*)malloc(N*sizeof(float));
+	
+	
+	cudaMalloc( (void**)&dev_a, N * sizeof(float) );
+	cudaMalloc( (void**)&dev_b, N * sizeof(float) );
+	cudaMalloc( (void**)&dev_size,  sizeof(int) );
+
+	for (int i=0; i<N; i++ ){
+	    a[i]= 1.0f; b[i] = 0;
+	 }
+
+	float valor_seq = soma_seq(a, N);
+
+	float time;
+	cudaEvent_t start, stop;
+
+	cudaEventCreate(&start);
+	cudaEventCreate(&stop);
+	cudaEventRecord(start, 0);
+
+	cudaMemcpy (dev_a,a, N*sizeof(float), cudaMemcpyHostToDevice);
+        cudaMemcpy (dev_b,b, N*sizeof(float), cudaMemcpyHostToDevice);
+        cudaMemcpy (dev_size, &size, 1*sizeof(int), cudaMemcpyHostToDevice);
+
+	reduce<<<blocksPerGrid, threadsPerBlock>>>(dev_a, dev_b, size);
+
+	cudaMemcpy(b, dev_b, blocksPerGrid*sizeof(float), cudaMemcpyDeviceToHost);
+	
+	float soma = 0;
+
+	//Segundo estágio da redução
+        for (int i=0; i<blocksPerGrid; i++) {
+		soma += b[i];
+	}
+
+	cudaEventRecord(stop, 0);
+	cudaEventSynchronize(stop);
+	cudaEventElapsedTime(&time, start, stop);
+
+	printf("%.10f\n", time);
+
+	if(soma != valor_seq)
+            printf("Soma incorreta\n");
+
+	//printf("Soma: %f\n", soma);       
+
+
+	cudaFree(dev_a);
+	cudaFree(dev_b);
+
+	return 0;
+}

@@ -2,8 +2,8 @@
 #include <iostream>
 #include <fstream>
 #include<sstream>
-#include<string>
-#include <CL/cl.hpp>
+#include<string.h>
+#include <CL/cl.h>
 #include <vector>
 #include <utility>
 #include <cstdlib>
@@ -23,29 +23,22 @@ std::string LoadKernel()
 
 int local_size, global_size;
 
+int get_max_compute_units(cl_device_id device){
 
-int get_max_compute_units(cl::Device device){
-    return device.getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>();
-}
+  char buffer[10240];
+  cl_uint buf_uint;
+  cl_ulong buf_ulong;
 
-int get_max_work_group_size(cl::Device device){
-    return device.getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>();
-}
+  clGetDeviceInfo(device, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(buf_uint), &buf_uint, NULL);
+	
+  int next_power_of_2 = (int)pow( (float)2.0, (int) ceil( log2( (float) buf_uint ) ) );
 
-
-void ExibeInformacoesDispositivo(cl::Device device){
-
-     cout << "-----------------------------------------------------------" << endl;
-     cout<<"\nPlatform: "<< device.getInfo<CL_DEVICE_NAME>() << endl;
-     cout<<"Max Compute units: "<< device.getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>() << endl;
-     cout<<"Max Work group size: "<< device.getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>() << endl;
-     cout << "\n-----------------------------------------------------------\n" << endl;
+  return next_power_of_2;
 }
 
 void soma_paralela(int *x, const int elementos){
 
-
-     cl_int error;
+    cl_int error;
     cl_platform_id platform;
     cl_device_id device;
     cl_uint platforms, devices;
@@ -57,7 +50,7 @@ void soma_paralela(int *x, const int elementos){
             printf("\n Error number %d", error);
     }
 
-    error=clGetDeviceIDs(platform, CL_DEVICE_TYPE_ALL, 1, &device, &devices);
+    error= clGetDeviceIDs(platform, CL_DEVICE_TYPE_ALL, 1, &device, &devices);
 
     cl_context_properties properties[]={
                 CL_CONTEXT_PLATFORM, (cl_context_properties)platform, 0};
@@ -77,32 +70,30 @@ void soma_paralela(int *x, const int elementos){
 
     error=clBuildProgram(prog, 0, NULL, "", NULL, NULL);
 
-     if (error != CL_SUCCESS) {
-        printf("\n Error number %d", error);
-    }
+    cl_mem mem1;
+    mem1=clCreateBuffer(context, CL_MEM_READ_WRITE, elementos * sizeof(int), NULL, &error);
 
+    error=clEnqueueWriteBuffer(cq, mem1, CL_TRUE, 0,  elementos * sizeof(int), x, 0, NULL, &event1);
 
-     cl_mem mem1;
-     mem1=clCreateBuffer(context, CL_MEM_READ_WRITE, elementos * sizeof(int), NULL, &error);
-
-     //mem1=clCreateBuffer(context, CL_MEM_READ_WRITE, elementos , NULL, &error);
-
-     error=clEnqueueWriteBuffer(cq, mem1, CL_TRUE, 0,  elementos * sizeof(int), x, 0, NULL, &event1);
-
-     cl_kernel k =clCreateKernel(prog, "reduce", &error);
-
+    cl_kernel k =clCreateKernel(prog, "reduce", &error);
 
     int compute_units  = get_max_compute_units(device);
-    int max_group_size = get_max_work_group_size(device);
+    //int max_group_size = get_max_work_group_size(device);
 
     //Execução do kernel
     clSetKernelArg(k,0, sizeof(mem1), &mem1);
-    clSetKernelArg(k,1, sizeof(int)*elementos, NULL);
+
+    //O vetor local será alocado com o número de elementos igual ao número de compute units,
+    //pois será utilizado somente na segunda etapa do algoritmo, que é uma redução paralela;
+
+    //compute_units = std::min(compute_units, elementos);
+
+    clSetKernelArg(k,1, sizeof(int)*compute_units, NULL);
     clSetKernelArg(k,2, sizeof(elementos), &elementos);
     clSetKernelArg(k,3, sizeof(mem1), &mem1);
 
     worksize = (size_t)compute_units;
-
+	
     error=clEnqueueNDRangeKernel(cq, k, 1, NULL, &worksize, &worksize, 0, NULL, &event2);
 
     error=clEnqueueReadBuffer(cq, mem1, CL_TRUE, 0,  elementos * sizeof(int), x, 0, NULL, &event3);
@@ -117,12 +108,12 @@ void soma_paralela(int *x, const int elementos){
     int global = elementos;
 
     clGetEventProfilingInfo(event1, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, NULL);
-    clGetEventProfilingInfo(event1, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
+    clGetEventProfilingInfo(event1, CL_PROFILING_COMMAND_END,   sizeof(time_end),   &time_end,   NULL);
 
     total_time += time_end - time_start;
 
     clGetEventProfilingInfo(event2, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, NULL);
-    clGetEventProfilingInfo(event2, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
+    clGetEventProfilingInfo(event2, CL_PROFILING_COMMAND_END,   sizeof(time_end),   &time_end, NULL);
 
     total_time += time_end - time_start;
 
@@ -134,7 +125,7 @@ void soma_paralela(int *x, const int elementos){
     //Tempo em milisegundos
     total_time = total_time / 1000000.0;
 
-    printf("Tempo: %0.10f", total_time);
+    printf("%0.10f", total_time);
 }
 
 int soma_sequencial(int *x, int elementos){
@@ -153,7 +144,7 @@ int main(int argc, char * argv[])
     //Inicialização
     int * x = new int[elementos];
 
-    for(int i=0;i<elementos; ++i) x[i] = i+1;
+    for(int i=0;i<elementos; ++i) x[i] = 1;
 
     int valor = soma_sequencial(x, elementos);
 
@@ -163,7 +154,7 @@ int main(int argc, char * argv[])
     //for(int i=0;i<elementos;++i) cout << '[' << x[i] << ']'; cout<< endl;
 
     if(x[0] == valor){
-        cout << endl << x[0] << endl;
+        //cout << endl << x[0] << endl;
     }
     else cout << "Soma incorreta. (" << x[0] << ") em vez de (" << valor<< ")" <<endl;
 
