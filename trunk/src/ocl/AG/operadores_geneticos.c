@@ -3,7 +3,7 @@
 #include "parametros_ag.h"
 #include <stdio.h>
 
-void mutacao(individuo * p, double chance){
+void mutacao(individuo * p, float chance){
 
     int i;
 
@@ -17,6 +17,7 @@ void mutacao(individuo * p, double chance){
         }
     }
 }
+
 
 void crossover_um_ponto(individuo *pai1, individuo *pai2, individuo *filho1, individuo *filho2){
 
@@ -36,4 +37,22 @@ void crossover_um_ponto(individuo *pai1, individuo *pai2, individuo *filho1, ind
     }
 }
 
+void recombinacao(individuo *pai1, individuo*pai2, individuo*filho1, individuo* filho2, float chance){
 
+    //gera um número entre 0 e 1
+    double aleatorio = (float)rand()/RAND_MAX;
+
+    if (aleatorio<chance) {
+        crossover_um_ponto(pai1, pai2,filho1, filho2);
+    }
+    else{
+
+        int j;
+
+        for(j=0;j<TAMANHO_INDIVIDUO;j++){
+           filho1->genotipo[j] = pai1->genotipo[j];
+           filho2->genotipo[j] = pai2->genotipo[j];
+        }
+
+    }
+}

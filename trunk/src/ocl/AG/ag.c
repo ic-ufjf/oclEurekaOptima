@@ -8,20 +8,19 @@
 
 int n = 1;
 
-int binario_para_decimal(individuo *p, int inicio, int fim){
+int binario_para_decimal(short *binarios, int inicio, int fim){
 
     int i,n=1; int valorNumerico=0;
 
     for(i=fim-1; i>=inicio; i--, n=n<<1){
 
-        valorNumerico += n*((int)p->genotipo_binario[i]);
-
+        valorNumerico += n*(binarios[i]);
     }
 
     return valorNumerico;
 }
 
-void binario_para_inteiro(int *binarios, int *inteiros){
+void binario_para_inteiro(short *binarios, short *inteiros){
 
     int start,n,i, j;
 
@@ -37,7 +36,7 @@ void binario_para_inteiro(int *binarios, int *inteiros){
     }
 }
 
-void gray_para_binario(int *gray, int*binarios){
+void gray_para_binario(short *gray, short*binarios){
 
         int i,j;
 
@@ -56,16 +55,18 @@ void gray_para_binario(int *gray, int*binarios){
         }
 }
 
+short genotipo_binario[TAMANHO_INDIVIDUO], fenotipo[DIMENSOES_PROBLEMA];
+
 void obtem_fenotipo_individuo(individuo *p){
 
     int i, j=0;
 
-    gray_para_binario(p->genotipo, p->genotipo_binario);
+    gray_para_binario(p->genotipo, genotipo_binario);
     //binario_para_inteiro(p->genotipo_binario, p->fenotipo);
 
     for(i=0; i<DIMENSOES_PROBLEMA; i++, j+=TAMANHO_VALOR){
 
-       p->fenotipo[i] = binario_para_decimal(p, j, j+TAMANHO_VALOR);
+       fenotipo[i] = binario_para_decimal(genotipo_binario, j, j+TAMANHO_VALOR);
 
     }
 }
@@ -99,7 +100,7 @@ int funcao_de_avaliacao(individuo *p){
     int i;
 
     for(i=0;i < DIMENSOES_PROBLEMA; i++){
-        soma += (int)pow(p->fenotipo[i], 2);
+        soma += (int)pow(fenotipo[i], 2);
     }
 
     return soma * (-1);
@@ -112,12 +113,8 @@ void cria_populacao_inicial(individuo * pop){
     for(i=0; i < TAMANHO_POPULACAO; i++){
 
          for(j=0; j< TAMANHO_INDIVIDUO; j++){
-
             pop[i].genotipo[j] = rand() % 2;
-            //if(i==0)
-            //printf(" %d ", pop[i].genotipo[j] );
         }
-
        // printf("\n");
     }
 }
@@ -179,6 +176,17 @@ void adiciona_individuo(individuo *p, individuo * pop, int indice){
 }
 
 /*
+ Função utilizada pelo qsort para ordenar a população segundo a aptidão.
+*/
+int compara_individuo(const void* a, const void* b){
+
+    individuo* p1 = (individuo*)a;
+    individuo* p2 = (individuo*)b;
+
+    return p1->aptidao < p2->aptidao;
+}
+
+/*
     Cria uma nova geração, através dos passos:
     1)Seleção;
     2)Recombinação;
@@ -188,17 +196,6 @@ void adiciona_individuo(individuo *p, individuo * pop, int indice){
 */
 
 individuo pai1,pai2,filho1,filho2;
-
-/*
- Função utilizada pelo qsort para ordenar a população segunda a aptidão.
-*/
-int compara_individuo(const void* a, const void* b){
-
-    individuo* p1 = (individuo*)a;
-    individuo* p2 = (individuo*)b;
-
-    return p1->aptidao < p2->aptidao;
-}
 
 void cria_nova_geracao(individuo * pop, individuo * pop_copia){
 
@@ -222,7 +219,7 @@ void cria_nova_geracao(individuo * pop, individuo * pop_copia){
 
         adiciona_individuo(&filho1,pop_copia, i);
         adiciona_individuo(&filho2,pop_copia, ++i);
-	 }
+    }
 
 	 //Ordena a geração atual
      qsort(pop, TAMANHO_POPULACAO, sizeof(individuo), (int(*)(const void*, const void*))compara_individuo);
@@ -263,7 +260,6 @@ void exibe_dados_geracao(individuo * pop){
     printf("\nGeracao %d: \n", n);
 
     int mais_apto = obtem_mais_apto(pop);
-
 
     printf("\nMelhor da geracao: %d: %d\n", n, mais_apto);
     printf("---------------------------------");

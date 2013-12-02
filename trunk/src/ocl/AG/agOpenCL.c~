@@ -9,8 +9,9 @@
 #include <utility>
 #include <cstdlib>
 #include <math.h>
-#include <sys/time.h>
 #include "representacao.h"
+
+#include "include/CLRadixSort.hpp"
 
 using namespace std;
 
@@ -22,13 +23,6 @@ std::string LoadKernel(std::string fileName)
     std::stringstream ss;
     ss << file.rdbuf();
     return ss.str();
-}
-
-double getRealTime()
-{
-    struct timeval tv;
-    gettimeofday(&tv,0);
-    return (double)tv.tv_sec + 1.0e-6*(double)tv.tv_usec;
 }
 
 template<class T> inline std::string ToString( const T& t )
@@ -51,7 +45,7 @@ cl_command_queue cmdQueue;
 cl_context context = NULL;
 cl_device_id * devices = NULL;
 cl_uint numDevices = 0;
-cl_kernel kernelIteracao, kernelInicializacao, kernelSubstituicao;
+cl_kernel kernelIteracao, kernelInicializacao;
 
 size_t globalWorkSize[1], localWorkSize;
 size_t datasize;
@@ -254,13 +248,6 @@ void initializeOpenCL(){
         exit(EXIT_FAILURE);
     }
 
-    kernelSubstituicao = clCreateKernel(program, "substituicao", &status);
-
-    if(status != CL_SUCCESS){
-        cout << "Erro ao criar o kernel 'substituicao'. (Erro " << status << ")" << endl;
-        exit(EXIT_FAILURE);
-    }
-
 	//---------------------------------------------
 	// 8: Argumentos do kernel
 	//---------------------------------------------
@@ -299,61 +286,6 @@ void elitismo(individuo *pop, individuo *newPop){
      }
 }
 
-void elitismoOpenCL(individuo *pop){
-
-    status = clSetKernelArg(kernelSubstituicao, 0, sizeof(bufferA), &bufferA);
-    status = clSetKernelArg(kernelSubstituicao, 1, sizeof(bufferB), &bufferB);
-    status = clSetKernelArg(kernelSubstituicao, 2, sizeof(bufferC), &bufferC);
-
-    #ifdef PROFILING
-
-    double start = getRealTime();
-
-    #endif
-
-    clEnqueueNDRangeKernel(cmdQueue,
-                           kernelSubstituicao,
-                           1,
-                           NULL,
-                           globalWorkSize,
-                           NULL,
-                           0,
-                           NULL,
-                           NULL);
-
-   clFinish(cmdQueue);
-
-   /*
-    Troca os buffers A e C, de forma que a população gerada na última iteração do AG
-    passe a ser a população atual
-   */
-
-   cl_mem aux = bufferA;
-   bufferA = bufferC;
-   bufferC = aux;
-
-   clEnqueueReadBuffer(cmdQueue,
-						bufferA,
-						CL_TRUE,
-						0,
-						datasize,
-						pop,
-						0,
-						NULL,
-						&event3);
-
-   clFinish(cmdQueue);
-
-   #ifdef PROFILING
-
-   double end = getRealTime();
-
-   printf("\n Tempo de substituicao: %.10f  \n", end-start);
-
-   #endif
-
-}
-
 individuo newPop[TAMANHO_INDIVIDUO];
 
 /*
@@ -361,7 +293,7 @@ individuo newPop[TAMANHO_INDIVIDUO];
 */
 void iteracao(individuo * populacao){
 
-    int seed = geracao * TAMANHO_POPULACAO + rand();
+    int seed = geracao* TAMANHO_POPULACAO;
 
     status = clSetKernelArg(kernelIteracao,
 							0,
@@ -389,7 +321,7 @@ void iteracao(individuo * populacao){
 	//---------------------------------------------
 
 	//Transfere os dados da população para o bufferA
-	/*status = clEnqueueWriteBuffer(cmdQueue,
+	status = clEnqueueWriteBuffer(cmdQueue,
 								  bufferA,
 								  CL_TRUE,
 								  0,
@@ -398,8 +330,6 @@ void iteracao(individuo * populacao){
 								  0,
 								  NULL,
 								  &event1);
-
-    */
 
 
     if(status != CL_SUCCESS){
@@ -411,13 +341,11 @@ void iteracao(individuo * populacao){
 	// 11: Enfileira o kernel para execução
 	//---------------------------------------------
 
-    size_t global_size[1] = {TAMANHO_POPULACAO/2};
-
 	status = clEnqueueNDRangeKernel(cmdQueue,
 									kernelIteracao,
 									1,
                                     NULL,
-									global_size,
+									globalWorkSize,
 									NULL,
 									0,
 									NULL,
@@ -432,17 +360,15 @@ void iteracao(individuo * populacao){
 	// 12: Leitura dos dados após o término da execução
 	//-------------------------------------------------
 
-	/*clEnqueueReadBuffer(cmdQueue,
+	clEnqueueReadBuffer(cmdQueue,
 						bufferB,
 						CL_TRUE,
 						0,
 						datasize,
-						//sizeof(individuo),
 						newPop,
 						0,
 						NULL,
 						&event3);
-*/
 
     //Espera o término da fila de execução
 	clFinish(cmdQueue);
@@ -460,13 +386,22 @@ void iteracao(individuo * populacao){
     //Tempo em milisegundos
     total_time = total_time / 1000000.0;
 
+    static CLRadixSort rs(context, device, cmdQueue);
+
+    printf("---------------------------------");
+    rs.Resize(2000);
+    rs.Sort();
+
+    rs.RecupGPU();
+
+    cout << rs.sort_time << " s total GPU time (without memory transfers)"<<endl;
+    // check the results (debugging)
+    rs.Check();
+
     printf("---------------------------------");
 
     //elitismo(populacao, newPop);
-
-    elitismoOpenCL(populacao);
 }
-
 
 void exibe_geracao(individuo * pop){
 
@@ -486,8 +421,8 @@ void inicializa_populacao(individuo * pop){
 
     status = clSetKernelArg(kernelInicializacao,
 							0,
-							sizeof(bufferA),
-							&bufferA);
+							sizeof(bufferC),
+							&bufferC);
 
     status = clSetKernelArg(kernelInicializacao,
 							1,
@@ -496,7 +431,7 @@ void inicializa_populacao(individuo * pop){
 
     //Transfere os dados da população para o bufferA
 	status = clEnqueueWriteBuffer(cmdQueue,
-								  bufferA,
+								  bufferC,
 								  CL_TRUE,
 								  0,
 								  datasize,
@@ -517,8 +452,8 @@ void inicializa_populacao(individuo * pop){
 									&event2);
 
 
-    clEnqueueReadBuffer(cmdQueue,
-						bufferA,
+	clEnqueueReadBuffer(cmdQueue,
+						bufferC,
 						CL_TRUE,
 						0,
 						datasize,
@@ -526,7 +461,6 @@ void inicializa_populacao(individuo * pop){
 						0,
 						NULL,
 						&event3);
-
 
     //Espera o término da fila de execução
 	clFinish(cmdQueue);
@@ -554,24 +488,10 @@ void ag_paralelo(individuo * pop){
     inicializa_populacao(pop);
     geracao++;
 
-    while(geracao< NUMERO_DE_GERACOES){
-
-        #ifdef PROFILING
-        double start = getRealTime();
-        //exibePopulacao(pop);
-        #endif
-
+    while( geracao< NUMERO_DE_GERACOES){
         exibe_geracao(pop);
         //exibePopulacao(pop);
         iteracao(pop);
         geracao++;
-
-        #ifdef PROFILING
-
-         double end = getRealTime();
-
-         printf("\n Tempo de execucao da iteracao do AG: %.10f  \n", end-start);
-
-       #endif
     }
 }

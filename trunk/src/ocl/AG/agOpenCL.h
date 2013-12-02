@@ -6,7 +6,6 @@
 //OpenCL includes
 #include <CL/cl.h>
 
-
 /*
   Etapa de inicialização do OpenCL:
   1)Descoberta e inicialização da(s) plataforma(s)
@@ -20,7 +19,5 @@ void initializeOpenCL();
   Executa o kernel de avaliação
 */
 void avaliacao(individuo * pop);
-
-
 
 #endif // AGOPENCL_H_INCLUDED

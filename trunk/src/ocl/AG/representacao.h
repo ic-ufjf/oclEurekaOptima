@@ -5,12 +5,9 @@
 
 typedef struct{
 
-    int genotipo[TAMANHO_INDIVIDUO],
-        genotipo_binario[TAMANHO_INDIVIDUO],
-        fenotipo[DIMENSOES_PROBLEMA],
-        aptidao;
+    short genotipo[TAMANHO_INDIVIDUO];
+    int aptidao;
 
 } individuo;
-
 
 #endif // REPRESENTACAO_H_INCLUDED
