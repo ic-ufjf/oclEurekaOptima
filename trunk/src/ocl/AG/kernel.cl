@@ -15,7 +15,6 @@ void obtem_fenotipo_individuo(short gray[], short fenotipo[]){
     }
 }
 
-
 int funcao_de_avaliacao(individuo p, short fenotipo[]){    
 
     obtem_fenotipo_individuo(p.genotipo, fenotipo);
@@ -31,19 +30,13 @@ int funcao_de_avaliacao(individuo p, short fenotipo[]){
     return soma*(-1);
 }
 
-void inicializa_individuo(individuo pop, cburng4x32 *rng){
-
-    for(int j=0; j< TAMANHO_INDIVIDUO; j++){
-        pop.genotipo[j] = rand(rng) % 2;           
-    }
-}
 
 int torneio(int indice_participante, individuo *populacao, cburng4x32 *rng) {	
 
     int vencedor = indice_participante % (TAMANHO_POPULACAO);
     int i, aleatorio = 0;
     
-    while( i < TAMANHO_TORNEIO) {
+    while(i < TAMANHO_TORNEIO) {
 
         aleatorio = rand(rng) % (TAMANHO_POPULACAO);
 		
@@ -72,7 +65,8 @@ void crossover_um_ponto(individuo *pai1, individuo *pai2, individuo *filho1, ind
     for(i=ponto;i<TAMANHO_INDIVIDUO;i++){
        filho1->genotipo[i] = pai2->genotipo[i];
        filho2->genotipo[i] = pai1->genotipo[i];
-    }
+ 
+   }
 }
 
 void recombinacao(individuo *pai1, individuo *pai2, individuo *filho1, individuo *filho2, float chance, cburng4x32 *rng){
@@ -142,7 +136,7 @@ __kernel void iteracao(__global individuo *pop, const int geracao, int fixed_see
     rng.ctr.v[0] = tid;
     
     /*
-        Seleção
+	Seleção
     */
 
     individuo pai1, pai2, filho1, filho2;
@@ -154,13 +148,13 @@ __kernel void iteracao(__global individuo *pop, const int geracao, int fixed_see
     pai2 = pop[indicePai2];
 	
     /*
-        Recombinação
+	Recombinação
     */ 	
 
     recombinacao(&pai1, &pai2, &filho1, &filho2, TAXA_DE_RECOMBINACAO, &rng);	
   
     /*
-       Mutação
+	Mutação
     */
 	
     mutacao(&filho1, TAXA_DE_MUTACAO, &rng);

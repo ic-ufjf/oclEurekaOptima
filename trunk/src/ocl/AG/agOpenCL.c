@@ -216,7 +216,7 @@ void initializeOpenCL(){
 
     datasize = sizeof(individuo)*TAMANHO_POPULACAO;
 
-    cout << "Datasize:" << datasize << endl;
+    //cout << "Datasize:" << datasize << endl;
 
 	bufferA = clCreateBuffer(context, CL_MEM_READ_WRITE , datasize, NULL, &status);
 	bufferC = clCreateBuffer(context, CL_MEM_READ_WRITE , datasize, NULL, &status);
@@ -276,30 +276,20 @@ void initializeOpenCL(){
 	//---------------------------------------------
 
 	globalWorkSize[0] = TAMANHO_POPULACAO;
-	localWorkSize = 1;
+    localWorkSize = 1;
 }
 
 
-void elitismo(individuo *pop, individuo *newPop){
+void exibe_melhor(individuo * melhor){
 
-     //Ordena a geração atual
-     qsort(pop, TAMANHO_POPULACAO, sizeof(individuo), (int(*)(const void*, const void*))compara_individuo);
+    printf("---------------------------------");
+    printf("\nGeracao %d: \n", geracao);
 
-     //Ordena a nova geração
-     qsort(newPop, TAMANHO_POPULACAO, sizeof(individuo), (int(*)(const void*, const void*))compara_individuo);
-
-     //Mantém a elite e substitui o restante pelos melhores da nova geração
-     int i,j = 0, l;
-     for(i = ELITE; i < TAMANHO_POPULACAO;i++,j++){
-
-        for(l=0;l<TAMANHO_INDIVIDUO;l++){
-            pop[i].genotipo[l] = newPop[j].genotipo[l];
-        }
-        pop[i].aptidao = newPop[j].aptidao;
-     }
+    printf("\nMelhor da geracao: %d: %d\n", geracao, melhor->aptidao);
 }
 
-void elitismoOpenCL(individuo *pop){
+
+void substituicao(individuo *pop){
 
     status = clSetKernelArg(kernelSubstituicao, 0, sizeof(bufferA), &bufferA);
     status = clSetKernelArg(kernelSubstituicao, 1, sizeof(bufferB), &bufferB);
@@ -321,40 +311,64 @@ void elitismoOpenCL(individuo *pop){
                            NULL,
                            NULL);
 
-   clFinish(cmdQueue);
-
    /*
-    Troca os buffers A e C, de forma que a população gerada na última iteração do AG
+    Troca os buffers A e C, de forma que a população gerada na etapa de substituição
     passe a ser a população atual
    */
-
    cl_mem aux = bufferA;
    bufferA = bufferC;
    bufferC = aux;
 
-   clEnqueueReadBuffer(cmdQueue,
-						bufferA,
-						CL_TRUE,
-						0,
-						datasize,
-						pop,
-						0,
-						NULL,
-						&event3);
+   individuo melhor1[1], melhor2[1];
+
+   size_t offset = {sizeof(individuo) * ELITE};
+
+   clEnqueueReadBuffer(cmdQueue, bufferA, CL_TRUE, 0,
+						datasize, pop,
+						0, NULL, &event3);
+
+
+   clEnqueueReadBuffer(cmdQueue, bufferA, CL_TRUE, 0,
+						sizeof(individuo), melhor1,
+						0, NULL, &event3);
+
+   clEnqueueReadBuffer(cmdQueue, bufferA, CL_TRUE, offset,
+						sizeof(individuo), melhor2,
+						0, NULL, &event3);
+
 
    clFinish(cmdQueue);
+
+
+   /*printf("Melhor1: %d \n", melhor1[0].aptidao);
+
+   for(int c=0;c< TAMANHO_INDIVIDUO;c++){
+        printf(" %d", melhor1[0].genotipo[c]);
+   }
+
+   printf("\nMelhor2: %d \n", melhor2[0].aptidao);
+
+    for(int c=0;c< TAMANHO_INDIVIDUO;c++){
+        printf(" %d", melhor2[0].genotipo[c]);
+   }
+   */
+
+   if(melhor1[0].aptidao > melhor2[0].aptidao){
+        exibe_melhor(melhor1);
+   }
+   else{
+         exibe_melhor(melhor2);
+   }
 
    #ifdef PROFILING
 
    double end = getRealTime();
-
-   printf("\n Tempo de substituicao: %.10f  \n", end-start);
+   printf("\nTempo de substituicao: %.10f  \n", end-start);
 
    #endif
-
 }
 
-individuo newPop[TAMANHO_INDIVIDUO];
+
 
 /*
     Executa o kernel de avaliação
@@ -442,31 +456,13 @@ void iteracao(individuo * populacao){
 						0,
 						NULL,
 						&event3);
-*/
+    */
 
     //Espera o término da fila de execução
 	clFinish(cmdQueue);
 
-    //-------------------------------------------------
-	// 13: Calcula o tempo de execução do kernel
-	//-------------------------------------------------
-
-    double total_time = 0;
-
-    total_time += getTempoDecorrido(event1);
-    total_time += getTempoDecorrido(event2);
-    total_time += getTempoDecorrido(event3);
-
-    //Tempo em milisegundos
-    total_time = total_time / 1000000.0;
-
-    printf("---------------------------------");
-
-    //elitismo(populacao, newPop);
-
-    elitismoOpenCL(populacao);
+    substituicao(populacao);
 }
-
 
 void exibe_geracao(individuo * pop){
 
@@ -476,7 +472,6 @@ void exibe_geracao(individuo * pop){
     int mais_apto = obtem_mais_apto(pop);
 
     printf("\nMelhor da geracao: %d: %d\n", geracao, mais_apto);
-    printf("---------------------------------");
 }
 
 
@@ -517,7 +512,7 @@ void inicializa_populacao(individuo * pop){
 									&event2);
 
 
-    clEnqueueReadBuffer(cmdQueue,
+    /*clEnqueueReadBuffer(cmdQueue,
 						bufferA,
 						CL_TRUE,
 						0,
@@ -526,7 +521,7 @@ void inicializa_populacao(individuo * pop){
 						0,
 						NULL,
 						&event3);
-
+     */
 
     //Espera o término da fila de execução
 	clFinish(cmdQueue);
@@ -554,24 +549,25 @@ void ag_paralelo(individuo * pop){
     inicializa_populacao(pop);
     geracao++;
 
-    while(geracao< NUMERO_DE_GERACOES){
+    while(geracao < NUMERO_DE_GERACOES){
 
         #ifdef PROFILING
         double start = getRealTime();
-        //exibePopulacao(pop);
+
         #endif
 
-        exibe_geracao(pop);
-        //exibePopulacao(pop);
+        //exibe_geracao(pop);
         iteracao(pop);
+
+        //exibePopulacao(pop);
+
         geracao++;
 
         #ifdef PROFILING
 
-         double end = getRealTime();
+        double end = getRealTime();
+        printf("\nTempo de execucao da iteracao do AG: %.10f  \n", end-start);
 
-         printf("\n Tempo de execucao da iteracao do AG: %.10f  \n", end-start);
-
-       #endif
+        #endif
     }
 }
