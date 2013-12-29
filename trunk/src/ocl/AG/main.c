@@ -1,5 +1,3 @@
-#define __CL_ENABLE_EXCEPTIONS
-
 //System includes
 #include <stdio.h>
 #include <time.h>
@@ -9,38 +7,48 @@
 
 //OpenCL includes
 #include <CL/cl.h>
+#define __CL_ENABLE_EXCEPTIONS
 
-int main()
+//getopt
+#include <unistd.h>
+
+int main(int argc, char * argv[])
 {
-    cout << "Avaliacao paralela do AG utilizando OpenCL" << endl;
-
-    //AG();
+    cout << "AG paralelo utilizando OpenCL" << endl;
 
     individuo populacao[TAMANHO_POPULACAO];
 
-    //avalia_populacao(populacao);
+    int pcores = 0,kernelAG=0;
+    char c;
 
-    //cria_populacao_inicial(populacao);
+    while ((c = getopt (argc, argv, "p:k:")) != -1){
 
-    //Avaliação sequencial
-    /*clock_t start = clock();
+        switch (c)
+        {
+            case 'p':
+                pcores = atoi(optarg);
+                break;
+            case 'k':
+                kernelAG = atoi(optarg);
+                break;
 
-    avalia_populacao(populacao);
+            default:
+                break;
+        }
+    }
 
-    clock_t finish = clock();
+    if(pcores>0){
+        cout << "Cores:" << pcores << endl;
+    }
+    else {
+        pcores=0;
+    }
 
-    float t_sequencial = 1000.0f*(float(finish - start)/CLOCKS_PER_SEC);
+    cout << "Kernel:" << kernelAG << endl;
 
-    printf("Tempo sequencial: %0.10f ms\n", t_sequencial);
-*/
-    //Avaliação paralela
-    //exibePopulacao(populacao);
+    ag_paralelo(populacao,pcores,kernelAG);
 
-    ag_paralelo(populacao);
-
-    //exibePopulacao(populacao);
-
-    //Verificação da avaliação paralela
+   /* //Verificação da avaliação paralela
     int i=0;
 
     for(i=0;i<TAMANHO_POPULACAO;i++){
@@ -50,11 +58,7 @@ int main()
             << funcao_de_avaliacao(&populacao[i]) << endl;
             exit(EXIT_FAILURE);
        }
-    }
-
-    //cout << soma/TAMANHO_POPULACAO << endl;
+    }*/
 
     return 0;
 }
-
-

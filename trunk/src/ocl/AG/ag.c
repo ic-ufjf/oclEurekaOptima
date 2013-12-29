@@ -91,11 +91,11 @@ void recombinacao(individuo *pai1, individuo*pai2, individuo*filho1, individuo* 
     }
 }
 
-int funcao_de_avaliacao(individuo *p){
+long funcao_de_avaliacao(individuo *p){
 
     obtem_fenotipo_individuo(p);
 
-    int soma = 0;
+    long soma = 0;
 
     int i;
 

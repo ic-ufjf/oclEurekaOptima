@@ -1,16 +1,30 @@
-#define __CL_ENABLE_EXCEPTIONS
+
 #include "agOpenCL.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string.h>
 #include <CL/cl.h>
+#include <CL/cl_ext.h>
+
+#ifndef INT64_C
+    #define INT64_C(c) (c ## LL)
+    #define UINT64_C(c) (c ## ULL)
+#endif
+
+#define KERNEL_2_POR_WORK_ITEM 0
+#define KERNEL_2_POR_WORK_GROUP 1
+#define KERNEL_N_POR_WORK_GROUP 2
+#define KERNEL_2_POR_WORK_ITEM_GRUPO_FIXO 3
+
+#include "Random123/array.h"
 #include <vector>
 #include <utility>
 #include <cstdlib>
 #include <math.h>
 #include <sys/time.h>
 #include "representacao.h"
+
 
 using namespace std;
 
@@ -47,16 +61,26 @@ cl_int status;
 
 cl_device_id device;
 
+cl_uint max_compute_units;
+
+float tempoTotal = 0;
+
+//Número de cores informado por parâmetro
+int pcores;
+
+//Kernel selecionado para as iterações do AG
+int kernelAG;
+
 cl_command_queue cmdQueue;
 cl_context context = NULL;
-cl_device_id * devices = NULL;
-cl_uint numDevices = 0;
+cl_device_id * devices = NULL, * subDevices = NULL;
+cl_uint numDevices = 0, numSubDevices=0;
 cl_kernel kernelIteracao, kernelInicializacao, kernelSubstituicao;
 
-size_t globalWorkSize[1], localWorkSize;
+size_t globalWorkSizeIteracao[1],localWorkSizeIteracao[1];
 size_t datasize;
 
-cl_mem bufferA, bufferB, bufferC;
+cl_mem bufferA, bufferB, bufferC, bufferCounter, bufferPais_local, bufferFilhos_local;
 
 //Eventos utilizados para medir o tempo de execução do kernel
 //e das trocas de memória
@@ -75,7 +99,46 @@ float getTempoDecorrido(cl_event event){
     return time_end - time_start;
 }
 
-void initializeOpenCL(){
+void CriaSubDevices(){
+
+    //-----------------------
+    // Criação dos subdevices
+    //-----------------------
+
+    status = clGetDeviceInfo(devices[0], CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &max_compute_units, NULL);
+
+    cl_uint ncores = std::min((int)max_compute_units, (int)pcores);
+
+    cout << "max comput units:" << ncores << endl;
+
+   /*
+
+ const cl_device_partition_property subdevice_properties[] =
+      { CL_DEVICE_PARTITION_BY_COUNTS,
+        ncores, 0, CL_DEVICE_PARTITION_BY_COUNTS_LIST_END, 0 };
+
+
+    cl_device_id device_ids[2];
+
+    numSubDevices=2;
+
+    status = clCreateSubDevices(devices[0], subdevice_properties, numSubDevices, devices, NULL);
+
+    device = devices[0];
+
+    if(status != CL_SUCCESS){
+        cout << "Erro ao criar os subdevices. (Erro " << status << ")" << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    */
+
+}
+
+void initializeOpenCL(int cores, int kernel){
+
+    kernelAG = kernel;
+    pcores   = cores;
 
     //---------------------------------------------
 	// 1: Descoberta e inicialização da(s) plataforma(s)
@@ -123,18 +186,24 @@ void initializeOpenCL(){
 							devices,
 							NULL);
 
-     if(status != CL_SUCCESS){
+    if(status != CL_SUCCESS){
         cout << "Erro ao tentar obter os dispositivos. (Erro " << status << ")" << endl;
         exit(EXIT_FAILURE);
     }
 
-	//---------------------------------------------
+    if(cores!=0){
+
+        CriaSubDevices();
+
+    }
+
+    //---------------------------------------------
 	// 3: Criação do contexto de execução
 	//---------------------------------------------
 
 	//Cria o contexto de execução, associando os dispositivos
 	context = clCreateContext(NULL,
-							 numDevices,
+							 1,
 						 	 devices,
 						 	 NULL,
 						 	 NULL,
@@ -146,13 +215,14 @@ void initializeOpenCL(){
     }
 
 
-	//-----------------------
-	// 4: Criaçaõ da fila de execução
-	//---------------------------------------------
+    //-----------------------
+    // 4: Criaçaõ da fila de execução
+    //---------------------------------------------
 
     device = devices[0];
 
-	cmdQueue = clCreateCommandQueue(context,
+
+    cmdQueue = clCreateCommandQueue(context,
 									device,
                                     CL_QUEUE_PROFILING_ENABLE,
 									&status);
@@ -187,10 +257,10 @@ void initializeOpenCL(){
 
 	//Cria o programa
 	cl_program program = clCreateProgramWithSource(context,
-												   1,
-												   (const char **)&kernel_srt,
-												   &programSize,
-												   &status);
+							   1,
+							   (const char **)&kernel_srt,
+							   &programSize,
+							   &status);
 
     if(status != CL_SUCCESS){
         cout << "Erro ao criar o programa. (Erro " << status << ")" << endl;
@@ -199,11 +269,11 @@ void initializeOpenCL(){
 
 	//Compilação do programa
 	status = clBuildProgram(program,
-                            numDevices,
-							devices,
-							"-I /usr/include", //Random123
-							NULL,
-							NULL);
+                            1,
+				devices,
+				"-I ./include -I /usr/include -I include/Random123 -I include/vsmc",
+				NULL,
+				NULL);
 
     if(status != CL_SUCCESS){
         cout << "Erro ao compilar o programa. (Erro " << status << ")" << endl;
@@ -216,11 +286,8 @@ void initializeOpenCL(){
 
     datasize = sizeof(individuo)*TAMANHO_POPULACAO;
 
-    //cout << "Datasize:" << datasize << endl;
-
 	bufferA = clCreateBuffer(context, CL_MEM_READ_WRITE , datasize, NULL, &status);
 	bufferC = clCreateBuffer(context, CL_MEM_READ_WRITE , datasize, NULL, &status);
-
 
     if(status != CL_SUCCESS){
         cout << "Erro ao criar buffer de memoria. (Erro " << status << ")" << endl;
@@ -228,6 +295,7 @@ void initializeOpenCL(){
     }
 
     bufferB = clCreateBuffer(context, CL_MEM_READ_WRITE , datasize, NULL, &status);
+    bufferCounter = clCreateBuffer(context, CL_MEM_READ_WRITE , TAMANHO_POPULACAO * sizeof(r123array4x32), NULL, &status);
 
 
     if(status != CL_SUCCESS){
@@ -240,7 +308,65 @@ void initializeOpenCL(){
 	//---------------------------------------------
 
 	//Cria o kernel de avaliação
-	kernelIteracao = clCreateKernel(program, "iteracao", &status);
+    size_t preferred_workgroup_size_multiple;
+
+	if(kernelAG==KERNEL_2_POR_WORK_ITEM){
+
+        kernelIteracao = clCreateKernel(program, "iteracao_2_por_work_item", &status);
+
+        globalWorkSizeIteracao[0] = TAMANHO_POPULACAO/2;
+
+    }
+
+	else if(kernelAG==KERNEL_2_POR_WORK_GROUP){
+
+        kernelIteracao = clCreateKernel(program, "iteracao_2_por_work_group", &status);
+
+        globalWorkSizeIteracao[0] = TAMANHO_POPULACAO;
+        localWorkSizeIteracao[0]  = 2;
+    }
+
+    else if(kernelAG==KERNEL_N_POR_WORK_GROUP){
+
+        kernelIteracao = clCreateKernel(program, "iteracao_n_por_work_group", &status);
+
+        //Obtém o tamanho do qual o groupsize deve ser múltiplo
+        status = clGetKernelWorkGroupInfo(kernelIteracao, device, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
+                                              sizeof(size_t), &preferred_workgroup_size_multiple, NULL);
+
+        localWorkSizeIteracao[0]  = preferred_workgroup_size_multiple;
+        globalWorkSizeIteracao[0] = ceil((float)TAMANHO_POPULACAO/localWorkSizeIteracao[0])*localWorkSizeIteracao[0];
+
+        #ifdef PROFILING
+
+        cout << "Melhor tamanho de workgroup:" << preferred_workgroup_size_multiple << endl;
+        cout << "Global worksize:" << globalWorkSizeIteracao[0] << endl;
+
+        #endif
+
+    }
+
+    else if(kernelAG == KERNEL_2_POR_WORK_ITEM_GRUPO_FIXO){
+
+        kernelIteracao = clCreateKernel(program, "iteracao_2_por_work_item_grupo_fixo", &status);
+
+        //Obtém o tamanho do qual o groupsize deve ser múltiplo
+        status = clGetKernelWorkGroupInfo(kernelIteracao, device, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
+                                              sizeof(size_t), &preferred_workgroup_size_multiple, NULL);
+
+        float numberWorkItens = TAMANHO_POPULACAO/2;
+
+        localWorkSizeIteracao[0]  = preferred_workgroup_size_multiple;
+        globalWorkSizeIteracao[0] = ceil((float)numberWorkItens/localWorkSizeIteracao[0])*localWorkSizeIteracao[0];
+
+        cout << "CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE: "  << preferred_workgroup_size_multiple << endl;
+
+    }
+
+    else{
+        cout << "Kernel invalido" << endl;
+        exit(EXIT_FAILURE);
+    }
 
     if(status != CL_SUCCESS){
         cout << "Erro ao criar o kernel. (Erro " << status << ")" << endl;
@@ -261,22 +387,6 @@ void initializeOpenCL(){
         exit(EXIT_FAILURE);
     }
 
-	//---------------------------------------------
-	// 8: Argumentos do kernel
-	//---------------------------------------------
-
-
-    if(status != CL_SUCCESS){
-        cout << "Erro ao setar os parametros do kernel. (Erro " << status << ")" << endl;
-        exit(EXIT_FAILURE);
-    }
-
-	//---------------------------------------------
-	// 9: Definição do global-size e local-size
-	//---------------------------------------------
-
-	globalWorkSize[0] = TAMANHO_POPULACAO;
-    localWorkSize = 1;
 }
 
 
@@ -284,22 +394,20 @@ void exibe_melhor(individuo * melhor){
 
     printf("---------------------------------");
     printf("\nGeracao %d: \n", geracao);
-
     printf("\nMelhor da geracao: %d: %d\n", geracao, melhor->aptidao);
 }
 
 
 void substituicao(individuo *pop){
 
+    cl_event eventoSubstituicao;
+
     status = clSetKernelArg(kernelSubstituicao, 0, sizeof(bufferA), &bufferA);
     status = clSetKernelArg(kernelSubstituicao, 1, sizeof(bufferB), &bufferB);
     status = clSetKernelArg(kernelSubstituicao, 2, sizeof(bufferC), &bufferC);
 
-    #ifdef PROFILING
+    size_t globalWorkSize[1] = {TAMANHO_POPULACAO};
 
-    double start = getRealTime();
-
-    #endif
 
     clEnqueueNDRangeKernel(cmdQueue,
                            kernelSubstituicao,
@@ -309,12 +417,13 @@ void substituicao(individuo *pop){
                            NULL,
                            0,
                            NULL,
-                           NULL);
+                           &eventoSubstituicao);
 
    /*
     Troca os buffers A e C, de forma que a população gerada na etapa de substituição
     passe a ser a população atual
    */
+
    cl_mem aux = bufferA;
    bufferA = bufferC;
    bufferC = aux;
@@ -323,10 +432,10 @@ void substituicao(individuo *pop){
 
    size_t offset = {sizeof(individuo) * ELITE};
 
-   clEnqueueReadBuffer(cmdQueue, bufferA, CL_TRUE, 0,
+   /* clEnqueueReadBuffer(cmdQueue, bufferA, CL_TRUE, 0,
 						datasize, pop,
 						0, NULL, &event3);
-
+   */
 
    clEnqueueReadBuffer(cmdQueue, bufferA, CL_TRUE, 0,
 						sizeof(individuo), melhor1,
@@ -336,44 +445,31 @@ void substituicao(individuo *pop){
 						sizeof(individuo), melhor2,
 						0, NULL, &event3);
 
-
    clFinish(cmdQueue);
-
-
-   /*printf("Melhor1: %d \n", melhor1[0].aptidao);
-
-   for(int c=0;c< TAMANHO_INDIVIDUO;c++){
-        printf(" %d", melhor1[0].genotipo[c]);
-   }
-
-   printf("\nMelhor2: %d \n", melhor2[0].aptidao);
-
-    for(int c=0;c< TAMANHO_INDIVIDUO;c++){
-        printf(" %d", melhor2[0].genotipo[c]);
-   }
-   */
 
    if(melhor1[0].aptidao > melhor2[0].aptidao){
         exibe_melhor(melhor1);
    }
    else{
-         exibe_melhor(melhor2);
+        exibe_melhor(melhor2);
    }
 
    #ifdef PROFILING
 
-   double end = getRealTime();
-   printf("\nTempo de substituicao: %.10f  \n", end-start);
+    float tempoSubs = getTempoDecorrido(eventoSubstituicao) / 1000000000.0 ;
+    tempoTotal += tempoSubs;
 
    #endif
+
 }
 
-
-
 /*
-    Executa o kernel de avaliação
+    Executa o kernel de iteracao
 */
+
 void iteracao(individuo * populacao){
+
+    cl_event eventIteracao;
 
     int seed = geracao * TAMANHO_POPULACAO + rand();
 
@@ -398,23 +494,31 @@ void iteracao(individuo * populacao){
 							sizeof(bufferB),
 							&bufferB);
 
-	//---------------------------------------------
-	// 10: Transferência dos dados do host para o dispositivo
-	//---------------------------------------------
+   status = clSetKernelArg(kernelIteracao,
+                            4,
+                            sizeof(bufferCounter),
+                            &bufferCounter);
 
-	//Transfere os dados da população para o bufferA
-	/*status = clEnqueueWriteBuffer(cmdQueue,
-								  bufferA,
-								  CL_TRUE,
-								  0,
-								  datasize,
-								  populacao,
-								  0,
-								  NULL,
-								  &event1);
 
-    */
+   if(kernelAG == KERNEL_N_POR_WORK_GROUP){
 
+          status = clSetKernelArg(kernelIteracao,
+                                  5,
+                                  localWorkSizeIteracao[0]*sizeof(individuo),
+                                  NULL);
+
+          status = clSetKernelArg(kernelIteracao,
+                                  6,
+                                  (localWorkSizeIteracao[0])*sizeof(int),
+                                  NULL);
+
+          status = clSetKernelArg(kernelIteracao,
+                                  7,
+                                  (localWorkSizeIteracao[0])*sizeof(int),
+                                  NULL);
+
+
+    }
 
     if(status != CL_SUCCESS){
         cout << "Erro ao criar buffer de memoria. (Erro " << status << ")" << endl;
@@ -425,41 +529,51 @@ void iteracao(individuo * populacao){
 	// 11: Enfileira o kernel para execução
 	//---------------------------------------------
 
-    size_t global_size[1] = {TAMANHO_POPULACAO/2};
 
-	status = clEnqueueNDRangeKernel(cmdQueue,
+    if(kernelAG == KERNEL_2_POR_WORK_ITEM){
+
+            size_t global_size[1] = {TAMANHO_POPULACAO/2};
+
+            status = clEnqueueNDRangeKernel(cmdQueue,
 									kernelIteracao,
 									1,
                                     NULL,
-									global_size,
+									globalWorkSizeIteracao,
 									NULL,
 									0,
 									NULL,
-									&event2);
+									&eventIteracao);
+
+    }
+    else{
+
+         status = clEnqueueNDRangeKernel(cmdQueue,
+									kernelIteracao,
+									1,
+                                    NULL,
+									globalWorkSizeIteracao,
+									localWorkSizeIteracao,
+									0,
+									NULL,
+									&eventIteracao);
+
+    }
+
 
     if(status != CL_SUCCESS){
         cout << "Erro ao enfileirar o kernel para execucao. (Erro " << status << ")" << endl;
         exit(EXIT_FAILURE);
     }
 
-	//-------------------------------------------------
-	// 12: Leitura dos dados após o término da execução
-	//-------------------------------------------------
-
-	/*clEnqueueReadBuffer(cmdQueue,
-						bufferB,
-						CL_TRUE,
-						0,
-						datasize,
-						//sizeof(individuo),
-						newPop,
-						0,
-						NULL,
-						&event3);
-    */
-
     //Espera o término da fila de execução
-	clFinish(cmdQueue);
+    clFinish(cmdQueue);
+
+    #ifdef PROFILING
+
+    float tempoIteracao = getTempoDecorrido(eventIteracao) / 1000000000.0 ;
+    tempoTotal += tempoIteracao;
+
+    #endif
 
     substituicao(populacao);
 }
@@ -479,6 +593,8 @@ void inicializa_populacao(individuo * pop){
 
     int seed = rand();
 
+    cl_event eventoInicializacao;
+
     status = clSetKernelArg(kernelInicializacao,
 							0,
 							sizeof(bufferA),
@@ -490,7 +606,7 @@ void inicializa_populacao(individuo * pop){
 							&seed);
 
     //Transfere os dados da população para o bufferA
-	status = clEnqueueWriteBuffer(cmdQueue,
+    status = clEnqueueWriteBuffer(cmdQueue,
 								  bufferA,
 								  CL_TRUE,
 								  0,
@@ -500,6 +616,7 @@ void inicializa_populacao(individuo * pop){
 								  NULL,
 								  &event1);
 
+    size_t globalWorkSize[1] = {TAMANHO_POPULACAO};
 
     status = clEnqueueNDRangeKernel(cmdQueue,
 									kernelInicializacao,
@@ -509,10 +626,9 @@ void inicializa_populacao(individuo * pop){
 									NULL,
 									0,
 									NULL,
-									&event2);
+									&eventoInicializacao);
 
-
-    /*clEnqueueReadBuffer(cmdQueue,
+    clEnqueueReadBuffer(cmdQueue,
 						bufferA,
 						CL_TRUE,
 						0,
@@ -521,10 +637,18 @@ void inicializa_populacao(individuo * pop){
 						0,
 						NULL,
 						&event3);
-     */
+
 
     //Espera o término da fila de execução
 	clFinish(cmdQueue);
+
+	#ifdef PROFILING
+
+    float tempoInicializacao = getTempoDecorrido(eventoInicializacao) / 1000000000.0 ;
+    tempoTotal += tempoInicializacao;
+
+    #endif
+
 }
 
 void exibePopulacao(individuo * populacao){
@@ -536,38 +660,34 @@ void exibePopulacao(individuo * populacao){
     for(i=0; i < TAMANHO_POPULACAO; i++){
 
         for(j=0; j< TAMANHO_INDIVIDUO; j++){
-            printf(" %d ", populacao[i].genotipo[j]);
+                printf(" %d ", populacao[i].genotipo[j]);
         }
         printf("---> %d  \n", populacao[i].aptidao);
     }
 }
 
-void ag_paralelo(individuo * pop){
+void ag_paralelo(individuo * pop, int pcores, int kernelAG){
 
-    initializeOpenCL();
+    initializeOpenCL(pcores, kernelAG);
 
     inicializa_populacao(pop);
     geracao++;
 
+
     while(geracao < NUMERO_DE_GERACOES){
 
-        #ifdef PROFILING
-        double start = getRealTime();
-
-        #endif
-
         //exibe_geracao(pop);
-        iteracao(pop);
-
         //exibePopulacao(pop);
+
+        iteracao(pop);
 
         geracao++;
 
-        #ifdef PROFILING
-
-        double end = getRealTime();
-        printf("\nTempo de execucao da iteracao do AG: %.10f  \n", end-start);
-
-        #endif
     }
+
+   #ifdef PROFILING
+
+       printf("Tempo total de execucao dos kernels: %.10f s\n", tempoTotal);
+
+   #endif
 }

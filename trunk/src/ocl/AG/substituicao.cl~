@@ -54,13 +54,15 @@ __kernel void substituicao(__global data_t * geracaoAtual, __global data_t * nov
  
     //Mantém a elite da geração atual
     if(pos1 < ELITE){
-        saida[pos1] = atualData;
+//        saida[pos1] = geracaoAtual[i];
     }
+
+    saida[i] = novaGeracao[i];
     
     //Substitui o elemento pelo indivíduo da geração atual.
     //No total serão substitúidos N-ELITE elementos.
     if(pos2 < n-ELITE){
-        saida[pos2+ELITE] = novaData;	
+        //saida[pos2+ELITE] = novaGeracao[i];	
     }
 
 }

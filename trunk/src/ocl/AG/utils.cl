@@ -8,8 +8,9 @@ float u_rand(cburng4x32 *rng){
     return u01_closed_closed_32_24(cburng4x32_rand(rng));
 }
 
-unsigned int rand(cburng4x32 *rng){
-    return cburng4x32_rand(rng);
+
+int rand(cburng4x32 *rng){
+    return abs((int)cburng4x32_rand(rng));
 }
 
 int binario_para_decimal(short binario[], int inicio, int fim){
