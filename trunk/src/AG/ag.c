@@ -1,4 +1,4 @@
-#include<stdio.h>
+#include <stdio.h>
 #include "representacao.h"
 #include "parametros_ag.h"
 #include "operadores_geneticos.h"
@@ -13,7 +13,7 @@ int n = 1;
 
 int binario_para_decimal(individuo *p, int inicio, int fim){
 
-    int i,n=1; long valorNumerico=0;
+    int i,n=1; int valorNumerico=0;
 
     for(i=fim-1; i>=inicio; i--, n=n<<1){
 
@@ -24,7 +24,7 @@ int binario_para_decimal(individuo *p, int inicio, int fim){
     return valorNumerico;
 }
 
-void binario_para_inteiro(short *binarios, long *inteiros){
+void binario_para_inteiro(short *binarios, short *inteiros){
 
     int start,n,i, j;
 
@@ -145,6 +145,7 @@ void torneio(int indice_participante, individuo *populacao, individuo *retorno) 
 
 }
 
+
 /*
     Adiciona o i-ésimo indivíduo na população
 */
@@ -158,6 +159,8 @@ void adiciona_individuo(individuo *individuo, int indice){
     copia_populacao[indice].aptidao = individuo->aptidao;
 }
 
+
+
 /*
     Cria uma nova geração, através dos passos:
     1)Seleção;
@@ -166,7 +169,6 @@ void adiciona_individuo(individuo *individuo, int indice){
 
     até se obter uma população de tamanho TAMANHO_POPULACAO
 */
-
 individuo pai1,pai2,filho1,filho2;
 
 
@@ -224,7 +226,7 @@ void cria_nova_geracao(){
 
 int obtem_mais_apto(){
 
-    long mais_apto = populacao[0].aptidao;
+    int mais_apto = populacao[0].aptidao;
     int i;
 
     for(i=1;i<TAMANHO_POPULACAO;i++){
@@ -239,21 +241,38 @@ int obtem_mais_apto(){
 
 void exibe_dados_geracao(){
 
-    printf("---------------------------------");
-    printf("\nGeracao %d: \n", n);
+    //printf("---------------------------------");
+    //printf("\nGeracao %d: \n", n);
 
-    long mais_apto = obtem_mais_apto();
+    int mais_apto = obtem_mais_apto();
 
+    if(mais_apto==0){
 
-    printf("\nMelhor da geracao: %d: %ld\n", n, mais_apto);
-    printf("---------------------------------");
+        printf("Geracoes para encontrar o melhor:\t%d\n",n);
+        exit(EXIT_SUCCESS);
+
+    }
+
+    //printf("\nMelhor da geracao: %d: %d\n", n, mais_apto);
+    //printf("---------------------------------");
 }
 
 
 void AG(){
 
-    srand(3);
+    int i;
+
+    //printf("RAND_MAX=%d", RAND_MAX);
+
+    for(i = 0;i< 9999999; i++){
+    //    printf("%d\n", rand());
+    }
+
+    //exit(EXIT_SUCCESS);
+
     cria_populacao_inicial();
+
+    //exit(EXIT_SUCCESS);
 
     for(;;){
 

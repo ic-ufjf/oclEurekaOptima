@@ -9,8 +9,8 @@ struct Individuo{
 
     short genotipo[TAMANHO_INDIVIDUO];
     short genotipo_binario[TAMANHO_INDIVIDUO];
-    long fenotipo[DIMENSOES_PROBLEMA];
-    long aptidao;
+    int fenotipo[DIMENSOES_PROBLEMA];
+    int aptidao;
 };
 
 
