@@ -12,11 +12,13 @@
 //getopt
 #include <unistd.h>
 
+
+#define NUM 30000
+
 int main(int argc, char * argv[])
 {
-    cout << "AG paralelo utilizando OpenCL" << endl;
-
-    individuo populacao[TAMANHO_POPULACAO];
+    //cout << "AG paralelo utilizando OpenCL" << endl;
+  individuo populacao[TAMANHO_POPULACAO];
 
     int pcores = 0,kernelAG=0;
     char c;
@@ -38,17 +40,19 @@ int main(int argc, char * argv[])
     }
 
     if(pcores>0){
-        cout << "Cores:" << pcores << endl;
+      //  cout << "Cores:" << pcores << endl;
     }
     else {
         pcores=0;
     }
 
-    cout << "Kernel:" << kernelAG << endl;
+    //cout << "Kernel:" << kernelAG << endl;
 
     ag_paralelo(populacao,pcores,kernelAG);
 
-   /* //Verificação da avaliação paralela
+    //AG();
+
+    //Verificação da avaliação paralela
     int i=0;
 
     for(i=0;i<TAMANHO_POPULACAO;i++){
@@ -58,7 +62,7 @@ int main(int argc, char * argv[])
             << funcao_de_avaliacao(&populacao[i]) << endl;
             exit(EXIT_FAILURE);
        }
-    }*/
+    }
 
     return 0;
 }

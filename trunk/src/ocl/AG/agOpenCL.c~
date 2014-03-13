@@ -15,6 +15,8 @@
 #define KERNEL_2_POR_WORK_ITEM 0
 #define KERNEL_2_POR_WORK_GROUP 1
 #define KERNEL_N_POR_WORK_GROUP 2
+#define KERNEL_2_POR_WORK_ITEM_GRUPO_FIXO 3
+#define KERNEL_1_POR_WORK_ITEM 4
 
 #include "Random123/array.h"
 #include <vector>
@@ -23,7 +25,6 @@
 #include <math.h>
 #include <sys/time.h>
 #include "representacao.h"
-
 
 using namespace std;
 
@@ -61,6 +62,8 @@ cl_int status;
 cl_device_id device;
 
 cl_uint max_compute_units;
+
+float tempoTotal = 0;
 
 //Número de cores informado por parâmetro
 int pcores;
@@ -106,15 +109,14 @@ void CriaSubDevices(){
 
     cl_uint ncores = std::min((int)max_compute_units, (int)pcores);
 
-   cout << "max comput units:" << ncores;
+    cout << "max comput units:" << ncores << endl;
 
    /*
-   
- const cl_device_partition_property subdevice_properties[] =
+
+    const cl_device_partition_property subdevice_properties[] =
       { CL_DEVICE_PARTITION_BY_COUNTS,
         ncores, 0, CL_DEVICE_PARTITION_BY_COUNTS_LIST_END, 0 };
 
-  	
     cl_device_id device_ids[2];
 
     numSubDevices=2;
@@ -152,10 +154,10 @@ void initializeOpenCL(int cores, int kernel){
 	//Obtém as plataformas
 	status = clGetPlatformIDs(numPlatforms, platforms, NULL);
 
-    if(status != CL_SUCCESS){
-        cout << "Erro ao tentar obter as plataformas. (Erro " << status << ")" << endl;
-        exit(EXIT_FAILURE);
-    }
+        if(status != CL_SUCCESS){
+		cout << "Erro ao tentar obter as plataformas. (Erro " << status << ")" << endl;
+		exit(EXIT_FAILURE);
+         }
 
 	//---------------------------------------------
 	// 2: Descoberta e inicialização do(s) dispositivo(s)
@@ -283,11 +285,8 @@ void initializeOpenCL(int cores, int kernel){
 
     datasize = sizeof(individuo)*TAMANHO_POPULACAO;
 
-    //cout << "Datasize:" << datasize << endl;
-
 	bufferA = clCreateBuffer(context, CL_MEM_READ_WRITE , datasize, NULL, &status);
 	bufferC = clCreateBuffer(context, CL_MEM_READ_WRITE , datasize, NULL, &status);
-
 
     if(status != CL_SUCCESS){
         cout << "Erro ao criar buffer de memoria. (Erro " << status << ")" << endl;
@@ -307,18 +306,22 @@ void initializeOpenCL(int cores, int kernel){
 	// 7: Criação do kernel
 	//---------------------------------------------
 
+
 	//Cria o kernel de avaliação
     size_t preferred_workgroup_size_multiple;
 
 	if(kernelAG==KERNEL_2_POR_WORK_ITEM){
 
         kernelIteracao = clCreateKernel(program, "iteracao_2_por_work_item", &status);
-
-        globalWorkSizeIteracao[0] = TAMANHO_POPULACAO;
-        localWorkSizeIteracao [0] = 0;
+        globalWorkSizeIteracao[0] = TAMANHO_POPULACAO/2;
 
     }
+    else if(kernelAG==KERNEL_1_POR_WORK_ITEM){
 
+        kernelIteracao = clCreateKernel(program, "iteracao_1_por_work_item", &status);
+        globalWorkSizeIteracao[0] = TAMANHO_POPULACAO;
+
+    }
 	else if(kernelAG==KERNEL_2_POR_WORK_GROUP){
 
         kernelIteracao = clCreateKernel(program, "iteracao_2_por_work_group", &status);
@@ -340,16 +343,34 @@ void initializeOpenCL(int cores, int kernel){
 
         #ifdef PROFILING
 
-        cout << "Melhor tamanho de workgroup:" << preferred_workgroup_size_multiple << endl;
-        cout << "Global worksize:" << globalWorkSizeIteracao[0] << endl;
+        //cout << "Melhor tamanho de workgroup:" << preferred_workgroup_size_multiple << endl;
+        //cout << "Global worksize:" << globalWorkSizeIteracao[0] << endl;
 
         #endif
-
     }
+
+    else if(kernelAG == KERNEL_2_POR_WORK_ITEM_GRUPO_FIXO){
+
+        kernelIteracao = clCreateKernel(program, "iteracao_2_por_work_item_grupo_fixo", &status);
+
+        //Obtém o tamanho do qual o groupsize deve ser múltiplo
+        status = clGetKernelWorkGroupInfo(kernelIteracao, device, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
+                                              sizeof(size_t), &preferred_workgroup_size_multiple, NULL);
+
+        float numberWorkItens = TAMANHO_POPULACAO/2;
+
+        localWorkSizeIteracao[0]  = preferred_workgroup_size_multiple;
+        globalWorkSizeIteracao[0] = ceil((float)numberWorkItens/localWorkSizeIteracao[0])*localWorkSizeIteracao[0];
+
+        //cout << "CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE: "  << preferred_workgroup_size_multiple << endl;
+    }
+
     else{
         cout << "Kernel invalido" << endl;
         exit(EXIT_FAILURE);
     }
+
+    cout << "Teste" << endl;
 
     if(status != CL_SUCCESS){
         cout << "Erro ao criar o kernel. (Erro " << status << ")" << endl;
@@ -370,6 +391,8 @@ void initializeOpenCL(int cores, int kernel){
         exit(EXIT_FAILURE);
     }
 
+ cout << "Teste" << endl;
+
 }
 
 
@@ -381,7 +404,7 @@ void exibe_melhor(individuo * melhor){
 }
 
 
-float substituicao(individuo *pop){
+void substituicao(individuo *pop){
 
     cl_event eventoSubstituicao;
 
@@ -389,14 +412,8 @@ float substituicao(individuo *pop){
     status = clSetKernelArg(kernelSubstituicao, 1, sizeof(bufferB), &bufferB);
     status = clSetKernelArg(kernelSubstituicao, 2, sizeof(bufferC), &bufferC);
 
-
-    #ifdef PROFILING
-
-    double start = getRealTime();
-
-    #endif
-
     size_t globalWorkSize[1] = {TAMANHO_POPULACAO};
+
 
 
     clEnqueueNDRangeKernel(cmdQueue,
@@ -422,10 +439,10 @@ float substituicao(individuo *pop){
 
    size_t offset = {sizeof(individuo) * ELITE};
 
-   clEnqueueReadBuffer(cmdQueue, bufferA, CL_TRUE, 0,
+   /* clEnqueueReadBuffer(cmdQueue, bufferA, CL_TRUE, 0,
 						datasize, pop,
 						0, NULL, &event3);
-
+   */
 
    clEnqueueReadBuffer(cmdQueue, bufferA, CL_TRUE, 0,
 						sizeof(individuo), melhor1,
@@ -441,26 +458,23 @@ float substituicao(individuo *pop){
         exibe_melhor(melhor1);
    }
    else{
-         exibe_melhor(melhor2);
+        exibe_melhor(melhor2);
    }
 
    #ifdef PROFILING
 
-   //double end = getRealTime();
-   //printf("\nTempo de substituicao: %.10f  \n", end-start);
+    float tempoSubs = getTempoDecorrido(eventoSubstituicao) / 1000000000.0 ;
+    tempoTotal += tempoSubs;
 
    #endif
-   
-   return getTempoDecorrido(eventoSubstituicao) / 1000000000.0;
-
 
 }
 
 /*
-    Executa o kernel de avaliação
+    Executa o kernel de iteracao
 */
 
-float iteracao(individuo * populacao){
+void iteracao(individuo * populacao){
 
     cl_event eventIteracao;
 
@@ -492,7 +506,6 @@ float iteracao(individuo * populacao){
                             sizeof(bufferCounter),
                             &bufferCounter);
 
-
    if(kernelAG == KERNEL_N_POR_WORK_GROUP){
 
           status = clSetKernelArg(kernelIteracao,
@@ -522,23 +535,22 @@ float iteracao(individuo * populacao){
 	// 11: Enfileira o kernel para execução
 	//---------------------------------------------
 
+    cout << "Teste2" << endl;
 
-    if(kernelAG==KERNEL_2_POR_WORK_ITEM){
+    if(kernelAG == KERNEL_2_POR_WORK_ITEM || kernelAG == KERNEL_1_POR_WORK_ITEM){
 
-            size_t global_size[1] = {TAMANHO_POPULACAO/2};
-
-            status = clEnqueueNDRangeKernel(cmdQueue,
+        status = clEnqueueNDRangeKernel(cmdQueue,
 									kernelIteracao,
 									1,
                                     NULL,
-									global_size,
+									globalWorkSizeIteracao,
 									NULL,
 									0,
 									NULL,
 									&eventIteracao);
 
     }
-    else if(kernelAG==KERNEL_2_POR_WORK_GROUP){
+    else{
 
          status = clEnqueueNDRangeKernel(cmdQueue,
 									kernelIteracao,
@@ -551,23 +563,6 @@ float iteracao(individuo * populacao){
 									&eventIteracao);
 
     }
-    else if(kernelAG==KERNEL_N_POR_WORK_GROUP){
-
-
-         cout << "GLOBAL: " << globalWorkSizeIteracao[0] << ", LOCAL:  " << localWorkSizeIteracao[0] << endl;
-
-         status = clEnqueueNDRangeKernel(cmdQueue,
-									kernelIteracao,
-									1,
-                                    NULL,
-									globalWorkSizeIteracao,
-									localWorkSizeIteracao,
-									0,
-									NULL,
-									&eventIteracao);
-
-    }
-
 
     if(status != CL_SUCCESS){
         cout << "Erro ao enfileirar o kernel para execucao. (Erro " << status << ")" << endl;
@@ -577,11 +572,16 @@ float iteracao(individuo * populacao){
     //Espera o término da fila de execução
     clFinish(cmdQueue);
 
-    float tempoIteracao = getTempoDecorrido(eventIteracao) / 1000000000.0 ;
-    
-    //printf("Tempo iteracao: %.10f \n", tempoIteracao);
+    #ifdef PROFILING
 
-    return tempoIteracao + substituicao(populacao);
+    float tempoIteracao = getTempoDecorrido(eventIteracao) / 1000000000.0 ;
+    tempoTotal += tempoIteracao;
+
+    #endif
+
+
+
+    substituicao(populacao);
 }
 
 void exibe_geracao(individuo * pop){
@@ -594,9 +594,12 @@ void exibe_geracao(individuo * pop){
     printf("\nMelhor da geracao: %d: %d\n", geracao, mais_apto);
 }
 
+
 void inicializa_populacao(individuo * pop){
 
     int seed = rand();
+
+    cl_event eventoInicializacao;
 
     status = clSetKernelArg(kernelInicializacao,
 							0,
@@ -629,8 +632,7 @@ void inicializa_populacao(individuo * pop){
 									NULL,
 									0,
 									NULL,
-									&event2);
-
+									&eventoInicializacao);
 
     clEnqueueReadBuffer(cmdQueue,
 						bufferA,
@@ -645,6 +647,14 @@ void inicializa_populacao(individuo * pop){
 
     //Espera o término da fila de execução
 	clFinish(cmdQueue);
+
+	#ifdef PROFILING
+
+    float tempoInicializacao = getTempoDecorrido(eventoInicializacao) / 1000000000.0 ;
+    tempoTotal += tempoInicializacao;
+
+    #endif
+
 }
 
 void exibePopulacao(individuo * populacao){
@@ -658,7 +668,7 @@ void exibePopulacao(individuo * populacao){
         for(j=0; j< TAMANHO_INDIVIDUO; j++){
                 printf(" %d ", populacao[i].genotipo[j]);
         }
-        printf("---> %d  \n", populacao[i].aptidao);
+        printf("---> %d \n", populacao[i].aptidao);
     }
 }
 
@@ -669,32 +679,17 @@ void ag_paralelo(individuo * pop, int pcores, int kernelAG){
     inicializa_populacao(pop);
     geracao++;
 
-    float tempoTotal = 0;
-
     while(geracao < NUMERO_DE_GERACOES){
 
-        #ifdef PROFILING
-        double start = getRealTime();
-
-        #endif
-        //exibePopulacao(pop);
-
-        exibe_geracao(pop);
-        float tempoIteracao = iteracao(pop);
-     
-        tempoTotal+=tempoIteracao;
-
+        iteracao(pop);
         geracao++;
 
-        #ifdef PROFILING
-
-        // double end = getRealTime();
-        // printf("\nTempo de execucao da iteracao do AG: %.10f  \n", end-start);
-
-        #endif
     }
-    
-   printf("Tempo total de execucao dos kernels: %.10f s\n", tempoTotal);
 
+   #ifdef PROFILING
 
+       printf("Tempo total: \t %.10f\n", tempoTotal);
+
+   #endif
 }
+

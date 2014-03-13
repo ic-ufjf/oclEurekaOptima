@@ -40,13 +40,12 @@ void crossover_um_ponto(individuo *pai1, individuo *pai2, individuo *filho1, ind
 void recombinacao(individuo *pai1, individuo*pai2, individuo*filho1, individuo* filho2, float chance){
 
     //gera um número entre 0 e 1
-    double aleatorio = (float)rand()/RAND_MAX;
+    float aleatorio = (float)rand()/RAND_MAX;
 
     if (aleatorio<chance) {
         crossover_um_ponto(pai1, pai2,filho1, filho2);
     }
     else{
-
         int j;
 
         for(j=0;j<TAMANHO_INDIVIDUO;j++){

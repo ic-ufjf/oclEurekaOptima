@@ -38,21 +38,21 @@ void binario_para_inteiro(short *binarios, short *inteiros){
 
 void gray_para_binario(short *gray, short*binarios){
 
-        int i,j;
+    int i,j;
 
-        for(i=0; i< TAMANHO_INDIVIDUO; i++){
-            binarios[i] = gray[i];
-        }
+    for(i=0; i< TAMANHO_INDIVIDUO; i++){
+        binarios[i] = gray[i];
+    }
 
-        int start;
-        int end = 0;
-        for (j = 0; j < DIMENSOES_PROBLEMA; j++) {
-            start = end;
-            end += TAMANHO_VALOR;
-            for (i = start + 1; i < end; i++) {
-                binarios[i] = binarios[i - 1] ^ binarios[i];
-            }
+    int start;
+    int end = 0;
+    for (j = 0; j < DIMENSOES_PROBLEMA; j++) {
+        start = end;
+        end += TAMANHO_VALOR;
+        for (i = start + 1; i < end; i++) {
+            binarios[i] = binarios[i - 1] ^ binarios[i];
         }
+    }
 }
 
 short genotipo_binario[TAMANHO_INDIVIDUO], fenotipo[DIMENSOES_PROBLEMA];
@@ -71,36 +71,16 @@ void obtem_fenotipo_individuo(individuo *p){
     }
 }
 
-void recombinacao(individuo *pai1, individuo*pai2, individuo*filho1, individuo* filho2, double chance){
-
-    //gera um número entre 0 e 1
-    double aleatorio = (float)rand()/RAND_MAX;
-
-    if (aleatorio<chance) {
-        crossover_um_ponto(pai1, pai2,filho1, filho2);
-    }
-    else{
-
-        int j;
-
-        for(j=0;j<TAMANHO_INDIVIDUO;j++){
-           filho1->genotipo[j] = pai1->genotipo[j];
-           filho2->genotipo[j] = pai2->genotipo[j];
-        }
-
-    }
-}
-
-long funcao_de_avaliacao(individuo *p){
+int funcao_de_avaliacao(individuo *p){
 
     obtem_fenotipo_individuo(p);
 
-    long soma = 0;
+    int soma = 0;
 
     int i;
 
     for(i=0;i < DIMENSOES_PROBLEMA; i++){
-        soma += (int)pow(fenotipo[i], 2);
+        soma += (int)pow(fenotipo[i]-10, 2);
     }
 
     return soma * (-1);

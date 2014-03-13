@@ -1,4 +1,4 @@
-#include <vsmc/opencl/urng.h>
+#include "vsmc/opencl/urng.h"
 
 /*
    Gera uma distribuição uniforme entre 0 e 1 (inclusive)

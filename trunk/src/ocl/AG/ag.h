@@ -6,7 +6,7 @@
 
 void obtem_fenotipo_individuo(individuo *i);
 
-long funcao_de_avaliacao(individuo *i);
+int funcao_de_avaliacao(individuo *i);
 
 void cria_populacao_inicial(individuo * pop);
 
