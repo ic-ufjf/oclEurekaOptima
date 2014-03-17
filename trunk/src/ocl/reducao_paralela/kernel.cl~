@@ -26,7 +26,7 @@ __kernel void soma(__global int *E, __local int *EP){
 
     int lo_id = get_local_id(0);
     int gr_id = get_group_id(0);
-    int s = next_power_of_2/2;
+    int s = nexasdasdt_power_of_2/2;
 
     EP[lo_id] = E[lo_id];
     EP[lo_id+s] = E[lo_id+s];

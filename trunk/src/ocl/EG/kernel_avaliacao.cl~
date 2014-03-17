@@ -1,0 +1,223 @@
+#include "representacao.h"
+#include <vsmc/opencl/urng.h>
+
+/*
+   Gera uma distribuição uniforme entre 0 e 1 (inclusive)
+*/
+float u_rand(cburng4x32 *rng){
+
+    return u01_closed_closed_32_24(cburng4x32_rand(rng));
+
+}
+
+
+unsigned int rand(cburng4x32 *rng){
+    return cburng4x32_rand(rng);
+}
+
+int binario_para_decimal(short binario[], int inicio, int fim){
+
+    int i,n=1; int valorNumerico=0;
+
+    for(i=fim-1; i>=inicio; i--, n=n<<1){
+        valorNumerico += n*((int)binario[i]);
+    }
+
+    return valorNumerico;
+}
+
+void binario_para_inteiro(short binarios[], short inteiros[]){
+
+    int start,n,i, j;
+
+    int end = 0;
+    for (j = 0; j < TAMANHO_INDIVIDUO; j++) {
+        inteiros[j] = 0;
+        start = end;
+        end += TAMANHO_VALOR;
+        n=1;
+        for (i = start; i < end; i++, n=n<<1) {
+            inteiros[j] += binarios[i] * n;
+        }
+    }
+}
+
+void gray_para_binario(short gray[], short binarios[]){
+
+        int i,j;
+
+        for(i=0; i< TAMANHO_INDIVIDUO; i++){
+            binarios[i] = gray[i];
+        }
+
+        int start;
+        int end = 0;
+        for (j = 0; j < DIMENSOES_PROBLEMA; j++) {
+            start = end;
+            end += TAMANHO_VALOR;
+            for (i = start + 1; i < end; i++) {
+                binarios[i] = binarios[i - 1] ^ binarios[i];
+            }
+        }
+}
+
+
+void obtem_fenotipo_individuo(short gray[], short binario[], short fenotipo[]){
+
+    int i, j=0;
+
+    gray_para_binario(gray, binario);
+   
+    for(i=0; i<DIMENSOES_PROBLEMA; i++, j+=TAMANHO_VALOR){
+
+       fenotipo[i] = binario_para_decimal(binario, j, j+TAMANHO_VALOR);
+    }
+}
+
+
+int funcao_de_avaliacao(individuo p, short binario[], short fenotipo[]){    
+
+    obtem_fenotipo_individuo(p.genotipo, binario, fenotipo);
+
+    int soma = 0;
+
+    int i;
+
+    for(i=0;i < DIMENSOES_PROBLEMA; i++){
+        soma += (int)pow((float)fenotipo[i], 2);
+    }
+
+    return soma*(-1);
+}
+
+
+void init_pop(individuo pop, cburng4x32 *rng){
+
+    for(int j=0; j< TAMANHO_INDIVIDUO; j++){
+        pop.genotipo[j] = rand(rng) % 2;           
+    }
+}
+
+
+int torneio(int indice_participante, individuo *populacao, cburng4x32 *rng) {
+
+    int vencedor = indice_participante % TAMANHO_POPULACAO;
+    int i, aleatorio = 0;
+
+    for(i=0; i < TAMANHO_TORNEIO; i++) {
+
+        aleatorio = (int) (rand(rng) % TAMANHO_POPULACAO);
+		
+        if(populacao[aleatorio].aptidao > populacao[vencedor].aptidao){
+            vencedor = aleatorio;
+        }
+    }
+
+    return vencedor;
+}
+
+void crossover_um_ponto(individuo *pai1, individuo *pai2, individuo *filho, cburng4x32 *rng){
+
+    int i;
+
+    //Gera número entre 0 e TAMANHO_INDIVIDUO-1
+    int ponto = rand(rng) % (TAMANHO_INDIVIDUO);
+
+    for(i=0;i<=ponto;i++){
+       filho->genotipo[i] = pai1->genotipo[i];      
+    }
+
+    for(i=ponto;i<TAMANHO_INDIVIDUO;i++){
+       filho->genotipo[i] = pai2->genotipo[i];
+    }
+}
+
+void recombinacao(individuo *pai1, individuo *pai2, individuo *filho, float chance, cburng4x32 *rng){
+
+    //gera um número entre 0 e 1
+    float aleatorio = u_rand(rng);
+
+    if (aleatorio<chance) {
+        crossover_um_ponto(pai1, pai2, filho, rng);
+    }
+    else{
+
+        for(int j=0;j<TAMANHO_INDIVIDUO;j++){
+           filho->genotipo[j] = pai1->genotipo[j];
+        }
+    }
+}
+
+
+void mutacao(individuo *p, float chance, cburng4x32 *rng){
+
+    for(int i=0;i<TAMANHO_INDIVIDUO;i++) {
+
+        //gera um número entre 0 e 1
+        float aleatorio = u_rand(rng);
+
+        if (aleatorio<chance) {
+           p->genotipo[i] = (p->genotipo[i] + 1) % 2;
+        }
+    }
+}
+
+
+__kernel void iter(__global individuo *pop, const int geracao, int fixed_seed, __global individuo *newPop){  
+    
+
+    int tid = get_global_id(0), 
+        lid = get_local_id(0),
+	seed = fixed_seed + tid;    
+
+    __private short genotipo_binario[TAMANHO_INDIVIDUO], fenotipo[DIMENSOES_PROBLEMA];
+	
+    //Inicializa RNG
+    cburng4x32 rng;
+    cburng4x32_init(&rng);
+    rng.key.v[0] = seed;
+    rng.ctr.v[0] = 0;
+
+    /*if(geracao==1){
+	init_pop(pop[tid], &rng);
+	return;
+    }
+    */
+    
+    /*
+        Seleção
+    */
+
+    individuo pai1, pai2, filho;
+	
+    pai1 = pop[torneio(tid, &pop, &rng)];
+    pai2 = pop[torneio(tid+1, &pop, &rng)];
+	
+    /*
+        Recombinação
+    */ 	
+
+    recombinacao(&pai1, &pai2, &filho, TAXA_DE_RECOMBINACAO, &rng);	
+  
+    /*
+       Mutação
+    */
+	
+    mutacao(&filho, TAXA_DE_MUTACAO, &rng);
+
+    filho.aptidao = funcao_de_avaliacao(filho, genotipo_binario, fenotipo);
+	
+    newPop[tid].aptidao  = filho.aptidao;
+
+    for(int i = 0; i< TAMANHO_INDIVIDUO;i++) 
+        newPop[tid].genotipo[i] = filho.genotipo[i];
+
+
+    //for(int i=0;i< TAMANHO_INDIVIDUO;i++){
+	//pop[tid].genotipo[i] = filho.genotipo[i];	
+    //}
+
+    //pop[tid].aptidao = pop[tid].genotipo[0];    	
+    //pop[tid].aptidao = funcao_de_avaliacao(pop[tid], genotipo_binario, fenotipo);
+
+}

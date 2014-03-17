@@ -6,8 +6,6 @@
 #include <cstdlib>
 #include <math.h>
 
-#define N 20
-
 using namespace std;
 
 const char * kernel_srt = "__kernel void "
@@ -15,12 +13,12 @@ const char * kernel_srt = "__kernel void "
                           "{ "
                           "    int i = get_global_id(0); "
                           "    y[i] = sqrt(x[i]); "
-                         "}";
+                          "}";
 
 void raiz_sequencial(const float  *x, float * y, int tamanho ){
 
     for(int i=0; i<tamanho;i++)
-        for(int j=0;j<N;j++)  y[i] = sqrt(x[i]);
+       y[i] = sqrt(x[i]);
 
 }
 
@@ -32,7 +30,7 @@ void raiz_paralelo(float *x, float *y, const int elementos){
 
     cl::Platform::get(&plataformas);
 
-    plataformas[1].getDevices(CL_DEVICE_TYPE_ALL, &dispositivos);
+    plataformas[0].getDevices(CL_DEVICE_TYPE_ALL, &dispositivos);
 
     //Cria o contexto
     cl::Context contexto(dispositivos);
@@ -55,14 +53,13 @@ void raiz_paralelo(float *x, float *y, const int elementos){
     kernel.setArg(0, bufferX);
     kernel.setArg(1, bufferY);
 
-    fila.enqueueNDRangeKernel(kernel, cl::NDRange(), cl::NDRange(elementos), cl::NDRange());
+    fila.enqueueNDRangeKernel(kernel, cl::NDRange(), cl::NDRange(elementos), cl::NullRange);
 
     //bloqueia e espera a finalização da execução do kernel
     fila.finish();
 
     //Transferência dos resultados para o hospedeiro
     fila.enqueueReadBuffer(bufferY, CL_TRUE, 0, elementos * sizeof(float), y);
-
 }
 
 

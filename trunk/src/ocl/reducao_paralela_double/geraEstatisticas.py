@@ -2,7 +2,7 @@ import csv
 from subprocess import Popen, PIPE
 import time
 
-EXECUCOES = 10
+EXECUCOES = 70
 
 list = []
 
@@ -22,7 +22,7 @@ def run(value):
 
 for i in range(1, 1025):
     media = run(str(i))
-    with open('logDoubleGPU.txt', 'a') as the_file:
+    with open('logDoubleCPU.txt', 'a') as the_file:
 	    #the_file.write(str(i))
 	    #the_file.write('\t')
 	    the_file.write(str(media))

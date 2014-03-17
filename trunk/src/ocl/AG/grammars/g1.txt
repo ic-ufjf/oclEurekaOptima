@@ -1,0 +1,19 @@
+<expr> ::= <expr> <expr> <op>
+		|<expr> <op_unario>
+        |<var>
+		|<val>		
+<op> ::= +  
+		|-
+		|*
+		|/
+		
+<op_unario> ::= sen
+				| cos
+				| sqrt				
+		
+<val>::= 0 
+		| 1 
+		| 22.09 
+<var> ::= x1
+		|  x1 x2 * 10.5 -
+		|  x1 67.8 +

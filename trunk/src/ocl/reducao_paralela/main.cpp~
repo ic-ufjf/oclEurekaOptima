@@ -72,7 +72,7 @@ void soma_paralela(int *x, const int elementos){
     error = clSetKernelArg(k, 0, sizeof(mem1), &mem1);
     error = clSetKernelArg(k, 1, sizeof(cl_int)*elementos*2, NULL);
      
-    error=clEnqueueNDRangeKernel(cq, k, 1, NULL, &worksize, NULL, 0, NULL, &event2);
+    error=clEnqueueNDRangeKernel(cq, k, 1, NULL, &worksize, &worksize, 0, NULL, &event2);
 
     error=clEnqueueReadBuffer(cq, mem1, CL_TRUE, 0,  elementos * sizeof(int), x, 0, NULL, &event3);
 

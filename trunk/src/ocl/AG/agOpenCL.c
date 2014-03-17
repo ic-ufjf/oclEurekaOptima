@@ -336,7 +336,7 @@ void initializeOpenCL(int cores, int kernel){
 	// 7: Criação do kernel
 	//---------------------------------------------
 
-     kernelInicializacao = clCreateKernel(program, "inicializa_populacao", &status);
+    kernelInicializacao = clCreateKernel(program, "inicializa_populacao", &status);
 
     if(CPU){
 
@@ -345,9 +345,7 @@ void initializeOpenCL(int cores, int kernel){
 
         preferred_workgroup_size_multiple = (size_t)max_compute_units;
 
-        cout << "Preferred work group size:" << preferred_workgroup_size_multiple << endl;
-
-      exit(0);
+        //cout << "Preferred work group size:" << preferred_workgroup_size_multiple << endl;
 
     }
     else{
@@ -392,34 +390,17 @@ void initializeOpenCL(int cores, int kernel){
 
         kernelIteracao = clCreateKernel(program, "iteracao_2_por_work_group2", &status);
 
-        if(CPU){
-            preferred_workgroup_size_multiple = 4;
-        }
-
         localWorkSizeIteracao[0]  = preferred_workgroup_size_multiple;
         globalWorkSizeIteracao[0] = ceil((TAMANHO_POPULACAO/2)*localWorkSizeIteracao[0]);
-
-        //cout<< "globalsize: " << globalWorkSizeIteracao[0] << endl << "localsize:" << localWorkSizeIteracao[0];
-
     }
 
     else if(kernelAG==KERNEL_N_POR_WORK_GROUP){
 
         kernelIteracao = clCreateKernel(program, "iteracao_n_por_work_group", &status);
 
-        if(CPU){
-            preferred_workgroup_size_multiple = 4;
-        }
-
         localWorkSizeIteracao[0]  = preferred_workgroup_size_multiple;
         globalWorkSizeIteracao[0] = ceil((float)TAMANHO_POPULACAO/localWorkSizeIteracao[0])*localWorkSizeIteracao[0];
 
-        #ifdef PROFILING
-
-        //cout << "Melhor tamanho de workgroup:" << preferred_workgroup_size_multiple << endl;
-        //cout << "Global worksize:" << globalWorkSizeIteracao[0] << endl;
-
-        #endif
     }
 
     else if(kernelAG == KERNEL_2_POR_WORK_ITEM_GRUPO_FIXO){
@@ -430,8 +411,6 @@ void initializeOpenCL(int cores, int kernel){
 
         localWorkSizeIteracao[0]  = preferred_workgroup_size_multiple;
         globalWorkSizeIteracao[0] = ceil((float)numberWorkItens/localWorkSizeIteracao[0])*localWorkSizeIteracao[0];
-
-        //cout << "CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE: "  << preferred_workgroup_size_multiple << endl;
     }
 
     else{

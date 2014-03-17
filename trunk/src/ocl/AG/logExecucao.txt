@@ -1,1 +1,219 @@
-Local: 4, global:8
+Banco de dados: 
+x1	x2	x3	y
+1.000000	1.000000	0.000000	2.000000	
+2.000000	2.000000	0.000000	4.000000	
+3.000000	0.000000	0.000000	3.000000	
+Gramática: 
+Linha - <expr> ::= <expr> <expr> <op>
+
+Regra: <expr>
+Elemento: <expr>
+Não terminal: 0 
+
+Derivações:  <expr> <expr> <op>
+
+Elemento: <expr>
+Não terminal: 0 
+
+Simbolo encontrado: <expr> (1,0.000000) 
+Elemento: <expr>
+Não terminal: 0 
+
+Simbolo encontrado: <expr> (1,0.000000) 
+Elemento: <op>
+Não terminal: 1 
+
+Simbolo encontrado: <op> (1,1.000000) 
+Linha - 		|<expr> <op_unario>
+
+Derivações: 		|<expr> <op_unario>
+
+Elemento: <expr>
+Não terminal: 0 
+
+Simbolo encontrado: <expr> (1,0.000000) 
+Elemento: <op_unario>
+Não terminal: 2 
+
+Simbolo encontrado: <op_unario> (1,2.000000) 
+Linha -         |<var>
+
+Derivações:         |<var>
+
+Elemento: <var>
+Não terminal: 3 
+
+Simbolo encontrado: <var> (1,3.000000) 
+Linha - 		|<val>		
+
+Derivações: 		|<val>		
+
+Elemento: <val>
+Não terminal: 4 
+
+Simbolo encontrado: <val> (1,4.000000) 
+Linha - <op> ::= +  
+
+Regra: <op>
+Elemento: <op>
+Não terminal: 1 
+
+Derivações:  +  
+
+Elemento: +
+Operador binário: 0 
+
+Simbolo encontrado: + (2,0.000000) 
+Linha - 		|-
+
+Derivações: 		|-
+
+Elemento: -
+Operador binário: 1 
+
+Simbolo encontrado: - (2,1.000000) 
+Linha - 		|*
+
+Derivações: 		|*
+
+Elemento: *
+Operador binário: 2 
+
+Simbolo encontrado: * (2,2.000000) 
+Linha - 		|/
+
+Derivações: 		|/
+
+Elemento: /
+Operador binário: 3 
+
+Simbolo encontrado: / (2,3.000000) 
+Linha - 		
+
+Derivações: 		
+
+Linha - <op_unario> ::= sen
+
+Regra: <op_unario>
+Elemento: <op_unario>
+Não terminal: 2 
+
+Derivações:  sen
+
+Elemento: sen
+Operador unário: 0 
+
+Simbolo encontrado: sen (3,0.000000) 
+Linha - 				| cos
+
+Derivações: 				| cos
+
+Elemento: cos
+Operador unário: 1 
+
+Simbolo encontrado: cos (3,1.000000) 
+Linha - 				| sqrt				
+
+Derivações: 				| sqrt				
+
+Elemento: sqrt
+Operador unário: 2 
+
+Simbolo encontrado: sqrt (3,2.000000) 
+Linha - 		
+
+Derivações: 		
+
+Linha - <val>::= 0 
+
+Regra: <val>
+Elemento: <val>
+Não terminal: 4 
+
+Derivações:  0 
+
+Elemento: 0
+Numero inteiro
+
+Simbolo encontrado: 0 (4,0.000000) 
+Linha - 		| 1 
+
+Derivações: 		| 1 
+
+Elemento: 1
+Numero inteiro
+
+Simbolo encontrado: 1 (4,1.000000) 
+Linha - 		| 22.09 
+
+Derivações: 		| 22.09 
+
+Elemento: 22.09
+Numero com ponto
+
+Simbolo encontrado: 22.090000 (5,22.090000) 
+Linha - <var> ::= x1
+
+Regra: <var>
+Elemento: <var>
+Não terminal: 3 
+
+Derivações:  x1
+
+Elemento: x1
+Variavel: 0 
+
+Simbolo encontrado: x1 (6,0.000000) 
+Linha - 		|  x1 x2 * 10.5 -
+
+Derivações: 		|  x1 x2 * 10.5 -
+
+Elemento: x1
+Variavel: 0 
+
+Simbolo encontrado: x1 (6,0.000000) 
+Elemento: x2
+Variavel: 1 
+
+Simbolo encontrado: x2 (6,1.000000) 
+Elemento: *
+Operador binário: 2 
+
+Simbolo encontrado: * (2,2.000000) 
+Elemento: 10.5
+Numero com ponto
+
+Simbolo encontrado: 10.500000 (5,10.500000) 
+Elemento: -
+Operador binário: 1 
+
+Simbolo encontrado: - (2,1.000000) 
+Linha - 		|  x1 67.8 +
+Derivações: 		|  x1 67.8 +
+Elemento: x1
+Variavel: 0 
+
+Simbolo encontrado: x1 (6,0.000000) 
+Elemento: 67.8
+Numero com ponto
+
+Simbolo encontrado: 67.800003 (5,67.800003) 
+Elemento: +
+Operador binário: 0 
+
+Simbolo encontrado: + (2,0.000000) 
+Elemento: <expr>
+Não terminal: 0 
+
+ (<expr>) 
+ (<expr>)  (<expr>)  (<op>) 
+ (<var>)  (<expr>)  (<op>) 
+ (x1)  (x2)  (*)  (10.500000)  (-)  (<expr>)  (<op>) 
+ (x1)  (x2)  (*)  (10.500000)  (-)  (<expr>)  (<op_unario>)  (<op>) 
+ (x1)  (x2)  (*)  (10.500000)  (-)  (<var>)  (<op_unario>)  (<op>) 
+ (x1)  (x2)  (*)  (10.500000)  (-)  (x1)  (67.800003)  (+)  (<op_unario>)  (<op>) 
+ (x1)  (x2)  (*)  (10.500000)  (-)  (x1)  (67.800003)  (+)  (<op_unario>)  (+) 
+ (x1)  (x2)  (*)  (10.500000)  (-)  (x1)  (67.800003)  (+)  (sen)  (+) 
+
+Individuo:
+ (x1)  (x2)  (*)  (10.500000)  (-)  (x1)  (67.800003)  (+)  (sen)  (+) 

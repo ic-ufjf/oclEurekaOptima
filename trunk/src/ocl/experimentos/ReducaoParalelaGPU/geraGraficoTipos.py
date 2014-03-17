@@ -3,10 +3,8 @@ from matplotlib.pylab import *
 
 t1   = np.genfromtxt("logFloatGPUGrupos.txt",delimiter="\n")
 t2   = np.genfromtxt("logDoubleGPUGrupos.txt",delimiter="\n")
-t3   = np.genfromtxt("logFloatTwoStageGPU.txt", delimiter = "\n");
+t3   = np.genfromtxt("logTwoStageGPU1.txt", delimiter = "\n");
 t4   = np.genfromtxt("logTwoStageDoubleGPU.txt", delimiter = "\n");
-
-
 
 t = zeros(len(t1))
 for i in range(0,len(t)):

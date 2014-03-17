@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib.pylab import *
 
 t1   = np.genfromtxt("logFloatGPUGrupos.txt",delimiter="\n")
-t2   = np.genfromtxt("logFloatTwoStageGPU.txt",delimiter="\n")
+t2   = np.genfromtxt("logTwoStageGPU1.txt",delimiter="\n")
 t3   = np.genfromtxt("logCUDA.txt", delimiter = "\n");
 t4   = np.genfromtxt("logCudaTwoStageFloat.txt", delimiter = "\n");
 

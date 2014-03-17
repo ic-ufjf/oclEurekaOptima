@@ -1,0 +1,22 @@
+
+
+
+
+__kernel void Avaliacao(__global individuo *pop, 
+			__global t_regra * Gramatica){
+	
+	int tid  = get_global_id(0),
+   	    lid  = get_local_id(0);	
+	
+	__local t_item_programa programa[TAMANHO_MAX_PROGRAMA];
+ 
+ 
+ 	if()
+
+	
+	
+	
+
+}
+
+

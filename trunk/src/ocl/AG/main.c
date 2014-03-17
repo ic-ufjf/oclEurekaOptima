@@ -12,15 +12,23 @@
 //getopt
 #include <unistd.h>
 
+#include "parser.h"
+#include "gramatica.h"
 
-#define NUM 30000
+void InicializaFenotipo( int * fenotipo){
+
+	srand(99413);
+
+	int init;
+	for(init=1;init < D_FENOTIPO; init++) fenotipo[init] = rand();
+}
 
 int main(int argc, char * argv[])
 {
-    //cout << "AG paralelo utilizando OpenCL" << endl;
-  individuo populacao[TAMANHO_POPULACAO];
+    /* Variáveis */
+    individuo populacao[TAMANHO_POPULACAO];
 
-    int pcores = 0,kernelAG=0;
+    int pcores = 0,kernelAG = 0;
     char c;
 
     while ((c = getopt (argc, argv, "p:k:")) != -1){
@@ -40,17 +48,13 @@ int main(int argc, char * argv[])
     }
 
     if(pcores>0){
-      //  cout << "Cores:" << pcores << endl;
+      //cout << "Cores:" << pcores << endl;
     }
     else {
         pcores=0;
     }
 
-    //cout << "Kernel:" << kernelAG << endl;
-
-    ag_paralelo(populacao,pcores,kernelAG);
-
-    //AG();
+    ag_paralelo(populacao, pcores, kernelAG);
 
     //Verificação da avaliação paralela
     int i=0;

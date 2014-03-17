@@ -1,4 +1,5 @@
-g++ -o ag.exe  main.c ag.h ag.c operadores_geneticos.c -lOpenCL -I ./include -I /usr/include    -lm -D TAMANHO_POPULACAO=6	 -D NUMERO_DE_GERACOES=500 -D  DIMENSOES_PROBLEMA=30 -D TAMANHO_VALOR=8 -D TAXA_DE_MUTACAO=0.001 -D TAXA_DE_RECOMBINACAO=0.7 -D TAMANHO_TORNEIO=2 -D ELITE=1 -D PROFILING 
+g++ -o ag.exe utils.h utils.c parser.h parser.c gramatica.h gramatica.c
+ main.c ag.h ag.c operadores_geneticos.c -lOpenCL -I ./include -I /usr/include    -lm -D TAMANHO_POPULACAO=500	 -D NUMERO_DE_GERACOES=500 -D  DIMENSOES_PROBLEMA=30 -D TAMANHO_VALOR=8 -D TAXA_DE_MUTACAO=0.001 -D TAXA_DE_RECOMBINACAO=0.7 -D TAMANHO_TORNEIO=2 -D ELITE=1 -D PROFILING -D cpu
 ./ag.exe > logExecucao.txt
 
 cat logExecucao.txt
