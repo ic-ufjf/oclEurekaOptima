@@ -524,7 +524,15 @@ void exibe_melhor(individuo * melhor, t_regra * gramatica){
     obtem_fenotipo_individuo2(melhor, fenotipo);
 
     Decodifica(gramatica, fenotipo, programa);
-    ImprimeIndividuo(programa);
+
+    puts("");
+    ImprimePosfixa(programa);
+
+    puts("");
+    puts("Em ordem infixa:");
+
+    ImprimeInfixa(programa);
+    puts("");
 }
 
 void avaliacao(individuo *pop, t_regra * gramatica){
@@ -564,7 +572,8 @@ void avaliacao(individuo *pop, t_regra * gramatica){
 
      #endif
 
-     return;
+     //Imprime todos os indivíduos
+     /*
 
      int i,j;
 
@@ -591,12 +600,14 @@ void avaliacao(individuo *pop, t_regra * gramatica){
 
         Decodifica(gramatica, fenotipo, programa);
 
-        ImprimeIndividuo(programa);
+        ImprimePosfixa(programa);
+        puts("Em ordem infixa:");
+        ImprimeInfixa(programa);
 
         printf("\n");
      }
 
-
+     */
 }
 
 void substituicao(individuo *pop, t_regra * gramatica){

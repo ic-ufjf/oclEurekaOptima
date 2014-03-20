@@ -22,7 +22,6 @@ int obtem_fenotipo_individuo3(individuo p, short fenotipo[]){
 }
 
 
-
 __kernel void avaliacao(__global individuo *pop, 
 			__global t_regra * Gramatica,
 			__global float dataBase[][5]){
@@ -50,143 +49,16 @@ __kernel void avaliacao(__global individuo *pop,
 	 	}
 	 	else{
 	 	
-	 	    /*int idx=0;
- 	 
-	 	    while(idx != FIM_PROGRAMA){
- 			
-			programas[gid].programa[idx].t.v[0] = programa[idx].t.v[0];
-			programas[gid].programa[idx].t.v[1] = programa[idx].t.v[1];
-			programas[gid].programa[idx].proximo = programa[idx].proximo;
-
-	 		idx = programa[idx].proximo;
-	 	    }*/
-	 	
 	 	    float erro = 0;
 	 		 	
 	 	    for(int j=0; j < TAMANHO_DATABASE; j++){
 		        erro += pown(Avalia(programa, dataBase[j]), 2);
-		    }
-		    
-		     for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
-		    
-		      for(int j=0; j < TAMANHO_DATABASE; j++){
-		        Avalia(programa, dataBase[j]);
-		    }
+		    }		   
 		
-  		    pop[gid].aptidao = erro*(-1);	 
+  		    pop[gid].aptidao = erro*(-1.0);
 		}	
  	}
- 	
+ 	 	
  	//Sincronismo local para que todos os workitens acessem o programa mapeado 	
  	barrier(CLK_LOCAL_MEM_FENCE);	
  	
@@ -197,8 +69,7 @@ __kernel void avaliacao(__global individuo *pop,
 	}
 	
 	if(lid==0) pop[gid].aptidao = (int)erro; 	
-	*/
- 	
+	*/	
 }
 
 

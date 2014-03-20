@@ -61,8 +61,7 @@ float OperaUnario(float a, float x){
 	return (float)sin(a);
     if(x == T_COS)
 	return (float)cos(a);
-    if(x == T_SQRT){
-    	
+    if(x == T_SQRT){    	
     	if(a<=0) return 0;    
 	return (float)sqrt(a);
     }
@@ -80,7 +79,7 @@ float Avalia(__local t_item_programa programa[], __global float registro[]) {
    float erro = 0;
 
    short indiceY = 3;
-
+   
    int i=0;
 
    while(i != FIM_PROGRAMA){
@@ -88,7 +87,7 @@ float Avalia(__local t_item_programa programa[], __global float registro[]) {
 	   switch((int)programa[i].t.v[0])
    	   {
 	   	   case NUMERO_INTEIRO:
-	   		   pilha[++topo] = programa[i].t.v[1];
+   		   	   pilha[++topo] = programa[i].t.v[1];
 	   		   break;
 	   	   case NUMERO_COM_PONTO:
 	   		   pilha[++topo] = programa[i].t.v[1];

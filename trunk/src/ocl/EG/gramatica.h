@@ -15,6 +15,4 @@ void ProcessaEscolha(char * escolha, t_escolha * nova_escolha);
 
 int Decodifica(t_regra * gramatica, short * fenotipo, t_item_programa * programa);
 
-void ImprimeIndividuo(t_item_programa * programa);
-
 #endif // GRAMATICA_H_INCLUDED

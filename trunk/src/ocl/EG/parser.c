@@ -343,7 +343,7 @@ float OperaUnario(float a, float x){
 float Avalia(t_item_programa programa[], float registro[]) {
 
    float pilha[TAMANHO_MAX_PROGRAMA];
-   int topo = -1;
+   int topo   = -1;
    float erro = 0;
 
    short indiceY = GetQtdVariaveis();
@@ -387,4 +387,124 @@ float Avalia(t_item_programa programa[], float registro[]) {
 
    //Erro absoluto
    return fabs( pilha[topo] - registro[indiceY] );
+}
+
+No * EmpilhaExpressao(No * pilha, char * expressao){
+
+    No * novo = (No *) malloc(sizeof(No));
+    novo->proximo = pilha;
+    strcpy(novo->expr, expressao);
+
+    return novo;
+}
+
+
+void ImprimePosfixa(t_item_programa * programa){
+
+	char nomeElemento[20];
+
+	int idx = 0;
+
+	while(idx != FIM_PROGRAMA){
+
+		GetNomeElemento(&programa[idx].t, nomeElemento);
+		printf("(%s) ", nomeElemento);
+		idx = programa[idx].proximo;
+	}
+
+	printf("\n");
+}
+
+void ImprimeInfixa(t_item_programa *programa){
+
+   No * p = NULL;
+
+   int i=0;
+
+   char aux1[TAMANHO_MAX_PROGRAMA];
+   char aux2[20];
+
+   while(i != FIM_PROGRAMA){
+
+	   switch((int)programa[i].t.v[0])
+	   {
+	   	   case NUMERO_INTEIRO:
+	   		   //pilha[++topo] = programa[i].t.v[1];
+
+	   		   GetNomeElemento(&programa[i].t, aux2);
+	   		   p = EmpilhaExpressao(p, aux2);
+
+	   		   break;
+
+	   	   case NUMERO_COM_PONTO:
+	   		   //pilha[++topo] = programa[i].t.v[1];
+
+               GetNomeElemento(&programa[i].t, aux2);
+	   		   p = EmpilhaExpressao(p, aux2);
+
+			   break;
+	   	   case VARIAVEL:
+	   		   //pilha[++topo] = 1;
+
+               GetNomeElemento(&programa[i].t, aux2);
+	   		   p = EmpilhaExpressao(p, aux2);
+
+	   		   break;
+
+	   	   case OPERADOR_BINARIO:
+
+	   		   //pilha[topo-1] = OperaBinario(pilha[topo-1], pilha[topo], programa[i].t.v[1]);
+
+               strcpy(aux1, "( ");
+
+	   		   strcat(aux1,  p->proximo->expr);
+
+	   		   GetNomeElemento(&programa[i].t, aux2);
+
+               strcat(aux1,  " ");
+               strcat(aux1, aux2);
+
+               strcat(aux1,  " ");
+               strcat(aux1,  p->expr);
+
+               strcat(aux1,  " ");
+               strcat(aux1,  ")");
+
+               No * aux;
+
+               aux = p;
+               p = p->proximo;
+               free(aux);
+
+               strcpy(p->expr, aux1);
+
+	   		   break;
+
+	   	   case OPERADOR_UNARIO:
+
+			   //pilha[topo] = OperaUnario(pilha[topo], programa[i].t.v[1]);
+
+			   strcpy(aux1, "");
+
+			   GetNomeElemento(&programa[i].t, aux1);
+
+               strcat(aux1, "(");
+
+               strcat(aux1,  p->expr);
+
+               strcat(aux1, ")");
+
+               strcpy(p->expr, aux1);
+
+			   break;
+	   }
+
+	   i = programa[i].proximo;
+
+       //puts(p->expr);
+   }
+
+   puts(p->expr);
+
+   free(p);
 }

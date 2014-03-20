@@ -169,21 +169,7 @@ void LeGramatica(char nomeArquivo[], t_regra  * Gramatica){
 	}
 }
 
-void ImprimeIndividuo(t_item_programa * programa){
 
-	char nomeElemento[20];
-
-	int idx = 0;
-
-	while(idx != FIM_PROGRAMA){
-
-		GetNomeElemento(&programa[idx].t, nomeElemento);
-		printf(" (%s) ", nomeElemento);
-		idx = programa[idx].proximo;
-	}
-
-	printf("\n");
-}
 
 int Decodifica(t_regra * Gramatica, short * fenotipo, t_item_programa * programa){
 

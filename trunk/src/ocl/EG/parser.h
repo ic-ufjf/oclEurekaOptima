@@ -46,6 +46,13 @@ typedef struct{
 }t_prog;
 
 
+typedef struct NoExpressao{
+    char expr[TAMANHO_MAX_PROGRAMA];
+    struct NoExpressao * proximo;
+} No;
+
+No * EmpilhaExpressao(No * pilha, char * expressao);
+
 /* Protótipo das funções */
 
 char * GetSimboloNT(char * origem);
@@ -66,6 +73,9 @@ int LeBancoDeDados(char arq[], float bancoDeDados[][5]);
 void ProcessaLinhaBD(char s[], int indice, float bancoDeDados[][5]);
 
 float Avalia(t_item_programa programa[], float registro[]);
+
+void ImprimePosfixa(t_item_programa * programa);
+void ImprimeInfixa(t_item_programa * programa);
 
 
 #endif // PARSER_H_INCLUDED

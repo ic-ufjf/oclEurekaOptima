@@ -42,16 +42,12 @@ int Decodifica(__global t_regra *Gramatica, short fenotipo[], __local t_item_pro
 		int i=0;
 
 		while((int)programa[i].t.v[0] != NAOTERMINAL && programa[i].proximo != -1) {
-
-		    //i++;		   
+ 
 		    i = programa[i].proximo;
-		    		    
-		    /* Verifica se há somente terminais */
-		    //if(counter == program_ctr) break;
 		}
 
 		/* Verifica se há somente terminais */
-		if((int)programa[i].t.v[0] != NAOTERMINAL) break;			
+		if((int)programa[i].t.v[0] != NAOTERMINAL) break;
 		
 		int idRegra = GetRegra(Gramatica, programa[i].t);
 

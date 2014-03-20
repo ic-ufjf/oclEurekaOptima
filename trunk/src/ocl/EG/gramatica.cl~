@@ -10,16 +10,11 @@ int GetRegra(__global t_regra *gramatica, type_simbolo simbolo){
 	return -1;
 }
 
-int Decodifica(__global t_regra *Gramatica, int fenotipo[], __local t_item_programa * programa){
+int Decodifica(__global t_regra *Gramatica, short fenotipo[], __local t_item_programa * programa){
 
 	int m, fenotipo_ctr = 0;
 
 	/* Inicializa o programa com o símbolo inicial */
-
-	//char elementoInicial[8] = "<expr>";
-
-	type_simbolo inicial;// = GetSimboloParser(elementoInicial);
-	
 	inicial.v[0] = NAOTERMINAL;
 	inicial.v[1] = 0;	
 	
@@ -42,16 +37,12 @@ int Decodifica(__global t_regra *Gramatica, int fenotipo[], __local t_item_progr
 		int i=0;
 
 		while((int)programa[i].t.v[0] != NAOTERMINAL && programa[i].proximo != -1) {
-
-		    //i++;		   
+ 
 		    i = programa[i].proximo;
-		    		    
-		    /* Verifica se há somente terminais */
-		    //if(counter == program_ctr) break;
 		}
 
 		/* Verifica se há somente terminais */
-		if((int)programa[i].t.v[0] != NAOTERMINAL) break;			
+		if((int)programa[i].t.v[0] != NAOTERMINAL) break;
 		
 		int idRegra = GetRegra(Gramatica, programa[i].t);
 

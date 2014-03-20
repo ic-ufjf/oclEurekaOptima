@@ -59,7 +59,7 @@ int main(int argc, char * argv[])
         pcores=0;
     }
 
-    dataBaseSize = LeBancoDeDados("problems/2X^2.txt", dataBase);
+    dataBaseSize = LeBancoDeDados("problems/3x^3.txt", dataBase);
 	LeGramatica("grammars/g1.txt", Gramatica);
 
 	//InicializaFenotipo(fenotipo);
