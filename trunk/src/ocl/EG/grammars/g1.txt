@@ -1,14 +1,21 @@
 <expr> ::= <expr> <expr> <op>
+		|<expr> <op_unario>
         	|<var>
-		|<val>		
+		|<val>	
+		
 <op> ::= +  
 		|-
 		|*
 		|/
 		
+<op_unario> ::= sen
+		| cos
+		| sqrt
+
+		
 <val>::= 0 
 	| 1 
-	| 3
+	| 2
 
 		
 

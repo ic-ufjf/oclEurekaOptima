@@ -52,7 +52,7 @@ __kernel void avaliacao(__global individuo *pop,
 	 	    float erro = 0;
 	 		 	
 	 	    for(int j=0; j < TAMANHO_DATABASE; j++){
-		        erro += pown(Avalia(programa, dataBase[j]), 2);
+		        erro += pown(Avalia(programa, dataBase[j]), 3);
 		    }		   
 		
   		    pop[gid].aptidao = erro*(-1.0);

@@ -1,10 +1,3 @@
-/*
- * gramatica.c
- *
- *  Created on: 12/03/2014
- *      Author: igorsr
- */
-
 #include "gramatica.h"
 #include <stdio.h>
 #include <string.h>
@@ -75,7 +68,7 @@ void LeGramatica(char nomeArquivo[], t_regra  * Gramatica){
 	/* Estrutura para ler o arquivo da gramática  */
 	FILE *fptr = NULL;
 
-	char linha[200], aux[200];
+	char linha[200]="", aux[200] = "";
 
 	//Abre o arquivo contendo a gramática para leitura
 	fptr = fopen(nomeArquivo, "r");
@@ -168,8 +161,6 @@ void LeGramatica(char nomeArquivo[], t_regra  * Gramatica){
 		}
 	}
 }
-
-
 
 int Decodifica(t_regra * Gramatica, short * fenotipo, t_item_programa * programa){
 

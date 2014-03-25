@@ -3,9 +3,11 @@
 #include <fstream>
 #include <sstream>
 #include <string.h>
+#include <stdlib.h>
 #include <CL/cl.h>
 #include <CL/cl_ext.h>
 #include "gramatica.h"
+#include "utils.h"
 
 #define NUM 30000
 
@@ -30,7 +32,7 @@
 #include "representacao.h"
 #include "parser.h"
 
-#define TAMANHO_DATABASE 5
+#define TAMANHO_DATABASE 10
 
 using namespace std;
 
@@ -58,7 +60,6 @@ template<class T> inline std::string ToString( const T& t )
    }
    catch( ... ) { return ""; }
 }
-
 
 int geracao = 0;
 
@@ -100,7 +101,6 @@ cl_event event1, event2, event3;
 
 size_t preferred_workgroup_size_multiple;
 
-
 /*
   Obtém o tempo decorrido entre o início e o fim de um evento (em picosegundos)
 */
@@ -138,11 +138,7 @@ void CriaSubDevices(){
 
     device = devices[0];
 
-    if(status != CL_SUCCESS){
-        cout << "Erro ao criar os subdevices. (Erro " << status << ")" << endl;
-        exit(EXIT_FAILURE);
-    }
-
+    check_cl(status, "Erro ao criar os subdevices");
 }
 
 
@@ -202,7 +198,6 @@ void initializeOpenCL(int cores, int kernel){
 
     #ifdef cpu
         CPU = 1;
-
     #else
         CPU = 0;
     #endif
@@ -224,12 +219,9 @@ void initializeOpenCL(int cores, int kernel){
 	//Obtém as plataformas
 	status = clGetPlatformIDs(numPlatforms, platforms, NULL);
 
-        if(status != CL_SUCCESS){
-		cout << "Erro ao tentar obter as plataformas. (Erro " << status << ")" << endl;
-		exit(EXIT_FAILURE);
-     }
+    check_cl(status, "Erro ao obter as plataformas disponiveis");
 
-	//---------------------------------------------
+   	//---------------------------------------------
 	// 2: Descoberta e inicialização do(s) dispositivo(s)
 	//---------------------------------------------
 
@@ -240,10 +232,8 @@ void initializeOpenCL(int cores, int kernel){
 							NULL,
 							&numDevices);
 
-    if(status != CL_SUCCESS){
-        cout << "Erro ao tentar obter os dispositivos. (Erro " << status << ")" << endl;
-        exit(EXIT_FAILURE);
-    }
+    check_cl(status, "Erro ao obter os dispositivos");
+
 
     //Aloca espaço para cada dispositivo
 	devices = (cl_device_id*) malloc(numDevices*sizeof(cl_device_id));
@@ -255,15 +245,11 @@ void initializeOpenCL(int cores, int kernel){
 							devices,
 							NULL);
 
-    if(status != CL_SUCCESS){
-        cout << "Erro ao tentar obter os dispositivos. (Erro " << status << ")" << endl;
-        exit(EXIT_FAILURE);
-    }
+    check_cl(status, "Erro ao obter os dispositivos");
 
     if(cores!=0){
 
         CriaSubDevices();
-
     }
 
     //---------------------------------------------
@@ -277,12 +263,7 @@ void initializeOpenCL(int cores, int kernel){
 						 	 NULL,
 						 	 NULL,
 						 	 &status);
-
-    if(status != CL_SUCCESS){
-        cout << "Erro ao criar o contexto de execução. (Erro " << status << ")" << endl;
-        exit(EXIT_FAILURE);
-    }
-
+    check_cl(status, "Erro ao criar o contexto de execução");
 
     //-----------------------
     // 4: Criaçaõ da fila de execução
@@ -295,10 +276,8 @@ void initializeOpenCL(int cores, int kernel){
 									device,
                                     CL_QUEUE_PROFILING_ENABLE,
 									&status);
-    if(status != CL_SUCCESS){
-        cout << "Erro ao criar a fila de execução. (Erro " << status << ")" << endl;
-        exit(EXIT_FAILURE);
-    }
+
+    check_cl(status, "Erro ao criar a fila de execução");
 
 
     //---------------------------------------------
@@ -334,10 +313,7 @@ void initializeOpenCL(int cores, int kernel){
 							   &programSize,
 							   &status);
 
-    if(status != CL_SUCCESS){
-        cout << "Erro ao criar o programa. (Erro " << status << ")" << endl;
-        exit(EXIT_FAILURE);
-    }
+    check_cl(status, "Erro ao criar o programa");
 
 	//Compilação do programa
 	status = clBuildProgram(program,
@@ -347,10 +323,7 @@ void initializeOpenCL(int cores, int kernel){
 				NULL,
 				NULL);
 
-    if(status != CL_SUCCESS){
-        cout << "Erro ao compilar o programa. (Erro " << status << ")" << endl;
-        exit(EXIT_FAILURE);
-    }
+    check_cl(status, "Erro ao compilar o programa");
 
     //---------------------------------------------
 	// 6: Criação dos buffers de memória
@@ -359,42 +332,38 @@ void initializeOpenCL(int cores, int kernel){
     datasize = sizeof(individuo)*TAMANHO_POPULACAO;
 
 	bufferA = clCreateBuffer(context, CL_MEM_READ_WRITE, datasize, NULL, &status);
+    check_cl(status, "Erro ao criar buffer de memoria bufferA");
+
+    bufferB = clCreateBuffer(context, CL_MEM_READ_WRITE , datasize, NULL, &status);
+    check_cl(status, "Erro ao criar buffer de memoria bufferB");
+
 	bufferC = clCreateBuffer(context, CL_MEM_READ_WRITE, datasize, NULL, &status);
+	check_cl(status, "Erro ao criar buffer de memoria bufferC");
 
     //bufferProgramas = clCreateBuffer(context, CL_MEM_READ_WRITE, TAMANHO_POPULACAO*sizeof(t_prog), NULL, &status);
     bufferGramatica = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(t_regra)*5, NULL, &status);
+    check_cl(status, "Erro ao criar buffer de memoria bufferGramatica");
+
     bufferDatabase  = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(float)*5*TAMANHO_DATABASE, NULL, &status);
+    check_cl(status, "Erro ao criar buffer de memoria bufferDatabase");
 
 
-    if(status != CL_SUCCESS){
-        cout << "Erro ao enviar os aleatorios. (Erro " << status << ")" << endl;
-        exit(EXIT_FAILURE);
-    }
-
-    if(status != CL_SUCCESS){
-        cout << "Erro ao criar buffer de memoria. (Erro " << status << ")" << endl;
-        exit(EXIT_FAILURE);
-    }
-
-    bufferB = clCreateBuffer(context, CL_MEM_READ_WRITE , datasize, NULL, &status);
-
-    if(kernelAG == KERNEL_2_POR_WORK_GROUP2)
+    if(kernelAG == KERNEL_2_POR_WORK_GROUP2){
         bufferCounter = clCreateBuffer(context, CL_MEM_READ_WRITE , TAMANHO_POPULACAO * sizeof(r123array4x32) * 4, NULL, &status);
-
-    else
+    }
+    else{
         bufferCounter = clCreateBuffer(context, CL_MEM_READ_WRITE , TAMANHO_POPULACAO * sizeof(r123array4x32), NULL, &status);
-
-
-    if(status != CL_SUCCESS){
-        cout << "Erro ao criar buffer de memoria. (Erro " << status << ")" << endl;
-        exit(EXIT_FAILURE);
     }
 
-	//---------------------------------------------
+    check_cl(status, "Erro ao criar buffer de memoria bufferCounter");
+
+    //---------------------------------------------
 	// 7: Criação do kernel
 	//---------------------------------------------
 
     kernelInicializacao = clCreateKernel(program, "inicializa_populacao", &status);
+
+    check_cl(status, "Erro ao criar kernel kernelInicializacao");
 
     if(CPU){
 
@@ -415,8 +384,7 @@ void initializeOpenCL(int cores, int kernel){
                                           NULL);
 
         //cout << "Preferred work group size:" << preferred_workgroup_size_multiple << endl;
-
-        preferred_workgroup_size_multiple = 4;
+        //preferred_workgroup_size_multiple = 4;
     }
 
 	//Cria o kernel de mutação/recombinação
@@ -424,6 +392,7 @@ void initializeOpenCL(int cores, int kernel){
 	if(kernelAG==KERNEL_2_POR_WORK_ITEM){
 
         kernelIteracao = clCreateKernel(program, "iteracao_2_por_work_item", &status);
+
         globalWorkSizeIteracao[0] = TAMANHO_POPULACAO/2;
 
     }
@@ -469,23 +438,15 @@ void initializeOpenCL(int cores, int kernel){
     }
 
     else{
-        cout << "Kernel invalido" << endl;
+        log_error("Kernel inválido");
         exit(EXIT_FAILURE);
     }
-
-    if(status != CL_SUCCESS){
-        cout << "Erro ao criar o kernel. (Erro " << status << ")" << endl;
-        exit(EXIT_FAILURE);
-    }
+    check_cl(status, "Erro ao criar kernel 'iteracao'");
 
     //Cria o kernel de avaliação
 
     kernelAvaliacao = clCreateKernel(program, "avaliacao", &status);
-
-    if(status != CL_SUCCESS){
-        cout << "Erro ao criar o kernel de avaliacao. (Erro " << status << ")" << endl;
-        exit(EXIT_FAILURE);
-    }
+    check_cl(status, "Erro ao criar kernel 'avaliacao'");
 
     if(CPU){
         kernelSubstituicao = clCreateKernel(program, "substituicao", &status);
@@ -494,14 +455,13 @@ void initializeOpenCL(int cores, int kernel){
         kernelSubstituicao = clCreateKernel(program, "substituicao_gpu", &status);
     }
 
-    if(status != CL_SUCCESS){
-        cout << "Erro ao criar o kernel 'substituicao'. (Erro " << status << ")" << endl;
-        exit(EXIT_FAILURE);
-    }
-
+    check_cl(status, "Erro ao criar kernel 'substituicao'");
 }
 
 void exibe_melhor(individuo * melhor, t_regra * gramatica){
+
+    check(melhor != 0, "Indivíduo não pode ser nulo");
+    check(gramatica != 0, "Gramática não pode ser nula");
 
     /*if(melhor->aptidao==0){
         printf("Geracoes para encontrar o melhor: \t %d\n", geracao);
@@ -540,16 +500,20 @@ void avaliacao(individuo *pop, t_regra * gramatica){
     cl_event eventoAvaliacao;
 
     status = clSetKernelArg(kernelAvaliacao,  0, sizeof(bufferB), &bufferB);
+    check_cl(status, "Erro ao adicionar argumento ao kernel");
+
     status = clSetKernelArg(kernelAvaliacao,  1, sizeof(bufferGramatica), &bufferGramatica);
-    //status = clSetKernelArg(kernelAvaliacao,  2, sizeof(bufferProgramas), &bufferProgramas);
+    check_cl(status, "Erro ao adicionar argumento ao kernel");
+
     status = clSetKernelArg(kernelAvaliacao,  2, sizeof(bufferDatabase),  &bufferDatabase);
+    check_cl(status, "Erro ao adicionar argumento ao kernel");
 
     size_t localWorkSize[1] = {1};
     size_t globalWorkSize[1];
 
     globalWorkSize[0] = ceil((float)TAMANHO_POPULACAO/localWorkSize[0])*localWorkSize[0];
 
-    clEnqueueNDRangeKernel(cmdQueue,
+    status = clEnqueueNDRangeKernel(cmdQueue,
                            kernelAvaliacao,
                            1,
                            NULL,
@@ -558,9 +522,13 @@ void avaliacao(individuo *pop, t_regra * gramatica){
                            0,
                            NULL,
                            &eventoAvaliacao);
+     check_cl(status, "Erro ao enfileirar o kernel para execucao");
 
-     clEnqueueReadBuffer(cmdQueue, bufferB, CL_TRUE, 0,
+
+     status = clEnqueueReadBuffer(cmdQueue, bufferB, CL_TRUE, 0,
 						 datasize, pop, 0, NULL, &event3);
+     check_cl(status, "Erro ao enfileirar leitura de buffer de memoria");
+
 
      clFinish(cmdQueue);
 
@@ -573,8 +541,8 @@ void avaliacao(individuo *pop, t_regra * gramatica){
      #endif
 
      //Imprime todos os indivíduos
-     /*
 
+    /*
      int i,j;
 
      for(i=0; i < TAMANHO_POPULACAO; i++){
@@ -606,7 +574,6 @@ void avaliacao(individuo *pop, t_regra * gramatica){
 
         printf("\n");
      }
-
      */
 }
 
@@ -615,8 +582,13 @@ void substituicao(individuo *pop, t_regra * gramatica){
     cl_event eventoSubstituicao;
 
     status = clSetKernelArg(kernelSubstituicao,  0, sizeof(bufferA), &bufferA);
+    check_cl(status, "Erro ao adicionar argumento 0 ao kernel");
+
     status = clSetKernelArg(kernelSubstituicao,  1, sizeof(bufferB), &bufferB);
+    check_cl(status, "Erro ao adicionar argumento 1 ao kernel");
+
     status = clSetKernelArg(kernelSubstituicao,  2, sizeof(bufferC), &bufferC);
+    check_cl(status, "Erro ao adicionar argumento 2 ao kernel");
 
     if(CPU){
 
@@ -640,10 +612,13 @@ void substituicao(individuo *pop, t_regra * gramatica){
 
         globalWorkSize[0] = ceil((float)TAMANHO_POPULACAO/localWorkSize[0])*localWorkSize[0];
 
-        cout << "Local: " << localWorkSize[0] << ", global:" << globalWorkSize[0] << endl;
+        printf("Local: %ld, Global: %ld\n",localWorkSize[0], globalWorkSize[0]);
 
         status = clSetKernelArg(kernelSubstituicao,  3, sizeof(int)*4, NULL);
+        check_cl(status, "Erro ao adicionar argumento 3 ao kernel");
+
         status = clSetKernelArg(kernelSubstituicao,  4, sizeof(int)*4, NULL);
+        check_cl(status, "Erro ao adicionar argumento 4 ao kernel");
 
         clEnqueueNDRangeKernel(cmdQueue,
                                kernelSubstituicao,
@@ -655,6 +630,8 @@ void substituicao(individuo *pop, t_regra * gramatica){
                                NULL,
                                &eventoSubstituicao);
     }
+
+    check_cl(status, "Erro ao enfileirar o kernel para execucao");
 
    /*
     Troca os buffers A e C, de forma que a população gerada na etapa de substituição
@@ -677,10 +654,14 @@ void substituicao(individuo *pop, t_regra * gramatica){
    clEnqueueReadBuffer(cmdQueue, bufferA, CL_TRUE, 0,
 						sizeof(individuo), melhor1,
 						0, NULL, &event3);
+   check_cl(status, "Erro ao enfileirar leitura de buffer de memória");
+
 
    clEnqueueReadBuffer(cmdQueue, bufferA, CL_TRUE, offset,
 						sizeof(individuo), melhor2,
 						0, NULL, &event3);
+   check_cl(status, "Erro ao enfileirar leitura de buffer de memória");
+
 
    clFinish(cmdQueue);
 
@@ -715,27 +696,34 @@ void iteracao(individuo * populacao, t_regra * gramatica){
 							0,
 							sizeof(bufferA),
 							&bufferA);
+    check_cl(status, "Erro ao adicionar argumento ao kernel");
 
     status = clSetKernelArg(kernelIteracao,
 							1,
 							sizeof(geracao),
 							&geracao);
+    check_cl(status, "Erro ao adicionar argumento ao kernel");
 
 
     status = clSetKernelArg(kernelIteracao,
 							2,
 							sizeof(seed),
 							&seed);
+    check_cl(status, "Erro ao adicionar argumento ao kernel");
+
 
     status = clSetKernelArg(kernelIteracao,
 							3,
 							sizeof(bufferB),
 							&bufferB);
+    check_cl(status, "Erro ao adicionar argumento ao kernel");
+
 
     status = clSetKernelArg(kernelIteracao,
                             4,
                             sizeof(bufferCounter),
                             &bufferCounter);
+    check_cl(status, "Erro ao adicionar argumento ao kernel");
 
 
     if(kernelAG == KERNEL_N_POR_WORK_GROUP){
@@ -744,21 +732,19 @@ void iteracao(individuo * populacao, t_regra * gramatica){
                                   5,
                                   localWorkSizeIteracao[0]*sizeof(individuo),
                                   NULL);
+        check_cl(status, "Erro ao adicionar argumento ao kernel");
 
         status = clSetKernelArg(kernelIteracao,
                                   6,
                                   (localWorkSizeIteracao[0])*sizeof(int),
                                   NULL);
+        check_cl(status, "Erro ao adicionar argumento ao kernel");
 
         status = clSetKernelArg(kernelIteracao,
                                   7,
                                   (localWorkSizeIteracao[0])*sizeof(int),
                                   NULL);
-    }
-
-    if(status != CL_SUCCESS){
-        cout << "Erro ao criar buffer de memoria. (Erro " << status << ")" << endl;
-        exit(EXIT_FAILURE);
+        check_cl(status, "Erro ao adicionar argumento ao kernel");
     }
 
 	//---------------------------------------------
@@ -792,10 +778,7 @@ void iteracao(individuo * populacao, t_regra * gramatica){
 
     }
 
-    if(status != CL_SUCCESS){
-        cout << "Erro ao enfileirar o kernel para execucao. (Erro " << status << ")" << endl;
-        exit(EXIT_FAILURE);
-    }
+    check_cl(status, "Erro ao enfileirar o kernel para execucao");
 
     //Espera o término da fila de execução
     clFinish(cmdQueue);
@@ -814,10 +797,10 @@ void iteracao(individuo * populacao, t_regra * gramatica){
 
 void carrega_gramatica(t_regra * gramatica){
 
-      cl_event eventoInicializacao;
+    cl_event eventoInicializacao;
 
-      //Transfere os e da população para o bufferA
-      status = clEnqueueWriteBuffer(cmdQueue,
+    //Transfere os e da população para o bufferA
+    status = clEnqueueWriteBuffer(cmdQueue,
                                       bufferGramatica,
                                       CL_TRUE,
                                       0,
@@ -826,15 +809,11 @@ void carrega_gramatica(t_regra * gramatica){
                                       0,
                                       NULL,
                                       &eventoInicializacao);
+    check_cl(status, "Erro ao carregar o buffer da gramatica");
 
-   //Espera o término da fila de execução
-   clFinish(cmdQueue);
-
-   if(status != CL_SUCCESS){
-        cout << "Erro carregar a gramatica. (Erro " << status << ")" << endl;
-        exit(EXIT_FAILURE);
-   }
-
+    //Espera o término da fila de execução
+    status = clFinish(cmdQueue);
+    check_cl(status, "Erro ao carregar o buffer da gramatica");
 }
 
 
@@ -852,21 +831,17 @@ void carrega_bancoDeDados(float dataBase[][5]){
                                       0,
                                       NULL,
                                       &eventoInicializacao);
+   check_cl(status, "Erro ao carregar o buffer do banco de dados");
 
    //Espera o término da fila de execução
-   clFinish(cmdQueue);
-
-   if(status != CL_SUCCESS){
-        cout << "Erro carregar a gramatica. (Erro " << status << ")" << endl;
-        exit(EXIT_FAILURE);
-    }
-
+   status = clFinish(cmdQueue);
+   check_cl(status, "Erro ao carregar o buffer do banco de dados");
 
 }
 
 void inicializa_populacao(individuo * pop){
 
-    int seed = rand();
+     int seed = rand();
 
     cl_event eventoInicializacao;
 
@@ -874,11 +849,15 @@ void inicializa_populacao(individuo * pop){
 							0,
 							sizeof(bufferA),
 							&bufferA);
+    check_cl(status, "Erro ao adicionar 0 argumento ao kernel");
+
 
     status = clSetKernelArg(kernelInicializacao,
 							1,
 							sizeof(seed),
 							&seed);
+    check_cl(status, "Erro ao adicionar 1 argumento ao kernel");
+
 
     //Transfere os e da população para o bufferA
     status = clEnqueueWriteBuffer(cmdQueue,
@@ -890,6 +869,7 @@ void inicializa_populacao(individuo * pop){
 								  0,
 								  NULL,
 								  &event1);
+    check_cl(status, "Erro ao enfileirar escrita do buffer de memoria");
 
 
     size_t globalWorkSize[1] = {TAMANHO_POPULACAO};
@@ -903,9 +883,10 @@ void inicializa_populacao(individuo * pop){
 									0,
 									NULL,
 									&eventoInicializacao);
+    check_cl(status, "Erro ao enfileirar o kernel para execucao");
 
 
-    clEnqueueReadBuffer(cmdQueue,
+    status = clEnqueueReadBuffer(cmdQueue,
 						bufferA,
 						CL_TRUE,
 						0,
@@ -914,6 +895,7 @@ void inicializa_populacao(individuo * pop){
 						0,
 						NULL,
 						&event3);
+    check_cl(status, "Erro ao enfileirar leitura do buffer de memoria");
 
 
     //Espera o término da fila de execução
@@ -947,6 +929,10 @@ void exibePopulacao(individuo * populacao){
 
 void ag_paralelo(individuo * pop, t_regra *gramatica, float dataBase[][5], int pcores, int kernelAG){
 
+    check(pop != NULL, "População não pode ser nula");
+    check(gramatica != NULL, "Gramática não pode ser nula");
+    check(sizeof(dataBase)>0, "Banco de dados não pode ser nulo");
+
     initializeOpenCL(pcores, kernelAG);
 
     inicializa_populacao(pop);
@@ -959,7 +945,7 @@ void ag_paralelo(individuo * pop, t_regra *gramatica, float dataBase[][5], int p
 
         //exibePopulacao(pop);
 
-        int j;
+        /* int j;
         for(j=0;j<0-TAMANHO_POPULACAO;j++){
 
            if(pop[j].aptidao != funcao_de_avaliacao(&pop[j])){
@@ -967,7 +953,7 @@ void ag_paralelo(individuo * pop, t_regra *gramatica, float dataBase[][5], int p
                 << funcao_de_avaliacao(&pop[j]) << endl;
                 exit(EXIT_FAILURE);
            }
-        }
+        }*/
 
         geracao++;
     }

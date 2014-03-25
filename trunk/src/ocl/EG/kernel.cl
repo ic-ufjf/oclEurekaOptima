@@ -236,17 +236,17 @@ void mutacao2(__local individuo *p, float chance, cburng4x32 *rng){
     }
 }
 
-__kernel void inicializa_populacao(__global individuo *pop){  
+__kernel void inicializa_populacao(__global individuo *pop, const int seed){  
     
     int tid = get_global_id(0),
         lid = get_local_id(0);
 
-    int seed = tid;    
+    int lseed = seed+tid;    
 
     //Inicializa RNG
     cburng4x32 rng;
     cburng4x32_init(&rng);
-    rng.key.v[0] = seed;
+    rng.key.v[0] = lseed;
     rng.ctr.v[0] = 0;
 
     for(int j=0; j < TAMANHO_INDIVIDUO; j++){
@@ -254,7 +254,6 @@ __kernel void inicializa_populacao(__global individuo *pop){
     }
 
     __private short fenotipo[DIMENSOES_PROBLEMA];
-
     pop[tid].aptidao = funcao_de_avaliacao(pop[tid], fenotipo);
 }
 

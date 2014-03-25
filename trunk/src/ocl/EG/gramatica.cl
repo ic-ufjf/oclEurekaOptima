@@ -4,7 +4,7 @@ int GetRegra(__global t_regra *gramatica, type_simbolo simbolo){
 	int i;
 
 	for(i=0;i<TAMANHO_GRAMATICA;i++){
-		if(gramatica[i].simbolo.v[1] == simbolo.v[1]) return i;
+	    if(gramatica[i].simbolo.v[1] == simbolo.v[1]) return i;
 	}
 
 	return -1;

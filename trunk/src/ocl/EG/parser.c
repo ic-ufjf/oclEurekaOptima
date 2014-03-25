@@ -1,12 +1,9 @@
-
 #include "parser.h"
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <math.h>
-
-#define DEBUG
 
 t_elemento naoTerminais[20];
 
@@ -114,6 +111,7 @@ void LeVariaveis(char s[]){
 	while( pntVariaveis != NULL );
 
 	idVariavel--;
+
 }
 
 void ProcessaLinhaBD(char s[], int indice, float bancoDeDados[][5]){
@@ -138,7 +136,6 @@ void ProcessaLinhaBD(char s[], int indice, float bancoDeDados[][5]){
 		printf("\n");
 	#endif
 }
-
 
 int LeBancoDeDados(char nomeArquivo[], float bancoDeDados[][5]){
 
@@ -376,6 +373,7 @@ float Avalia(t_item_programa programa[], float registro[]) {
 			   pilha[topo] = OperaUnario(pilha[topo], programa[i].t.v[1]);
 			   break;
 	   }
+
 	   //printf("Topo (%d): %f\n",topo, pilha[topo]);
 
 	   i = programa[i].proximo;
@@ -456,7 +454,6 @@ void ImprimeInfixa(t_item_programa *programa){
 	   		   //pilha[topo-1] = OperaBinario(pilha[topo-1], pilha[topo], programa[i].t.v[1]);
 
                strcpy(aux1, "( ");
-
 	   		   strcat(aux1,  p->proximo->expr);
 
 	   		   GetNomeElemento(&programa[i].t, aux2);
@@ -466,7 +463,6 @@ void ImprimeInfixa(t_item_programa *programa){
 
                strcat(aux1,  " ");
                strcat(aux1,  p->expr);
-
                strcat(aux1,  " ");
                strcat(aux1,  ")");
 
@@ -489,9 +485,7 @@ void ImprimeInfixa(t_item_programa *programa){
 			   GetNomeElemento(&programa[i].t, aux1);
 
                strcat(aux1, "(");
-
                strcat(aux1,  p->expr);
-
                strcat(aux1, ")");
 
                strcpy(p->expr, aux1);
