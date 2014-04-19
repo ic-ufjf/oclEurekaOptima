@@ -1,4 +1,4 @@
-g++  -o eg utils.h utils.c parser.h parser.c gramatica.h gramatica.c main.c ag.h ag.c operadores_geneticos.c -lOpenCL -I ./include -I /usr/include -lm -Wno-pointer-arith -Wno-write-strings -D TAMANHO_POPULACAO=256 -D NUMERO_DE_GERACOES=50 -D  DIMENSOES_PROBLEMA=30 -D TAMANHO_VALOR=10 -D TAXA_DE_MUTACAO=0.005 -D TAXA_DE_RECOMBINACAO=0.8 -D TAMANHO_TORNEIO=2 -D ELITE=2 -D PROFILING -D gpu
+g++  -o eg utils.h utils.c parser.h parser.c gramatica.h gramatica.c main.c ag.h ag.c operadores_geneticos.c -lOpenCL -I ./include -I /usr/include -lm -Wno-pointer-arith -Wno-write-strings -D TAMANHO_POPULACAO=256 -D NUMERO_DE_GERACOES=32 -D  DIMENSOES_PROBLEMA=30 -D TAMANHO_VALOR=10 -D TAXA_DE_MUTACAO=0.005 -D TAXA_DE_RECOMBINACAO=0.8 -D TAMANHO_TORNEIO=2 -D ELITE=2 -D PROFILING -D gpu
 ./eg > logExecucao.txt
 
 cat logExecucao.txt

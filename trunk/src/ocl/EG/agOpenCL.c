@@ -389,6 +389,8 @@ void initializeOpenCL(int cores, int kernel, Database *dataBase){
 
         clGetDeviceInfo(devices[0], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_local_size, NULL);
 
+
+
     }
 
 

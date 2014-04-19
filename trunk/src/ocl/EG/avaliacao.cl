@@ -11,9 +11,10 @@ void obtem_fenotipo_individuo2(short gray[], short fenotipo[]){
     }   
 }
 
-int obtem_fenotipo_individuo3(individuo p, short fenotipo[]){    
+int obtem_fenotipo_individuo3(individuo p, short fenotipo[]){
 
     obtem_fenotipo_individuo2(p.genotipo, fenotipo);   
+
 }
 
 
@@ -67,7 +68,8 @@ __kernel void avaliacao_gpu(__global individuo *pop,
 	
 	int tid = get_global_id(0),
    	    lid = get_local_id(0),
-   	    gid = get_group_id(0);
+   	    gid = get_group_id(0),
+	   LOCAL_SIZE = get_local_size(0);
         
         __private short fenotipo[DIMENSOES_PROBLEMA];
                 
@@ -91,32 +93,37 @@ __kernel void avaliacao_gpu(__global individuo *pop,
  	barrier(CLK_LOCAL_MEM_FENCE);	
  	
  	if(program_ctr != -1){
+		
+  		 erros[lid] = 0;
+		 //Avaliação paralela entre work-itens do mesmo work-group
 
-		//Avaliação paralela entre work-itens do mesmo work-group
-		if(lid <= TAMANHO_DATABASE){		 		
+		 for( int iter = 0; iter < ceil( TAMANHO_DATABASE / (float) LOCAL_SIZE ); ++iter ){			
 
- 		    erros[lid] = pown(Avalia(programa, dataBase, lid), 2);
+			 if( iter * LOCAL_SIZE + lid < TAMANHO_DATABASE){	 		
 
-	            int next_power_of_2 = (int)pown( (float)2.0, (int) ceil( log2( (float) get_local_size(0) ) ) );
+	 		    erros[iter * LOCAL_SIZE + lid] += pown(Avalia(programa, dataBase, iter * LOCAL_SIZE + lid), 2);
 
-		    int s = next_power_of_2/2;
-		    int LOCAL_SIZE = get_local_size(0);
+			}
+		  }
 
-		    for(;s>0;s/=2){
-		       barrier(CLK_LOCAL_MEM_FENCE);
+		  int next_power_of_2 = (int)pown( (float)2.0, (int) ceil( log2( (float) get_local_size(0) ) ) );
+	          int s = next_power_of_2/2;			
+	
+		  for(;s>0;s/=2){
+		  	barrier(CLK_LOCAL_MEM_FENCE);
 
-		       if(lid < s && (lid + s < LOCAL_SIZE ) )
+		        if(lid < s && (lid + s < LOCAL_SIZE ) )
 			erros[lid] += erros[lid+s];
-		    }
+    		  }	
+			
+		  if(lid==0){
 
-		    if(lid==0){
+	              if( isinf( erros[0] ) || isnan( erros[0] ) ) erros[0] = MAXFLOAT;
+		      pop[gid].aptidao = erros[0]*(-1);		
 
-			if( isinf( erros[0] ) || isnan( erros[0] ) ) erros[0] = MAXFLOAT;
-			pop[gid].aptidao = erros[0]*(-1);		
+		  }
 
-		    }
-
-		}	
+  		
 	}
 
 		
