@@ -32,7 +32,7 @@ typedef struct{
 
 typedef struct{
 	int num_simbolos;
-	type_simbolo simbolos[10];
+	type_simbolo simbolos[50];
 } t_escolha;
 
 typedef struct{
@@ -44,6 +44,14 @@ typedef struct{
 typedef struct{
 	t_item_programa programa[TAMANHO_MAX_PROGRAMA];
 }t_prog;
+
+typedef struct{
+
+    int numRegistros;
+    int numVariaveis;
+    float * registros;
+
+}Database;
 
 
 typedef struct NoExpressao{
@@ -69,8 +77,7 @@ short GetQtdVariaveis();
 void GetNomeElemento(type_simbolo *s, char *nome);
 void GetNomeElemento2(int type, int value, char *nome);
 
-int LeBancoDeDados(char arq[], float bancoDeDados[][5]);
-void ProcessaLinhaBD(char s[], int indice, float bancoDeDados[][5]);
+Database *database_read(char nomeArquivo[]);
 
 float Avalia(t_item_programa programa[], float registro[]);
 

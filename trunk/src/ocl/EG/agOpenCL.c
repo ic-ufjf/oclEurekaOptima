@@ -32,7 +32,7 @@
 #include "representacao.h"
 #include "parser.h"
 
-#define TAMANHO_DATABASE 10
+#define check_cl(STATUS,M) if(STATUS!=CL_SUCCESS){ log_error(M); log_error_code(STATUS); log_arquivo(); Dispose(); exit(EXIT_FAILURE); }
 
 using namespace std;
 
@@ -88,6 +88,7 @@ cl_context context = NULL;
 cl_device_id * devices = NULL, * subDevices = NULL;
 cl_uint numDevices = 0, numSubDevices=0;
 cl_kernel kernelIteracao, kernelAvaliacao, kernelInicializacao, kernelSubstituicao;
+cl_program program;
 
 size_t globalWorkSizeIteracao[1],localWorkSizeIteracao[1];
 size_t datasize;
@@ -95,11 +96,14 @@ size_t datasize;
 cl_mem bufferA, bufferB, bufferC, bufferCounter, bufferPais_local,
 bufferFilhos_local, bufferProgramas, bufferGramatica, bufferDatabase;
 
+int pontosPorWorkItem;
+int tamanhoBancoDeDados;
+
 //Eventos utilizados para medir o tempo de execução do kernel
 //e das trocas de memória
 cl_event event1, event2, event3;
 
-size_t preferred_workgroup_size_multiple;
+size_t preferred_workgroup_size_multiple, max_local_size;
 
 /*
   Obtém o tempo decorrido entre o início e o fim de um evento (em picosegundos)
@@ -120,7 +124,7 @@ void CriaSubDevices(){
     // Criação dos subdevices
     //-----------------------
 
-    status = clGetDeviceInfo(devices[0], CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &max_compute_units, NULL);
+    /*status = clGetDeviceInfo(devices[0], CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &max_compute_units, NULL);
 
     cl_uint ncores = std::min((int)max_compute_units, (int)pcores);
 
@@ -138,7 +142,7 @@ void CriaSubDevices(){
 
     device = devices[0];
 
-    check_cl(status, "Erro ao criar os subdevices");
+    check_cl(status, "Erro ao criar os subdevices");*/
 }
 
 
@@ -191,7 +195,7 @@ void obtem_fenotipo_individuo2(individuo *p, short fenotipo[]){
 }
 
 
-void initializeOpenCL(int cores, int kernel){
+void initializeOpenCL(int cores, int kernel, Database *dataBase){
 
     kernelAG = kernel;
     pcores   = cores;
@@ -247,11 +251,6 @@ void initializeOpenCL(int cores, int kernel){
 
     check_cl(status, "Erro ao obter os dispositivos");
 
-    if(cores!=0){
-
-        CriaSubDevices();
-    }
-
     //---------------------------------------------
 	// 3: Criação do contexto de execução
 	//---------------------------------------------
@@ -271,7 +270,6 @@ void initializeOpenCL(int cores, int kernel){
 
     device = devices[0];
 
-
     cmdQueue = clCreateCommandQueue(context,
 									device,
                                     CL_QUEUE_PROFILING_ENABLE,
@@ -280,9 +278,9 @@ void initializeOpenCL(int cores, int kernel){
     check_cl(status, "Erro ao criar a fila de execução");
 
 
-    //---------------------------------------------
+    //-----------------------------------=----------
     // 5: Criação e compilação do programa
-    //---------------------------------------------
+    //----------------------------------------------
 
 
     std::string header_string = "#define NUMERO_DE_GERACOES " + ToString(NUMERO_DE_GERACOES) + " \n"+
@@ -294,7 +292,8 @@ void initializeOpenCL(int cores, int kernel){
                                 "#define TAXA_DE_RECOMBINACAO " + ToString(TAXA_DE_RECOMBINACAO )+ "\n" +
                                 "#define TAMANHO_TORNEIO " + ToString(TAMANHO_TORNEIO) + "\n" +
                                 "#define TAMANHO_GRAMATICA " + ToString(5) + "\n" +
-                                "#define TAMANHO_DATABASE " + ToString(TAMANHO_DATABASE) + "\n" +
+                                "#define TAMANHO_DATABASE " + ToString(dataBase->numRegistros) + "\n" +
+                                "#define NUM_VARIAVEIS " + ToString(dataBase->numVariaveis) + "\n" +
                                 "#define ELITE " + ToString(ELITE) + "\n";
 
     std::string body_string   = LoadKernel("kernel.cl");
@@ -302,12 +301,14 @@ void initializeOpenCL(int cores, int kernel){
 
     kernel_srt = kernel_string.c_str();
 
+
+
     //cout << kernel_srt;
 
  	size_t programSize = (size_t)strlen(kernel_srt);
 
 	//Cria o programa
-	cl_program program = clCreateProgramWithSource(context,
+	program = clCreateProgramWithSource(context,
 							   1,
 							   (const char **)&kernel_srt,
 							   &programSize,
@@ -344,7 +345,7 @@ void initializeOpenCL(int cores, int kernel){
     bufferGramatica = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(t_regra)*5, NULL, &status);
     check_cl(status, "Erro ao criar buffer de memoria bufferGramatica");
 
-    bufferDatabase  = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(float)*5*TAMANHO_DATABASE, NULL, &status);
+    bufferDatabase  = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(float)*(dataBase->numRegistros)*(dataBase->numVariaveis), NULL, &status);
     check_cl(status, "Erro ao criar buffer de memoria bufferDatabase");
 
 
@@ -365,18 +366,19 @@ void initializeOpenCL(int cores, int kernel){
 
     check_cl(status, "Erro ao criar kernel kernelInicializacao");
 
-    if(CPU){
+     if(CPU){
 
         status = clGetDeviceInfo(devices[0], CL_DEVICE_MAX_COMPUTE_UNITS,
         sizeof(cl_uint), &max_compute_units, NULL);
 
         preferred_workgroup_size_multiple = (size_t)max_compute_units;
-
         //cout << "Preferred work group size:" << preferred_workgroup_size_multiple << endl;
+
     }
     else{
 
-        //Obtém o tamanho do qual o groupsize deve ser múltiplo
+
+        //Obtém o tamanho  do qual o groupsize deve ser múltiplo
         status = clGetKernelWorkGroupInfo(kernelInicializacao, device,
                                           CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
                                           sizeof(size_t),
@@ -384,8 +386,11 @@ void initializeOpenCL(int cores, int kernel){
                                           NULL);
 
         //cout << "Preferred work group size:" << preferred_workgroup_size_multiple << endl;
-        //preferred_workgroup_size_multiple = 4;
+
+        clGetDeviceInfo(devices[0], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_local_size, NULL);
+
     }
+
 
 	//Cria o kernel de mutação/recombinação
 
@@ -414,7 +419,7 @@ void initializeOpenCL(int cores, int kernel){
 
         kernelIteracao = clCreateKernel(program, "iteracao_2_por_work_group2", &status);
 
-        localWorkSizeIteracao[0]  = preferred_workgroup_size_multiple;
+         localWorkSizeIteracao[0]  = preferred_workgroup_size_multiple;
         globalWorkSizeIteracao[0] = ceil((TAMANHO_POPULACAO/2)*localWorkSizeIteracao[0]);
     }
 
@@ -445,7 +450,13 @@ void initializeOpenCL(int cores, int kernel){
 
     //Cria o kernel de avaliação
 
-    kernelAvaliacao = clCreateKernel(program, "avaliacao", &status);
+    if(CPU){
+        kernelAvaliacao = clCreateKernel(program, "avaliacao", &status);
+    }
+    else{
+        kernelAvaliacao = clCreateKernel(program, "avaliacao_gpu", &status);
+    }
+
     check_cl(status, "Erro ao criar kernel 'avaliacao'");
 
     if(CPU){
@@ -456,6 +467,9 @@ void initializeOpenCL(int cores, int kernel){
     }
 
     check_cl(status, "Erro ao criar kernel 'substituicao'");
+
+      pontosPorWorkItem = dataBase->numRegistros/preferred_workgroup_size_multiple;
+        printf("Pontos por work-item: %d\n", pontosPorWorkItem);
 }
 
 void exibe_melhor(individuo * melhor, t_regra * gramatica){
@@ -476,7 +490,7 @@ void exibe_melhor(individuo * melhor, t_regra * gramatica){
 
     printf("---------------------------------");
     printf("\nGeracao %d: \n", geracao);
-    printf("\nMelhor da geracao: %d: %f\n", geracao, melhor->aptidao);
+    printf("\nMelhor da geracao: %d: %.10f\n", geracao, melhor->aptidao);
 
     t_item_programa programa[TAMANHO_MAX_PROGRAMA];
     short fenotipo[DIMENSOES_PROBLEMA];
@@ -485,21 +499,35 @@ void exibe_melhor(individuo * melhor, t_regra * gramatica){
 
     Decodifica(gramatica, fenotipo, programa);
 
-    puts("");
+    printf("\n");
     ImprimePosfixa(programa);
 
-    puts("");
-    puts("Em ordem infixa:");
+    printf("\nEm ordem infixa:");
 
     ImprimeInfixa(programa);
-    puts("");
+    printf("\n");
 }
 
-void avaliacao(individuo *pop, t_regra * gramatica){
+void exibePopulacao(individuo * populacao){
+
+    int i,j;
+
+    printf("\n");
+
+    for(i=0; i < TAMANHO_POPULACAO; i++){
+
+        for(j=0; j < TAMANHO_INDIVIDUO; j++){
+               //printf(" %d ", populacao[i].genotipo[j]);
+        }
+        printf("%d \t %f \n",i, populacao[i].aptidao);
+    }
+}
+
+void avaliacao(individuo *pop, t_regra * gramatica, cl_mem bufferPop){
 
     cl_event eventoAvaliacao;
 
-    status = clSetKernelArg(kernelAvaliacao,  0, sizeof(bufferB), &bufferB);
+    status = clSetKernelArg(kernelAvaliacao,  0, sizeof(bufferPop), &bufferPop);
     check_cl(status, "Erro ao adicionar argumento ao kernel");
 
     status = clSetKernelArg(kernelAvaliacao,  1, sizeof(bufferGramatica), &bufferGramatica);
@@ -508,25 +536,63 @@ void avaliacao(individuo *pop, t_regra * gramatica){
     status = clSetKernelArg(kernelAvaliacao,  2, sizeof(bufferDatabase),  &bufferDatabase);
     check_cl(status, "Erro ao adicionar argumento ao kernel");
 
-    size_t localWorkSize[1] = {1};
-    size_t globalWorkSize[1];
+    if(!CPU)
+    {
+        size_t localWorkSize[1];
+        size_t globalWorkSize[1];
 
-    globalWorkSize[0] = ceil((float)TAMANHO_POPULACAO/localWorkSize[0])*localWorkSize[0];
+        printf("max local size: %d\n", (int)max_local_size);
 
-    status = clEnqueueNDRangeKernel(cmdQueue,
-                           kernelAvaliacao,
-                           1,
-                           NULL,
-                           globalWorkSize,
-                           localWorkSize,
-                           0,
-                           NULL,
-                           &eventoAvaliacao);
+        if(tamanhoBancoDeDados < max_local_size )
+            localWorkSize[0] = tamanhoBancoDeDados;
+        else
+            localWorkSize[0] = max_local_size;
+
+        // One individual per work-group
+        globalWorkSize[0] = localWorkSize[0] * TAMANHO_POPULACAO;
+
+        printf("Local: %ld, Global: %ld\n",localWorkSize[0], globalWorkSize[0]);
+
+        status = clSetKernelArg(kernelAvaliacao,  3, sizeof(float)*localWorkSize[0],  NULL);
+        check_cl(status, "Erro ao adicionar argumento ao kernel");
+
+        status = clEnqueueNDRangeKernel(cmdQueue,
+                               kernelAvaliacao,
+                               1,
+                               NULL,
+                               globalWorkSize,
+                               localWorkSize,
+                               0,
+                               NULL,
+                               &eventoAvaliacao);
+     }
+     else{
+
+        size_t localWorkSize[1] = {1};
+        size_t globalWorkSize[1];
+
+        globalWorkSize[0] = ceil((float)TAMANHO_POPULACAO/localWorkSize[0])*localWorkSize[0];
+
+        status = clEnqueueNDRangeKernel(cmdQueue,
+                               kernelAvaliacao,
+                               1,
+                               NULL,
+                               globalWorkSize,
+                               localWorkSize,
+                               0,
+                               NULL,
+                               &eventoAvaliacao);
+
+
+     }
+
+
+
      check_cl(status, "Erro ao enfileirar o kernel para execucao");
 
-
-     status = clEnqueueReadBuffer(cmdQueue, bufferB, CL_TRUE, 0,
+     status = clEnqueueReadBuffer(cmdQueue, bufferPop, CL_TRUE, 0,
 						 datasize, pop, 0, NULL, &event3);
+
      check_cl(status, "Erro ao enfileirar leitura de buffer de memoria");
 
 
@@ -541,8 +607,7 @@ void avaliacao(individuo *pop, t_regra * gramatica){
      #endif
 
      //Imprime todos os indivíduos
-
-    /*
+/*
      int i,j;
 
      for(i=0; i < TAMANHO_POPULACAO; i++){
@@ -572,7 +637,7 @@ void avaliacao(individuo *pop, t_regra * gramatica){
         puts("Em ordem infixa:");
         ImprimeInfixa(programa);
 
-        printf("\n");
+        prin tf("\n");
      }
      */
 }
@@ -596,7 +661,7 @@ void substituicao(individuo *pop, t_regra * gramatica){
 
         clEnqueueNDRangeKernel(cmdQueue,
                                kernelSubstituicao,
-                               1,
+                                1,
                                NULL,
                                globalWorkSize,
                                NULL,
@@ -630,7 +695,6 @@ void substituicao(individuo *pop, t_regra * gramatica){
                                NULL,
                                &eventoSubstituicao);
     }
-
     check_cl(status, "Erro ao enfileirar o kernel para execucao");
 
    /*
@@ -646,10 +710,10 @@ void substituicao(individuo *pop, t_regra * gramatica){
 
    size_t offset = {sizeof(individuo) * ELITE};
 
-   /*clEnqueueReadBuffer(cmdQueue, bufferA, CL_TRUE, 0,
+   clEnqueueReadBuffer(cmdQueue, bufferA, CL_TRUE, 0,
 						datasize, pop,
 						0, NULL, &event3);
-    */
+
 
    clEnqueueReadBuffer(cmdQueue, bufferA, CL_TRUE, 0,
 						sizeof(individuo), melhor1,
@@ -673,6 +737,8 @@ void substituicao(individuo *pop, t_regra * gramatica){
        exibe_melhor(melhor2, gramatica);
    }
 
+  // exibePopulacao(pop);
+
    #ifdef PROFILING
 
     float tempoSubs = getTempoDecorrido(eventoSubstituicao) / 1000000000.0 ;
@@ -686,11 +752,12 @@ void substituicao(individuo *pop, t_regra * gramatica){
     Executa o kernel de iteracao
 */
 
+int seed;
+
 void iteracao(individuo * populacao, t_regra * gramatica){
 
     cl_event eventIteracao;
 
-    int seed = geracao * TAMANHO_POPULACAO + rand();
 
     status = clSetKernelArg(kernelIteracao,
 							0,
@@ -704,7 +771,6 @@ void iteracao(individuo * populacao, t_regra * gramatica){
 							&geracao);
     check_cl(status, "Erro ao adicionar argumento ao kernel");
 
-
     status = clSetKernelArg(kernelIteracao,
 							2,
 							sizeof(seed),
@@ -712,7 +778,7 @@ void iteracao(individuo * populacao, t_regra * gramatica){
     check_cl(status, "Erro ao adicionar argumento ao kernel");
 
 
-    status = clSetKernelArg(kernelIteracao,
+    status =  clSetKernelArg(kernelIteracao,
 							3,
 							sizeof(bufferB),
 							&bufferB);
@@ -790,7 +856,8 @@ void iteracao(individuo * populacao, t_regra * gramatica){
 
     #endif
 
-    avaliacao(populacao, gramatica);
+    //avaliacao(populacao, gramatica, bufferB);
+    avaliacao(populacao, gramatica, bufferA);
 
     substituicao(populacao, gramatica);
 }
@@ -817,31 +884,34 @@ void carrega_gramatica(t_regra * gramatica){
 }
 
 
-void carrega_bancoDeDados(float dataBase[][5]){
+void carrega_bancoDeDados(Database *dataBase){
 
     cl_event eventoInicializacao;
 
     //Transfere os e da população para o bufferA
     status = clEnqueueWriteBuffer(cmdQueue,
-                                      bufferDatabase,
-                                      CL_TRUE,
-                                      0,
-                                      sizeof(float)*TAMANHO_DATABASE*5,
-                                      dataBase,
-                                      0,
-                                      NULL,
-                                      &eventoInicializacao);
+                                  bufferDatabase,
+                                  CL_TRUE,
+                                  0,
+                                  sizeof(float)*(dataBase->numRegistros)*(dataBase->numVariaveis),
+                                  dataBase->registros,
+                                  0,
+                                  NULL,
+                                  &eventoInicializacao);
+
    check_cl(status, "Erro ao carregar o buffer do banco de dados");
 
    //Espera o término da fila de execução
    status = clFinish(cmdQueue);
    check_cl(status, "Erro ao carregar o buffer do banco de dados");
-
 }
+
 
 void inicializa_populacao(individuo * pop){
 
-     int seed = rand();
+    //srand(12);
+
+    seed = rand();
 
     cl_event eventoInicializacao;
 
@@ -859,8 +929,8 @@ void inicializa_populacao(individuo * pop){
     check_cl(status, "Erro ao adicionar 1 argumento ao kernel");
 
 
-    //Transfere os e da população para o bufferA
-    status = clEnqueueWriteBuffer(cmdQueue,
+    //Transfere a população para o bufferA
+    /*status = clEnqueueWriteBuffer(cmdQueue,
 								  bufferA,
 								  CL_TRUE,
 								  0,
@@ -870,6 +940,7 @@ void inicializa_populacao(individuo * pop){
 								  NULL,
 								  &event1);
     check_cl(status, "Erro ao enfileirar escrita do buffer de memoria");
+    */
 
 
     size_t globalWorkSize[1] = {TAMANHO_POPULACAO};
@@ -903,64 +974,56 @@ void inicializa_populacao(individuo * pop){
 
 	#ifdef PROFILING
 
-      float tempoInicializacao = getTempoDecorrido(eventoInicializacao) / 1000000000.0 ;
+       float tempoInicializacao = getTempoDecorrido(eventoInicializacao) / 1000000000.0 ;
       tempoTotal += tempoInicializacao;
 
     #endif
-
 }
 
-void exibePopulacao(individuo * populacao){
+void Dispose(){
 
-    int i,j;
+    printf("Releasing resources...");
 
-    printf("\n");
-
-    for(i=0; i < TAMANHO_POPULACAO; i++){
-
-        for(j=0; j< TAMANHO_INDIVIDUO; j++){
-               // printf(" %d ", populacao[i].genotipo[j]);
-        }
-        printf("%d ---> \t %d \n",i, populacao[i].aptidao);
-    }
+    clReleaseMemObject(bufferA);
+    clReleaseMemObject(bufferB);
+    clReleaseMemObject(bufferC);
+    clReleaseMemObject(bufferGramatica);
+    clReleaseMemObject(bufferDatabase);
+    clReleaseKernel(kernelAvaliacao);
+    clReleaseKernel(kernelInicializacao);
+    clReleaseKernel(kernelIteracao);
+    clReleaseProgram(program);
+    clReleaseCommandQueue(cmdQueue);
+    clReleaseContext(context);
 }
 
 
+void ag_paralelo(individuo * pop, t_regra *gramatica, Database *dataBase, int pcores, int kernelAG){
 
-void ag_paralelo(individuo * pop, t_regra *gramatica, float dataBase[][5], int pcores, int kernelAG){
+    check(pop != NULL, "A população não pode ser nula");
+    check(gramatica != NULL, "A gramática não pode ser nula");
+    check(dataBase != NULL, "o banco de dados não pode ser nulo");
 
-    check(pop != NULL, "População não pode ser nula");
-    check(gramatica != NULL, "Gramática não pode ser nula");
-    check(sizeof(dataBase)>0, "Banco de dados não pode ser nulo");
+    tamanhoBancoDeDados = dataBase->numRegistros;
 
-    initializeOpenCL(pcores, kernelAG);
+    initializeOpenCL(pcores, kernelAG, dataBase);
 
-    inicializa_populacao(pop);
     carrega_gramatica(gramatica);
     carrega_bancoDeDados(dataBase);
+
+    inicializa_populacao(pop);
+
+    avaliacao(pop, gramatica, bufferA);
 
     while(geracao < NUMERO_DE_GERACOES){
 
         iteracao(pop, gramatica);
-
-        //exibePopulacao(pop);
-
-        /* int j;
-        for(j=0;j<0-TAMANHO_POPULACAO;j++){
-
-           if(pop[j].aptidao != funcao_de_avaliacao(&pop[j])){
-                cout << "Avaliacao " << j << " incorreta: " <<pop[j].aptidao << " em vez de "
-                << funcao_de_avaliacao(&pop[j]) << endl;
-                exit(EXIT_FAILURE);
-           }
-        }*/
-
         geracao++;
     }
 
+    Dispose();
+
    #ifdef PROFILING
-
       printf("Tempo total: \t %.10f\n", tempoTotal);
-
    #endif
 }

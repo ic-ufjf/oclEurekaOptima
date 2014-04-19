@@ -26,6 +26,8 @@ int GetRegra(t_regra * gramatica, type_simbolo simbolo){
  */
 void ProcessaEscolha(char * escolha, t_escolha * nova_escolha ){
 
+    #undef DEBUG
+
 	nova_escolha->num_simbolos=0;
 
 	char * elemento, *saveptr;
@@ -50,7 +52,9 @@ void ProcessaEscolha(char * escolha, t_escolha * nova_escolha ){
 				char *nomeElemento = (char*)malloc(20*sizeof(char));
 				GetNomeElemento(&novo_simbolo, nomeElemento);
 
-				printf("Simbolo encontrado: %s (%d,%f) \n", nomeElemento, (int)novo_simbolo.v[0], novo_simbolo.v[1]);
+                #ifdef DEBUG
+				    printf("Simbolo encontrado: %s (%d,%f) \n", nomeElemento, (int)novo_simbolo.v[0], novo_simbolo.v[1]);
+                #endif
 
 			}
 
@@ -64,6 +68,8 @@ void ProcessaEscolha(char * escolha, t_escolha * nova_escolha ){
 }
 
 void LeGramatica(char nomeArquivo[], t_regra  * Gramatica){
+
+#undef DEBUG
 
 	/* Estrutura para ler o arquivo da gramática  */
 	FILE *fptr = NULL;
@@ -80,7 +86,7 @@ void LeGramatica(char nomeArquivo[], t_regra  * Gramatica){
 	id_regra = -1;
 	int quantidade_escolhas = 0;
 
-	while(fgets(linha,200,fptr) != NULL){
+	while(fgets(linha, 200, fptr) != NULL){
 
 		#ifdef DEBUG
 			printf("Linha - %s\n", linha);

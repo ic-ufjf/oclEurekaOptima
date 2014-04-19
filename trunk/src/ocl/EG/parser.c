@@ -4,6 +4,8 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <math.h>
+#include "utils.h"
+
 
 t_elemento naoTerminais[20];
 
@@ -81,6 +83,8 @@ short GetQtdVariaveis(){
 	return idVariavel+1;
 }
 
+
+
 void LeVariaveis(char s[]){
 
 	char * pntVariaveis, * saveptr;
@@ -99,22 +103,22 @@ void LeVariaveis(char s[]){
 		strcpy(variaveis[idVariavel].str, pntVariaveis);
 
 		#ifdef DEBUG
-			printf("%s", variaveis[idVariavel].str);
+			//printf("%s", variaveis[idVariavel].str);
 		#endif
 
 		pntVariaveis = strtok_r( NULL, "\t", &saveptr);
 
 		#ifdef DEBUG
-			if(pntVariaveis != NULL) printf("\t");
+			//if(pntVariaveis != NULL) printf("\t");
 		#endif
 	}
 	while( pntVariaveis != NULL );
 
 	idVariavel--;
-
 }
 
-void ProcessaLinhaBD(char s[], int indice, float bancoDeDados[][5]){
+
+void database_read_line(char s[], Database *bancoDeDados, int indice){
 
 	char * valorPtr, *saveptr;
 	short countValor=0;
@@ -123,13 +127,14 @@ void ProcessaLinhaBD(char s[], int indice, float bancoDeDados[][5]){
 
 	while(countValor <= GetQtdVariaveis()){
 
-		bancoDeDados[indice][countValor++] = atof(valorPtr);
+		bancoDeDados->registros[indice*bancoDeDados->numVariaveis + countValor] = atof(valorPtr);
 
 		valorPtr = strtok_r(NULL, "\t", &saveptr);
 
 		#ifdef DEBUG
-			printf("%f\t", bancoDeDados[indice][countValor-1]);
+			printf("%f\t", bancoDeDados->registros[indice*bancoDeDados->numVariaveis + countValor]);
 		#endif
+        countValor++;
 	}
 
 	#ifdef DEBUG
@@ -137,15 +142,22 @@ void ProcessaLinhaBD(char s[], int indice, float bancoDeDados[][5]){
 	#endif
 }
 
-int LeBancoDeDados(char nomeArquivo[], float bancoDeDados[][5]){
+Database *database_read(char nomeArquivo[]){
+
+    Database * bancoDeDados = (Database *) malloc(sizeof(Database));
+
+    get_info_bancoDeDados(nomeArquivo, &bancoDeDados->numRegistros, &bancoDeDados->numVariaveis);
+
+    //float **dataBase = cria_matriz_float(*qtdRegistros, *qtdVariaveis);
+    int tamanhoBanco = sizeof(float)*(bancoDeDados->numRegistros)*(bancoDeDados->numVariaveis);
+
+    bancoDeDados->registros = (float*) malloc(tamanhoBanco);
 
 	FILE *arq = fopen(nomeArquivo, "r");
 
 	char linha[200];
 
 	fgets(linha,200, arq);
-
-	int dataBaseSize = 0;
 
 	#ifdef DEBUG
 		printf("Banco de dados: \n");
@@ -154,15 +166,18 @@ int LeBancoDeDados(char nomeArquivo[], float bancoDeDados[][5]){
 	/* Processa primeira linha (possui os nomes das variáveis) */
     LeVariaveis(linha);
 
-    short count=0;
+    int count=0;
 
 	while(fgets(linha,200,arq) != NULL){
-		ProcessaLinhaBD(linha, count++, bancoDeDados);
-		dataBaseSize++;
+		database_read_line(linha, bancoDeDados, count);
+		count++;
 	}
 
-	return dataBaseSize;
+	fclose(arq);
+
+	return bancoDeDados;
 }
+
 
 void GetNomeElemento(type_simbolo *s, char *nome){
 
@@ -199,19 +214,23 @@ void GetNomeElemento(type_simbolo *s, char *nome){
 
 char * GetSimboloNT(char * origem){
 
-	char *token = (char*)malloc(sizeof(char)*(strlen(origem)));
+    if(strlen(origem)>0){
 
-	int i,j=0;
+        char *token = (char*)malloc(sizeof(char)*(strlen(origem)+1));
 
-	for(i=0;i<strlen(origem);i++) {
-		if(!isspace(origem[i])){
-			token[j++] = origem[i];
-		}
+        int i,j=0;
+
+        for(i=0;i<strlen(origem);i++) {
+            if(!isspace(origem[i])){
+                token[j++] = origem[i];
+            }
+        }
+
+        token[i] = '\0';
+        return token;
 	}
 
-	token[i] = '\0';
-
-	return token;
+	return origem;
 }
 
 type_simbolo GetSimboloParser(char * s){
@@ -225,9 +244,9 @@ type_simbolo GetSimboloParser(char * s){
 		printf("Elemento: %s\n", s);
 	#endif
 
-	short teste = strlen(s);
+	//short teste = strlen(s);
 
-	if(s[0]=='<' && s[strlen(s)-1]=='>'){
+	if(s[0]=='<' ){ //&& s[strlen(s)-1]=='>'){
 
 		simbolo.v[0] = NAOTERMINAL;
 

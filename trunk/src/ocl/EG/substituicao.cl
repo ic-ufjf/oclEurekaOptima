@@ -21,7 +21,7 @@ __kernel void RankSort(__global const data_t * in,__global data_t * out)
   out[pos] = iData;
 }
 
-__kernel void teste_async_copy( __global int* popeye, __local int* program){
+__kernel void teste_async_copy( __global int* pop, __local int* program){
  
   __local uint program_size;
   
@@ -29,11 +29,11 @@ __kernel void teste_async_copy( __global int* popeye, __local int* program){
   
   program[get_global_id(0)] = -1;
  
-  event_t e_copy = async_work_group_copy(program, popeye, program_size, 0 );
+  event_t e_copy = async_work_group_copy(program, pop, program_size, 0 );
   
   wait_group_events( 1, &e_copy );
   
-  e_copy = async_work_group_copy(popeye, program, program_size, 0 );
+  e_copy = async_work_group_copy(pop, program, program_size, 0 );
   
   wait_group_events( 1, &e_copy ); 
 }
@@ -46,14 +46,15 @@ __kernel void substituicao(__global data_t * geracaoAtual, __global data_t * nov
     
     //Obtém o item geracaoAtual[i]
     data_t atualData = geracaoAtual[i];
-    int itemGeracaoAtual = getKey(atualData);
+    float itemGeracaoAtual = getKey(atualData);
 	
     //Obtém o item novaGeracao[i]
     data_t novaData = novaGeracao[i];
-    int itemNovaGeracao = getKey(novaData);
+    float itemNovaGeracao = getKey(novaData);
 
     // Encontra a posição da entrada geracaoAtual[i] e novaGeracao[i] no vetor ordenado utilizando rank sort
-    int pos1 = 0, pos2 = 0, jKey1, jKey2;
+    int pos1 = 0, pos2 = 0;
+    float jKey1, jKey2;
     bool maior=0;
 
     for (int j=0;j<n;j++)
@@ -98,13 +99,14 @@ __kernel void substituicao_gpu(__global data_t * geracaoAtual,
     if(i < TAMANHO_POPULACAO){    
     
     	//Obtém o item geracaoAtual[i]
-    	int itemGeracaoAtual = getKey(geracaoAtual[i]);
+    	float itemGeracaoAtual = getKey(geracaoAtual[i]);
 
     	//Obtém o item novaGeracao[i]
-    	int itemNovaGeracao = getKey(novaGeracao[i]);
+    	float itemNovaGeracao = getKey(novaGeracao[i]);
 
     	// Encontra a posição das entradas geracaoAtual[i] e novaGeracao[i] no vetor ordenado utilizando rank sort
-    	int pos1 = 0, pos2 = 0, jKey1, jKey2;
+    	int pos1 = 0, pos2 = 0;
+    	float jKey1, jKey2;
     	bool maior = 0;   
     	
     	// Laço em blocos de tamanho blockSize

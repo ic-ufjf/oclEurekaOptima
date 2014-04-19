@@ -4,7 +4,6 @@
    Gera uma distribuição uniforme entre 0 e 1 (inclusive)
 */
 float u_rand(cburng4x32 *rng){
-
     return u01_closed_closed_32_24(cburng4x32_rand(rng));
 }
 

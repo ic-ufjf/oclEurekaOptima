@@ -202,7 +202,7 @@ void recombinacao4(individuo *pais, individuo *filhos, float chance, cburng4x32 
     //Gera um número entre 0 e 1
     float aleatorio = u_rand(rng);
 
-    if (aleatorio<chance) {
+    if (aleatorio<=chance) {
        crossover_um_ponto4(pais, filhos, rng);
     }
     else{
@@ -217,7 +217,7 @@ void mutacao(individuo *p, float chance, cburng4x32 *rng){
         //gera um número entre 0 e 1
         float aleatorio = u_rand(rng);
 
-        if (aleatorio<chance) {
+        if (aleatorio<=chance) {
            p->genotipo[i] = (p->genotipo[i]+1) % 2;
         }
     }
@@ -248,14 +248,13 @@ __kernel void inicializa_populacao(__global individuo *pop, const int seed){
     cburng4x32_init(&rng);
     rng.key.v[0] = lseed;
     rng.ctr.v[0] = 0;
+    rng.ctr.v[1] = 0;
 
     for(int j=0; j < TAMANHO_INDIVIDUO; j++){
         pop[tid].genotipo[j] = rand(&rng) % 2;         
     }
-
-    __private short fenotipo[DIMENSOES_PROBLEMA];
-    pop[tid].aptidao = funcao_de_avaliacao(pop[tid], fenotipo);
 }
+
 
 /*
  KERNEL 0:
@@ -264,7 +263,7 @@ __kernel void inicializa_populacao(__global individuo *pop, const int seed){
 */
 __kernel void iteracao_2_por_work_item(__global individuo *pop, 
 			const int geracao, 
-			int fixed_seed, 
+			const int fixed_seed, 
 			__global individuo *newPop,
 			__global struct r123array4x32 *counter)
 {    
@@ -277,7 +276,13 @@ __kernel void iteracao_2_por_work_item(__global individuo *pop,
     cburng4x32 rng;
     cburng4x32_init(&rng);
     rng.key.v[0] = seed;
-    rng.ctr = counter[tid];
+    
+    if(geracao <= 1){
+    	 rng.ctr.v[0] = rng.ctr.v[1] = 0;
+    }
+    else{
+    	rng.ctr = counter[tid];
+    } 
  
     /*
 	Seleção
@@ -292,7 +297,7 @@ __kernel void iteracao_2_por_work_item(__global individuo *pop,
 	Recombinação
     */
  
-    recombinacao(pais, filhos, TAXA_DE_RECOMBINACAO, &rng);	
+    recombinacao(pais, filhos, (float)TAXA_DE_RECOMBINACAO, &rng);	
   
     /*
 	Mutação
@@ -305,10 +310,10 @@ __kernel void iteracao_2_por_work_item(__global individuo *pop,
        Avaliação
     */
 
-    __private short fenotipo[DIMENSOES_PROBLEMA];
+    //__private short fenotipo[DIMENSOES_PROBLEMA];
 
-    filhos[0].aptidao = funcao_de_avaliacao(filhos[0], fenotipo);
-    filhos[1].aptidao = funcao_de_avaliacao(filhos[1], fenotipo);
+    //filhos[0].aptidao = funcao_de_avaliacao(filhos[0], fenotipo);
+    //filhos[1].aptidao = funcao_de_avaliacao(filhos[1], fenotipo);
     		
 
     newPop[tid]   = filhos[0];

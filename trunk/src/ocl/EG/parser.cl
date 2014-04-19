@@ -1,7 +1,6 @@
 
 #define FIM_PROGRAMA -1
 #define TAMANHO_MAX_PROGRAMA 1000
-#define INF 99999999999
 
 typedef enum { DEFAULT, NAOTERMINAL, OPERADOR_BINARIO, OPERADOR_UNARIO, NUMERO_INTEIRO, NUMERO_COM_PONTO, VARIAVEL} TipoSimbolo;
 
@@ -26,7 +25,7 @@ typedef struct{
 
 typedef struct{
 	int num_simbolos;
-	type_simbolo simbolos[10];
+	type_simbolo simbolos[50];
 } t_escolha;
 
 typedef struct{
@@ -51,7 +50,7 @@ float OperaBinario(float a, float b, float x){
 	if(b!=0) return a/b;
 	else return 1;
     }
-
+    
     return 0;
 }
 
@@ -72,13 +71,14 @@ float OperaUnario(float a, float x){
     return 0;
 }
 
-float Avalia(__local t_item_programa programa[], __global float registro[]) {
+
+#define DATABASE(x,y) registro[x*NUM_VARIAVEIS + y]
+
+float Avalia(__local t_item_programa programa[], __global float * registro, int linha) {
 
    float pilha[TAMANHO_MAX_PROGRAMA];
    int topo = -1;
    float erro = 0;
-
-   short indiceY = 3;
    
    int i=0;
 
@@ -87,13 +87,13 @@ float Avalia(__local t_item_programa programa[], __global float registro[]) {
 	   switch((int)programa[i].t.v[0])
    	   {
 	   	   case NUMERO_INTEIRO:
-   		   	   pilha[++topo] = programa[i].t.v[1];
+   		   	   pilha[++topo] = (int)programa[i].t.v[1];
 	   		   break;
 	   	   case NUMERO_COM_PONTO:
 	   		   pilha[++topo] = programa[i].t.v[1];
 			   break;
 	   	   case VARIAVEL:
-	   		   pilha[++topo] = registro[(int)programa[i].t.v[1]];
+	   		   pilha[++topo] = DATABASE(linha, (int)programa[i].t.v[1]);
 	   		   break;
 	   	   case OPERADOR_BINARIO:
 	   		   pilha[topo-1] = OperaBinario(pilha[topo-1], pilha[topo], programa[i].t.v[1]);
@@ -108,9 +108,8 @@ float Avalia(__local t_item_programa programa[], __global float registro[]) {
    }
 
    //Erro absoluto
-   return fabs( pilha[topo] - registro[indiceY] );
+   return fabs( pilha[topo] - DATABASE(linha, NUM_VARIAVEIS-1));
 }
-
 
 
 

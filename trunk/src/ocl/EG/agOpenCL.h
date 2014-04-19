@@ -15,9 +15,6 @@
 */
 void initializeOpenCL();
 
-/*
-  Executa o kernel de avaliação
-*/
-void avaliacao(individuo * pop);
+void Dispose();
 
 #endif // AGOPENCL_H_INCLUDED
