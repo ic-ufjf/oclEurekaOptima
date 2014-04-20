@@ -26,35 +26,38 @@ __kernel void avaliacao(__global individuo *pop,
    	    lid = get_local_id(0),
    	    gid = get_group_id(0);
         
-        __private short fenotipo[DIMENSOES_PROBLEMA];
-                
-	__local t_item_programa programa[TAMANHO_MAX_PROGRAMA]; 	
- 	__local int erro;
- 	 
-	erro = 0;
-	obtem_fenotipo_individuo3(pop[gid], fenotipo);
-	
-	int program_ctr = Decodifica(Gramatica, fenotipo, programa);	 	
- 	
- 	if(program_ctr == -1){
-	    pop[gid].aptidao = MAXFLOAT*(-1);
- 	}
- 	else{
- 	
- 	    float erro = 0;
- 		 	
- 	    for(int j=0; j < TAMANHO_DATABASE; j++){
-	        erro += pown(Avalia(programa, dataBase, j), 2);
-	        
-	        if( isinf( erro ) || isnan( erro ) ) { erro = MAXFLOAT; break; }
-	    }   
+	if(lid==0){ 	 
 
-   	    if(erro == MAXFLOAT) pop[gid].aptidao= MAXFLOAT*(-1);
-   	       	    	
-	    else{
-	    	pop[gid].aptidao = erro*(-1.0);
-    	    }
-	    
+		__private short fenotipo[DIMENSOES_PROBLEMA];
+		        
+		__local t_item_programa programa[TAMANHO_MAX_PROGRAMA]; 	
+	 	__local int erro;
+	 	 
+		erro = 0;
+		obtem_fenotipo_individuo3(pop[gid], fenotipo);
+	
+		int program_ctr = Decodifica(Gramatica, fenotipo, programa);	 	
+	 	
+	 	if(program_ctr == -1){
+		    pop[gid].aptidao = MAXFLOAT*(-1);
+	 	}
+	 	else{
+	 	
+	 	    float erro = 0;
+	 		 	
+	 	    for(int j=0; j < TAMANHO_DATABASE; j++){
+			erro += pown(Avalia(programa, dataBase, j), 2);
+			
+			if( isinf( erro ) || isnan( erro ) ) { erro = MAXFLOAT; break; }
+		    }   
+
+	   	    if(erro == MAXFLOAT) pop[gid].aptidao= MAXFLOAT*(-1);
+	   	       	    	
+		    else{
+		    	pop[gid].aptidao = erro*(-1.0);
+	    	    }
+		    
+		}
 	}	
 }
 
@@ -105,9 +108,9 @@ __kernel void avaliacao_gpu(__global individuo *pop,
 		  }
 
 		  int next_power_of_2 = (int)pown( (float)2.0, (int) ceil( log2( (float) get_local_size(0) ) ) );
-	          int s = next_power_of_2/2;			
+	          int s = next_power_of_2*0.5;			
 	
-		  for(;s>0;s/=2){
+		  for(;s>0;s*=0.5){
 		  	barrier(CLK_LOCAL_MEM_FENCE);
 
 		        if(lid < s && (lid + s < LOCAL_SIZE ) )

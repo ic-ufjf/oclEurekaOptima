@@ -389,7 +389,7 @@ void initializeOpenCL(int cores, int kernel, Database *dataBase){
 
         clGetDeviceInfo(devices[0], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_local_size, NULL);
 
-
+        //max_local_size = 250;
     }
 
 
@@ -552,7 +552,7 @@ void avaliacao(individuo *pop, t_regra * gramatica, cl_mem bufferPop){
         // Um indivíduo por work-group
         globalWorkSize[0] = localWorkSize[0] * TAMANHO_POPULACAO;
 
-        printf("Local: %ld, Global: %ld\n",localWorkSize[0], globalWorkSize[0]);
+        printf("Local: %ld, Global: %ld, Grupos: %ld\n",localWorkSize[0], globalWorkSize[0], globalWorkSize[0]/localWorkSize[0]);
 
         status = clSetKernelArg(kernelAvaliacao,  3, sizeof(float)*localWorkSize[0],  NULL);
         check_cl(status, "Erro ao adicionar argumento ao kernel");
@@ -588,13 +588,12 @@ void avaliacao(individuo *pop, t_regra * gramatica, cl_mem bufferPop){
      }
 
 
-
      check_cl(status, "Erro ao enfileirar o kernel para execucao");
 
-     status = clEnqueueReadBuffer(cmdQueue, bufferPop, CL_TRUE, 0,
+    /* status = clEnqueueReadBuffer(cmdQueue, bufferPop, CL_TRUE, 0,
 						 datasize, pop, 0, NULL, &event3);
 
-     check_cl(status, "Erro ao enfileirar leitura de buffer de memoria");
+     check_cl(status, "Erro ao enfileirar leitura de buffer de memoria");*/
 
 
      clFinish(cmdQueue);
