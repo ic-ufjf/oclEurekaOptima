@@ -390,7 +390,6 @@ void initializeOpenCL(int cores, int kernel, Database *dataBase){
         clGetDeviceInfo(devices[0], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_local_size, NULL);
 
 
-
     }
 
 
@@ -461,17 +460,17 @@ void initializeOpenCL(int cores, int kernel, Database *dataBase){
 
     check_cl(status, "Erro ao criar kernel 'avaliacao'");
 
-    if(CPU){
-        kernelSubstituicao = clCreateKernel(program, "substituicao", &status);
-    }
-    else{
-        kernelSubstituicao = clCreateKernel(program, "substituicao_gpu", &status);
-    }
+    //if(CPU){
+    kernelSubstituicao = clCreateKernel(program, "substituicao", &status);
+    //}
+    //else{
+    //    kernelSubstituicao = clCreateKernel(program, "substituicao_gpu", &status);
+    //}
 
     check_cl(status, "Erro ao criar kernel 'substituicao'");
 
-      pontosPorWorkItem = dataBase->numRegistros/preferred_workgroup_size_multiple;
-        printf("Pontos por work-item: %d\n", pontosPorWorkItem);
+    //pontosPorWorkItem = dataBase->numRegistros/preferred_workgroup_size_multiple;
+    //printf("Pontos por work-item: %d\n", pontosPorWorkItem);
 }
 
 void exibe_melhor(individuo * melhor, t_regra * gramatica){
@@ -519,7 +518,7 @@ void exibePopulacao(individuo * populacao){
     for(i=0; i < TAMANHO_POPULACAO; i++){
 
         for(j=0; j < TAMANHO_INDIVIDUO; j++){
-               //printf(" %d ", populacao[i].genotipo[j]);
+               printf(" %d ", populacao[i].genotipo[j]);
         }
         printf("%d \t %f \n",i, populacao[i].aptidao);
     }
@@ -545,12 +544,12 @@ void avaliacao(individuo *pop, t_regra * gramatica, cl_mem bufferPop){
 
         printf("max local size: %d\n", (int)max_local_size);
 
-        if(tamanhoBancoDeDados < max_local_size )
+        if(tamanhoBancoDeDados < max_local_size)
             localWorkSize[0] = tamanhoBancoDeDados;
         else
             localWorkSize[0] = max_local_size;
 
-        // One individual per work-group
+        // Um indivíduo por work-group
         globalWorkSize[0] = localWorkSize[0] * TAMANHO_POPULACAO;
 
         printf("Local: %ld, Global: %ld\n",localWorkSize[0], globalWorkSize[0]);
@@ -609,8 +608,8 @@ void avaliacao(individuo *pop, t_regra * gramatica, cl_mem bufferPop){
      #endif
 
      //Imprime todos os indivíduos
-/*
-     int i,j;
+
+     /*int i,j;
 
      for(i=0; i < TAMANHO_POPULACAO; i++){
 
@@ -639,9 +638,8 @@ void avaliacao(individuo *pop, t_regra * gramatica, cl_mem bufferPop){
         puts("Em ordem infixa:");
         ImprimeInfixa(programa);
 
-        prin tf("\n");
-     }
-     */
+        printf("\n");
+     }*/
 }
 
 void substituicao(individuo *pop, t_regra * gramatica){
@@ -657,7 +655,7 @@ void substituicao(individuo *pop, t_regra * gramatica){
     status = clSetKernelArg(kernelSubstituicao,  2, sizeof(bufferC), &bufferC);
     check_cl(status, "Erro ao adicionar argumento 2 ao kernel");
 
-    if(CPU){
+    if(1==1){
 
         size_t globalWorkSize[1] = {TAMANHO_POPULACAO};
 
@@ -697,6 +695,7 @@ void substituicao(individuo *pop, t_regra * gramatica){
                                NULL,
                                &eventoSubstituicao);
     }
+
     check_cl(status, "Erro ao enfileirar o kernel para execucao");
 
    /*
@@ -715,7 +714,7 @@ void substituicao(individuo *pop, t_regra * gramatica){
    clEnqueueReadBuffer(cmdQueue, bufferA, CL_TRUE, 0,
 						datasize, pop,
 						0, NULL, &event3);
-
+   check_cl(status, "Erro ao enfileirar leitura de buffer de memória");
 
    clEnqueueReadBuffer(cmdQueue, bufferA, CL_TRUE, 0,
 						sizeof(individuo), melhor1,
@@ -728,7 +727,6 @@ void substituicao(individuo *pop, t_regra * gramatica){
 						0, NULL, &event3);
    check_cl(status, "Erro ao enfileirar leitura de buffer de memória");
 
-
    clFinish(cmdQueue);
 
 
@@ -739,7 +737,7 @@ void substituicao(individuo *pop, t_regra * gramatica){
        exibe_melhor(melhor2, gramatica);
    }
 
-  // exibePopulacao(pop);
+
 
    #ifdef PROFILING
 
@@ -749,10 +747,6 @@ void substituicao(individuo *pop, t_regra * gramatica){
 
    #endif
 }
-
-/*
-    Executa o kernel de iteracao
-*/
 
 int seed;
 
@@ -792,7 +786,6 @@ void iteracao(individuo * populacao, t_regra * gramatica){
                             sizeof(bufferCounter),
                             &bufferCounter);
     check_cl(status, "Erro ao adicionar argumento ao kernel");
-
 
     if(kernelAG == KERNEL_N_POR_WORK_GROUP){
 
@@ -858,8 +851,9 @@ void iteracao(individuo * populacao, t_regra * gramatica){
 
     #endif
 
-    //avaliacao(populacao, gramatica, bufferB);
-    avaliacao(populacao, gramatica, bufferA);
+    //Avalia a nova população
+    avaliacao(populacao, gramatica, bufferB);
+    //avaliacao(populacao, gramatica, bufferA);
 
     substituicao(populacao, gramatica);
 }
@@ -915,6 +909,15 @@ void inicializa_populacao(individuo * pop){
 
     seed = rand();
 
+    int i,j;
+
+    for(i=0; i < TAMANHO_POPULACAO; i++){
+
+         for(j=0; j< TAMANHO_INDIVIDUO; j++){
+            pop[i].genotipo[j] = 0;
+        }
+    }
+
     cl_event eventoInicializacao;
 
     status = clSetKernelArg(kernelInicializacao,
@@ -932,9 +935,9 @@ void inicializa_populacao(individuo * pop){
 
 
     //Transfere a população para o bufferA
-    /*status = clEnqueueWriteBuffer(cmdQueue,
+    status = clEnqueueWriteBuffer(cmdQueue,
 								  bufferA,
-								  CL_TRUE,
+								  CL_FALSE,
 								  0,
 								  datasize,
 								  pop,
@@ -942,8 +945,28 @@ void inicializa_populacao(individuo * pop){
 								  NULL,
 								  &event1);
     check_cl(status, "Erro ao enfileirar escrita do buffer de memoria");
-    */
 
+     status = clEnqueueWriteBuffer(cmdQueue,
+								  bufferB,
+								  CL_FALSE,
+								  0,
+								  datasize,
+								  pop,
+								  0,
+								  NULL,
+								  &event1);
+    check_cl(status, "Erro ao enfileirar escrita do buffer de memoria");
+
+    status = clEnqueueWriteBuffer(cmdQueue,
+								  bufferC,
+								  CL_FALSE,
+								  0,
+								  datasize,
+								  pop,
+								  0,
+								  NULL,
+								  &event1);
+    check_cl(status, "Erro ao enfileirar escrita do buffer de memoria");
 
     size_t globalWorkSize[1] = {TAMANHO_POPULACAO};
 
@@ -974,6 +997,9 @@ void inicializa_populacao(individuo * pop){
     //Espera o término da fila de execução
 	clFinish(cmdQueue);
 
+	//exibePopulacao(pop);
+	//exit(0);
+
 	#ifdef PROFILING
 
        float tempoInicializacao = getTempoDecorrido(eventoInicializacao) / 1000000000.0 ;
@@ -984,7 +1010,7 @@ void inicializa_populacao(individuo * pop){
 
 void Dispose(){
 
-    printf("Releasing resources...");
+    printf("\nLiberando recursos...\n");
 
     clReleaseMemObject(bufferA);
     clReleaseMemObject(bufferB);
@@ -1000,7 +1026,7 @@ void Dispose(){
 }
 
 
-void ag_paralelo(individuo * pop, t_regra *gramatica, Database *dataBase, int pcores, int kernelAG){
+void eg_paralela(individuo * pop, t_regra *gramatica, Database *dataBase, int pcores, int kernelAG){
 
     check(pop != NULL, "A população não pode ser nula");
     check(gramatica != NULL, "A gramática não pode ser nula");

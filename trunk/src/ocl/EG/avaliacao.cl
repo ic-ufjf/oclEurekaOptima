@@ -1,3 +1,5 @@
+#define DATABASE(x,y) dataBase[x*NUM_VARIAVEIS + y]
+
 void obtem_fenotipo_individuo2(short gray[], short fenotipo[]){
 	
     int i, j=0;
@@ -13,12 +15,8 @@ void obtem_fenotipo_individuo2(short gray[], short fenotipo[]){
 
 int obtem_fenotipo_individuo3(individuo p, short fenotipo[]){
 
-    obtem_fenotipo_individuo2(p.genotipo, fenotipo);   
-
+    obtem_fenotipo_individuo2(p.genotipo, fenotipo);
 }
-
-
-#define DATABASE(x,y) dataBase[x*NUM_VARIAVEIS + y]
 
 __kernel void avaliacao(__global individuo *pop, 
 			__global t_regra * Gramatica,

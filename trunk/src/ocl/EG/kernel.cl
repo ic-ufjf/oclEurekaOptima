@@ -5,54 +5,6 @@
 #include "gramatica.cl"
 #include "avaliacao.cl"
 
-#pragma OPENCL EXTENSION cl_khr_int64_base_atomics : enable
-
-int rand2(__global int *aleatorios){
-
-  int al;
-	
-  al = abs((int)atom_inc(&aleatorios[0]));
-	
-  return aleatorios[al];  
-}
-
-#define RAND_MAX 2147483647	 
-
-float u_rand2(__global int * aleatorios){	
-	float a = (float)rand2(aleatorios)/RAND_MAX;
-	return a;
-}
-
-
-void obtem_fenotipo_individuo(short gray[], short fenotipo[]){
-
-    int i, j=0;
-    
-    short genotipo_binario[TAMANHO_INDIVIDUO];
-
-    gray_para_binario(gray, genotipo_binario);
-   
-    for(i=0; i<DIMENSOES_PROBLEMA; i++, j+=TAMANHO_VALOR){
-       fenotipo[i] = binario_para_decimal(genotipo_binario, j, j+TAMANHO_VALOR);
-    }
-}
-
-int funcao_de_avaliacao(individuo p, short fenotipo[]){    
-
-    obtem_fenotipo_individuo(p.genotipo, fenotipo);
-
-    int soma = 0;
-
-    int i;
-
-    for(i=0;i < DIMENSOES_PROBLEMA; i++){
-        soma += (int)pow((float)fenotipo[i]-10, 2);
-    }
-
-    return soma*(-1);
-}
-
-
 int torneio(__global individuo *populacao, int indice_participante, cburng4x32 *rng) {	
 
     int vencedor = indice_participante % TAMANHO_POPULACAO;
@@ -313,8 +265,7 @@ __kernel void iteracao_2_por_work_item(__global individuo *pop,
     //__private short fenotipo[DIMENSOES_PROBLEMA];
 
     //filhos[0].aptidao = funcao_de_avaliacao(filhos[0], fenotipo);
-    //filhos[1].aptidao = funcao_de_avaliacao(filhos[1], fenotipo);
-    		
+    //filhos[1].aptidao = funcao_de_avaliacao(filhos[1], fenotipo);    		
 
     newPop[tid]   = filhos[0];
     newPop[tid+1] = filhos[1]; 
@@ -383,9 +334,8 @@ __kernel void iteracao_2_por_work_group(__global individuo *pop,
        Avaliação
     */
 
-    __private short fenotipo[DIMENSOES_PROBLEMA];
-
-    filhos[lid].aptidao = funcao_de_avaliacao(filhos[lid], fenotipo);
+    /*__private short fenotipo[DIMENSOES_PROBLEMA];
+    filhos[lid].aptidao = funcao_de_avaliacao(filhos[lid], fenotipo);*/
     		
     newPop[tid]  = filhos[lid];
  

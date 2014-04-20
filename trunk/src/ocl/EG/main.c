@@ -92,7 +92,7 @@ int main(int argc, char * argv[])
 
 	LeGramatica("grammars/g1.txt", Gramatica);
 
-	ag_paralelo(populacao, Gramatica, dataBase, pcores, kernelAG);
+	eg_paralela(populacao, Gramatica, dataBase, pcores, kernelAG);
 
     free(dataBase->registros);
     free(dataBase);
