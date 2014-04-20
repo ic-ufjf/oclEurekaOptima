@@ -270,6 +270,13 @@ void initializeOpenCL(int cores, int kernel, Database *dataBase){
 
     device = devices[0];
 
+
+    /* Consulta as propriedades do dispositivo */
+
+    clGetDeviceInfo(devices[0], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_local_size, NULL);
+    //max_local_size = 4;
+
+
     cmdQueue = clCreateCommandQueue(context,
 									device,
                                     CL_QUEUE_PROFILING_ENABLE,
@@ -282,6 +289,12 @@ void initializeOpenCL(int cores, int kernel, Database *dataBase){
     // 5: Criação e compilação do programa
     //----------------------------------------------
 
+    cl_ulong max_constant_buffer_size;
+
+    clGetDeviceInfo(device, CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, sizeof(cl_ulong),
+                                 &max_constant_buffer_size, NULL);
+
+    //printf("Max constant buffer size: %ld \n", (long)max_constant_buffer_size);
 
     std::string header_string = "#define NUMERO_DE_GERACOES " + ToString(NUMERO_DE_GERACOES) + " \n"+
                                 "#define DIMENSOES_PROBLEMA " + ToString(DIMENSOES_PROBLEMA)  + "\n" +
@@ -296,14 +309,23 @@ void initializeOpenCL(int cores, int kernel, Database *dataBase){
                                 "#define NUM_VARIAVEIS " + ToString(dataBase->numVariaveis) + "\n" +
                                 "#define ELITE " + ToString(ELITE) + "\n";
 
+    if( dataBase->numRegistros * sizeof(cl_float) > max_constant_buffer_size )
+        header_string += " #define Y_DOES_NOT_FIT_IN_CONSTANT_BUFFER \n ";
+
+    header_string += " #define LOCAL_SIZE_ROUNDED_UP_TO_POWER_OF_2 "
+                      + ToString( next_power_of_2( max_local_size) ) + " \n ";
+
+    if(dataBase->numRegistros % max_local_size != 0 )
+        header_string += " #define NUM_POINTS_IS_NOT_DIVISIBLE_BY_LOCAL_SIZE \n";
+
+    if( is_power_of_2( max_local_size ) )
+        header_string += " #define LOCAL_SIZE_IS_NOT_POWER_OF_2 \n ";
+
+
     std::string body_string   = LoadKernel("kernel.cl");
     std::string kernel_string = header_string + body_string ;
 
     kernel_srt = kernel_string.c_str();
-
-
-
-    //cout << kernel_srt;
 
  	size_t programSize = (size_t)strlen(kernel_srt);
 
@@ -368,8 +390,8 @@ void initializeOpenCL(int cores, int kernel, Database *dataBase){
 
      if(CPU){
 
-        status = clGetDeviceInfo(devices[0], CL_DEVICE_MAX_COMPUTE_UNITS,
-        sizeof(cl_uint), &max_compute_units, NULL);
+        status = clGetDeviceInfo(devices[0], CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint),
+                                 &max_compute_units, NULL);
 
         preferred_workgroup_size_multiple = (size_t)max_compute_units;
         //cout << "Preferred work group size:" << preferred_workgroup_size_multiple << endl;
@@ -387,9 +409,7 @@ void initializeOpenCL(int cores, int kernel, Database *dataBase){
 
         //cout << "Preferred work group size:" << preferred_workgroup_size_multiple << endl;
 
-        clGetDeviceInfo(devices[0], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_local_size, NULL);
 
-        //max_local_size = 4;
     }
 
 

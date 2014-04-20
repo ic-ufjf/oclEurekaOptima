@@ -71,10 +71,15 @@ float OperaUnario(float a, float x){
     return 0;
 }
 
-
-#define DATABASE(x,y) registro[x*NUM_VARIAVEIS + y]
-
-float Avalia(__local t_item_programa programa[], __global float * registro, int linha) {
+float Avalia(__local t_item_programa programa[], 
+	
+		#ifdef Y_DOES_NOT_FIT_IN_CONSTANT_BUFFER
+	 		__global const
+		#else
+			__constant 
+		#endif
+		float * dataBase,
+		int linha) {
 
    float pilha[TAMANHO_MAX_PROGRAMA];
    int topo = -1;

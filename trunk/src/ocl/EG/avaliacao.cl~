@@ -1,4 +1,3 @@
-#define DATABASE(x,y) dataBase[x*NUM_VARIAVEIS + y]
 
 void obtem_fenotipo_individuo2(short gray[], short fenotipo[]){
 	
@@ -14,13 +13,18 @@ void obtem_fenotipo_individuo2(short gray[], short fenotipo[]){
 }
 
 int obtem_fenotipo_individuo3(individuo p, short fenotipo[]){
-
     obtem_fenotipo_individuo2(p.genotipo, fenotipo);
 }
 
 __kernel void avaliacao(__global individuo *pop, 
-			__global t_regra * Gramatica,
-			__global float * dataBase){
+			__global const t_regra * Gramatica,
+			
+			#ifdef Y_DOES_NOT_FIT_IN_CONSTANT_BUFFER
+	 		__global const
+			#else
+			__constant 
+			#endif 
+ 			float * dataBase){
 	
 	int tid = get_global_id(0),
    	    lid = get_local_id(0),
@@ -61,25 +65,29 @@ __kernel void avaliacao(__global individuo *pop,
 	}	
 }
 
-
 __kernel void avaliacao_gpu(__global individuo *pop, 
-			__global t_regra * Gramatica,
-			__global float * dataBase,
+			__global const t_regra * Gramatica,	
+		
+			#ifdef Y_DOES_NOT_FIT_IN_CONSTANT_BUFFER
+	 		__global const
+			#else
+			__constant 
+			#endif 
+			float * dataBase,
 			__local float * erros){
 	
 	int tid = get_global_id(0),
    	    lid = get_local_id(0),
    	    gid = get_group_id(0),
-	   LOCAL_SIZE = get_local_size(0);
-        
-        __private short fenotipo[DIMENSOES_PROBLEMA];
+	    LOCAL_SIZE = get_local_size(0);
                 
-	 __local t_item_programa programa[TAMANHO_MAX_PROGRAMA]; 	
+	__local t_item_programa programa[TAMANHO_MAX_PROGRAMA]; 	 	 
+ 	__local int program_ctr;
  	 
- 	 __local int program_ctr;
- 	 
-   	 //1 workitem realiza o mapeamento
-	 if(lid==0){ 	 	
+   	//1 workitem realiza o mapeamento
+	if(lid==0){ 	 	
+		
+	        short fenotipo[DIMENSOES_PROBLEMA];
 
 		obtem_fenotipo_individuo3(pop[gid], fenotipo);
 		
@@ -98,21 +106,34 @@ __kernel void avaliacao_gpu(__global individuo *pop,
   		 erros[lid] = 0;
 		 //Avaliação paralela entre work-itens do mesmo work-group
 
-		 for( int iter = 0; iter < ceil( TAMANHO_DATABASE / (float) LOCAL_SIZE ); ++iter ){			
+		#ifndef NUM_POINTS_IS_NOT_DIVISIBLE_BY_LOCAL_SIZE
+		   for( uint iter = 0; iter < TAMANHO_DATABASE/LOCAL_SIZE; ++iter )
+		   {	
+		#else
+   		   for( uint iter = 0; iter < ceil( TAMANHO_DATABASE / (float) LOCAL_SIZE ); ++iter )
+   		   {
 
-			 if(iter * LOCAL_SIZE + lid < TAMANHO_DATABASE){	 		
-
-  	 		        erros[lid] += pown(Avalia(programa, dataBase, iter * LOCAL_SIZE + lid), 2);	
-
-			}
+                      if( iter * LOCAL_SIZE + lid < TAMANHO_DATABASE )
+	              {
+	    	#endif		
+			erros[lid] += pown(Avalia(programa, dataBase, iter * LOCAL_SIZE + lid), 2);
+		
+		#ifdef NUM_POINTS_IS_NOT_DIVISIBLE_BY_LOCAL_SIZE
+		      }
+		#endif		
+			
 		  }
 
-		  int next_power_of_2 = (int)pown( (float)2.0, (int) ceil( log2( (float) get_local_size(0) ) ) );
+		  int next_power_of_2 = LOCAL_SIZE_ROUNDED_UP_TO_POWER_OF_2;
 	
-		  for(int s = next_power_of_2/2;s>0;s/=2){
+		  for(int s = next_power_of_2*0.5;s>0;s*=0.5){
 		  	barrier(CLK_LOCAL_MEM_FENCE);
-
-		        if(lid < s && (lid + s < LOCAL_SIZE ) )
+			
+			#ifndef LOCAL_SIZE_IS_NOT_POWER_OF_2
+			      if( lid < s )
+			#else
+			      if(lid < s && (lid + s < LOCAL_SIZE ) )
+			#endif		        
 			erros[lid] += erros[lid+s];
     		  }		
 			

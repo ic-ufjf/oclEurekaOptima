@@ -1,5 +1,5 @@
 
-int GetRegra(__global t_regra *gramatica, type_simbolo simbolo){
+int GetRegra(__global const t_regra *gramatica, type_simbolo simbolo){
 
 	int i;
 
@@ -10,7 +10,7 @@ int GetRegra(__global t_regra *gramatica, type_simbolo simbolo){
 	return -1;
 }
 
-int Decodifica(__global t_regra *Gramatica, short fenotipo[], __local t_item_programa * programa){
+int Decodifica(__global const t_regra *Gramatica, short fenotipo[], __local t_item_programa * programa){
 
 	int m, fenotipo_ctr = 0;
 

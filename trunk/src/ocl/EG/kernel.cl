@@ -1,3 +1,5 @@
+#define DATABASE(x,y) dataBase[x*NUM_VARIAVEIS + y]
+
 #include "representacao.h"
 #include "substituicao.cl"
 #include "utils.cl"

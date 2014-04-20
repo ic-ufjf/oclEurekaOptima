@@ -1,8 +1,9 @@
 #ifndef UTILS_H_INCLUDED
 #define UTILS_H_INCLUDED
 
-#include<stdio.h>
-#include<stdlib.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
 #define DEBUG TRUE
 
@@ -16,6 +17,8 @@ char *trim(char *s);
 
 void get_info_bancoDeDados(char *nomeArquivo, int *tamanho, int *qtdVariaveis);
 
-float ** cria_matriz_float(int m, int n);
+int next_power_of_2(int a);
+
+int is_power_of_2( int n );
 
 #endif // UTILS_H_INCLUDED

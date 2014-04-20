@@ -23,6 +23,15 @@ char *trim(char *s)
     return rtrim(ltrim(s));
 }
 
+int  next_power_of_2(int a){
+    return (int)pow(2, (int) ceil( log2( a ) ) );
+}
+
+int is_power_of_2( int n )
+{
+   return (n & -n) == n;
+}
+
 /*
     Obtém o número de registros e variáveis do banco de dados
 */
