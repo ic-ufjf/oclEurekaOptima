@@ -132,13 +132,13 @@ void database_read_line(char s[], Database *bancoDeDados, int indice){
 		valorPtr = strtok_r(NULL, "\t", &saveptr);
 
 		#ifdef DEBUG
-			printf("%f\t", bancoDeDados->registros[indice*bancoDeDados->numVariaveis + countValor]);
+			//printf("%f\t", bancoDeDados->registros[indice*bancoDeDados->numVariaveis + countValor]);
 		#endif
         countValor++;
 	}
 
 	#ifdef DEBUG
-		printf("\n");
+		//printf("\n");
 	#endif
 }
 
@@ -148,7 +148,6 @@ Database *database_read(char nomeArquivo[]){
 
     get_info_bancoDeDados(nomeArquivo, &bancoDeDados->numRegistros, &bancoDeDados->numVariaveis);
 
-    //float **dataBase = cria_matriz_float(*qtdRegistros, *qtdVariaveis);
     int tamanhoBanco = sizeof(float)*(bancoDeDados->numRegistros)*(bancoDeDados->numVariaveis);
 
     bancoDeDados->registros = (float*) malloc(tamanhoBanco);
