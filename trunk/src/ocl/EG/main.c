@@ -3,7 +3,7 @@
 #include <time.h>
 
 #include "ag.h"
-#include "agOpenCL.c"
+#include "eg_opencl.h"
 
 //OpenCL includes
 #include <CL/cl.h>
