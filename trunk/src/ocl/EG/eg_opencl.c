@@ -62,7 +62,7 @@ template<class T> inline std::string ToString( const T& t )
    catch( ... ) { return ""; }
 }
 
-int geracao = 0;
+int geracao = 1;
 
 //Utilizado para tratamento de erros
 cl_int status;
@@ -309,7 +309,9 @@ void opencl_init(int cores, int kernel, Database *dataBase){
                                 "#define NUM_VARIAVEIS " + ToString(dataBase->numVariaveis) + "\n" +
                                 "#define ELITE " + ToString(ELITE) + "\n";
 
-    if( dataBase->numRegistros * sizeof(cl_float) > max_constant_buffer_size )
+    long constant_size = sizeof(t_regra)*5 + (dataBase->numRegistros * sizeof(cl_float));
+
+    if(constant_size > max_constant_buffer_size )
         header_string += " #define Y_DOES_NOT_FIT_IN_CONSTANT_BUFFER \n ";
 
     header_string += " #define LOCAL_SIZE_ROUNDED_UP_TO_POWER_OF_2 "
@@ -898,7 +900,7 @@ void carrega_bancoDeDados(Database *dataBase){
     //Transfere os e da população para o bufferA
     status = clEnqueueWriteBuffer(cmdQueue,
                                   bufferDatabase,
-                                  CL_TRUE,
+                                  CL_FALSE,
                                   0,
                                   sizeof(float)*(dataBase->numRegistros)*(dataBase->numVariaveis),
                                   dataBase->registros,
@@ -1008,9 +1010,6 @@ void inicializa_populacao(individuo * pop){
     //Espera o término da fila de execução
 	clFinish(cmdQueue);
 
-	//exibePopulacao(pop);
-	//exit(0);
-
 	#ifdef PROFILING
 
        float tempoInicializacao = getTempoDecorrido(eventoInicializacao) / 1000000000.0 ;
@@ -1020,8 +1019,6 @@ void inicializa_populacao(individuo * pop){
 }
 
 void dispose(){
-
-    printf("\nLiberando recursos...\n");
 
     clReleaseMemObject(bufferA);
     clReleaseMemObject(bufferB);
@@ -1039,7 +1036,7 @@ void dispose(){
 
 void eg_paralela(individuo * pop, t_regra *gramatica, Database *dataBase, int pcores, int kernelAG){
 
-    check(pop != NULL, "A população não pode ser nula");
+    check(pop    != NULL, "A população não pode ser nula");
     check(gramatica != NULL, "A gramática não pode ser nula");
     check(dataBase != NULL, "o banco de dados não pode ser nulo");
 
@@ -1056,7 +1053,7 @@ void eg_paralela(individuo * pop, t_regra *gramatica, Database *dataBase, int pc
 
     avaliacao(pop, gramatica, bufferA);
 
-    while(geracao < NUMERO_DE_GERACOES){
+    while(geracao <= NUMERO_DE_GERACOES){
 
         iteracao(pop, gramatica);
         geracao++;

@@ -1,0 +1,658 @@
+Banco de dados: problems/p4_10^5.txt
+-----------------------------------------------------------
+Tamanho do banco de dados:100000 	 Número de variáveis:2
+-----------------------------------------------------------
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0295202564
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0323956497
+---------------------------------
+Geracao 1: 
+
+Melhor da geracao: 1: -13230775296.0000000000
+
+(x1) (x1) (x1) (*) (*) 
+
+Em ordem infixa:( x1 * ( x1 * x1 ) )
+
+Tempo de substituicao: 	 0.0015658560
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0374942720
+---------------------------------
+Geracao 2: 
+
+Melhor da geracao: 2: -13230775296.0000000000
+
+(x1) (x1) (x1) (*) (*) 
+
+Em ordem infixa:( x1 * ( x1 * x1 ) )
+
+Tempo de substituicao: 	 0.0015648321
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0405813456
+---------------------------------
+Geracao 3: 
+
+Melhor da geracao: 3: -623926784.0000000000
+
+(x1) (x1) (x1) (1) (*) (x1) (*) (*) (*) 
+
+Em ordem infixa:( x1 * ( x1 * ( ( x1 * 1 ) * x1 ) ) )
+
+Tempo de substituicao: 	 0.0015856000
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0446270071
+---------------------------------
+Geracao 4: 
+
+Melhor da geracao: 4: -623926784.0000000000
+
+(x1) (x1) (x1) (1) (*) (x1) (*) (*) (*) 
+
+Em ordem infixa:( x1 * ( x1 * ( ( x1 * 1 ) * x1 ) ) )
+
+Tempo de substituicao: 	 0.0015719041
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0451196171
+---------------------------------
+Geracao 5: 
+
+Melhor da geracao: 5: -623926784.0000000000
+
+(x1) (x1) (x1) (1) (*) (x1) (*) (*) (*) 
+
+Em ordem infixa:( x1 * ( x1 * ( ( x1 * 1 ) * x1 ) ) )
+
+Tempo de substituicao: 	 0.0015846080
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0465073921
+---------------------------------
+Geracao 6: 
+
+Melhor da geracao: 6: -623926784.0000000000
+
+(x1) (x1) (x1) (1) (*) (x1) (*) (*) (*) 
+
+Em ordem infixa:( x1 * ( x1 * ( ( x1 * 1 ) * x1 ) ) )
+
+Tempo de substituicao: 	 0.0015644480
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0484636463
+---------------------------------
+Geracao 7: 
+
+Melhor da geracao: 7: -623926784.0000000000
+
+(x1) (x1) (x1) (1) (*) (x1) (*) (*) (*) 
+
+Em ordem infixa:( x1 * ( x1 * ( ( x1 * 1 ) * x1 ) ) )
+
+Tempo de substituicao: 	 0.0015668160
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0515535362
+---------------------------------
+Geracao 8: 
+
+Melhor da geracao: 8: -623926784.0000000000
+
+(x1) (x1) (x1) (1) (*) (x1) (*) (*) (*) 
+
+Em ordem infixa:( x1 * ( x1 * ( ( x1 * 1 ) * x1 ) ) )
+
+Tempo de substituicao: 	 0.0015665920
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0560399033
+---------------------------------
+Geracao 9: 
+
+Melhor da geracao: 9: -23923708.0000000000
+
+(x1) (x1) (x1) (1) (+) (x1) (*) (*) (*) 
+
+Em ordem infixa:( x1 * ( x1 * ( ( x1 + 1 ) * x1 ) ) )
+
+Tempo de substituicao: 	 0.0015582721
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0575984642
+---------------------------------
+Geracao 10: 
+
+Melhor da geracao: 10: -23923708.0000000000
+
+(x1) (x1) (x1) (1) (+) (x1) (*) (*) (*) 
+
+Em ordem infixa:( x1 * ( x1 * ( ( x1 + 1 ) * x1 ) ) )
+
+Tempo de substituicao: 	 0.0015627840
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0553999022
+---------------------------------
+Geracao 11: 
+
+Melhor da geracao: 11: -23923708.0000000000
+
+(x1) (x1) (x1) (1) (+) (x1) (*) (*) (*) 
+
+Em ordem infixa:( x1 * ( x1 * ( ( x1 + 1 ) * x1 ) ) )
+
+Tempo de substituicao: 	 0.0015598400
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0568135343
+---------------------------------
+Geracao 12: 
+
+Melhor da geracao: 12: -23923708.0000000000
+
+(x1) (x1) (x1) (1) (+) (x1) (*) (*) (*) 
+
+Em ordem infixa:( x1 * ( x1 * ( ( x1 + 1 ) * x1 ) ) )
+
+Tempo de substituicao: 	 0.0015441600
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0567592978
+---------------------------------
+Geracao 13: 
+
+Melhor da geracao: 13: -23923708.0000000000
+
+(x1) (x1) (x1) (1) (+) (x1) (*) (*) (*) 
+
+Em ordem infixa:( x1 * ( x1 * ( ( x1 + 1 ) * x1 ) ) )
+
+Tempo de substituicao: 	 0.0016425920
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0571144968
+---------------------------------
+Geracao 14: 
+
+Melhor da geracao: 14: -23923708.0000000000
+
+(x1) (x1) (x1) (1) (+) (x1) (*) (*) (*) 
+
+Em ordem infixa:( x1 * ( x1 * ( ( x1 + 1 ) * x1 ) ) )
+
+Tempo de substituicao: 	 0.0016420800
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0561383665
+---------------------------------
+Geracao 15: 
+
+Melhor da geracao: 15: -1032664.0625000000
+
+(x1) (x1) (x1) (1) (x1) (x1) (1) (+) (*) (/) (/) (+) (*) 
+
+Em ordem infixa:( x1 * ( x1 + ( x1 / ( 1 / ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0016369920
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0577284470
+---------------------------------
+Geracao 16: 
+
+Melhor da geracao: 16: -1032664.0625000000
+
+(x1) (x1) (x1) (1) (x1) (x1) (1) (+) (*) (/) (/) (+) (*) 
+
+Em ordem infixa:( x1 * ( x1 + ( x1 / ( 1 / ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015623680
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0566715524
+---------------------------------
+Geracao 17: 
+
+Melhor da geracao: 17: -1032664.0625000000
+
+(x1) (x1) (x1) (1) (x1) (x1) (1) (+) (*) (/) (/) (+) (*) 
+
+Em ordem infixa:( x1 * ( x1 + ( x1 / ( 1 / ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0016225280
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0572620817
+---------------------------------
+Geracao 18: 
+
+Melhor da geracao: 18: -1032664.0625000000
+
+(x1) (x1) (x1) (1) (x1) (x1) (1) (+) (*) (/) (/) (+) (*) 
+
+Em ordem infixa:( x1 * ( x1 + ( x1 / ( 1 / ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0016200640
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0595577918
+---------------------------------
+Geracao 19: 
+
+Melhor da geracao: 19: -1032664.0625000000
+
+(x1) (x1) (x1) (1) (x1) (x1) (1) (+) (*) (/) (/) (+) (*) 
+
+Em ordem infixa:( x1 * ( x1 + ( x1 / ( 1 / ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0017915200
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0601394884
+---------------------------------
+Geracao 20: 
+
+Melhor da geracao: 20: -1032664.0625000000
+
+(x1) (x1) (x1) (1) (x1) (x1) (1) (+) (*) (/) (/) (+) (*) 
+
+Em ordem infixa:( x1 * ( x1 + ( x1 / ( 1 / ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015479360
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0599737912
+---------------------------------
+Geracao 21: 
+
+Melhor da geracao: 21: -1032664.0625000000
+
+(x1) (x1) (x1) (1) (x1) (x1) (1) (+) (*) (/) (/) (+) (*) 
+
+Em ordem infixa:( x1 * ( x1 + ( x1 / ( 1 / ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015947840
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0640828460
+---------------------------------
+Geracao 22: 
+
+Melhor da geracao: 22: -1032664.0625000000
+
+(x1) (x1) (x1) (1) (x1) (x1) (1) (+) (*) (/) (/) (+) (*) 
+
+Em ordem infixa:( x1 * ( x1 + ( x1 / ( 1 / ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015655360
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0638187230
+---------------------------------
+Geracao 23: 
+
+Melhor da geracao: 23: -1032664.0625000000
+
+(x1) (x1) (x1) (1) (x1) (x1) (1) (+) (*) (/) (/) (+) (*) 
+
+Em ordem infixa:( x1 * ( x1 + ( x1 / ( 1 / ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015960319
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0652983338
+---------------------------------
+Geracao 24: 
+
+Melhor da geracao: 24: -1032664.0625000000
+
+(x1) (x1) (x1) (1) (x1) (x1) (1) (+) (*) (/) (/) (+) (*) 
+
+Em ordem infixa:( x1 * ( x1 + ( x1 / ( 1 / ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015482240
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0655982047
+---------------------------------
+Geracao 25: 
+
+Melhor da geracao: 25: -1032664.0625000000
+
+(x1) (x1) (x1) (1) (x1) (x1) (1) (+) (*) (/) (/) (+) (*) 
+
+Em ordem infixa:( x1 * ( x1 + ( x1 / ( 1 / ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015701440
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0678768307
+---------------------------------
+Geracao 26: 
+
+Melhor da geracao: 26: -1032663.8750000000
+
+(x1) (x1) (1) (1) (x1) (x1) (1) (+) (*) (+) (/) (/) (*) 
+
+Em ordem infixa:( x1 * ( x1 / ( 1 / ( 1 + ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015707200
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0667434856
+---------------------------------
+Geracao 27: 
+
+Melhor da geracao: 27: -1032663.8750000000
+
+(x1) (x1) (1) (1) (x1) (x1) (1) (+) (*) (+) (/) (/) (*) 
+
+Em ordem infixa:( x1 * ( x1 / ( 1 / ( 1 + ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015439680
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0680163875
+---------------------------------
+Geracao 28: 
+
+Melhor da geracao: 28: -1032663.8750000000
+
+(x1) (x1) (1) (1) (x1) (x1) (1) (+) (*) (+) (/) (/) (*) 
+
+Em ordem infixa:( x1 * ( x1 / ( 1 / ( 1 + ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015458560
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0678322241
+---------------------------------
+Geracao 29: 
+
+Melhor da geracao: 29: -1032663.8750000000
+
+(x1) (x1) (1) (1) (x1) (x1) (1) (+) (*) (+) (/) (/) (*) 
+
+Em ordem infixa:( x1 * ( x1 / ( 1 / ( 1 + ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0018828480
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0685642585
+---------------------------------
+Geracao 30: 
+
+Melhor da geracao: 30: -1032663.8750000000
+
+(x1) (x1) (1) (1) (x1) (x1) (1) (+) (*) (+) (/) (/) (*) 
+
+Em ordem infixa:( x1 * ( x1 / ( 1 / ( 1 + ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015489280
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0687175393
+---------------------------------
+Geracao 31: 
+
+Melhor da geracao: 31: -1032663.8750000000
+
+(x1) (x1) (1) (1) (x1) (x1) (1) (+) (*) (+) (/) (/) (*) 
+
+Em ordem infixa:( x1 * ( x1 / ( 1 / ( 1 + ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015655680
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0666962564
+---------------------------------
+Geracao 32: 
+
+Melhor da geracao: 32: -1032663.8750000000
+
+(x1) (x1) (1) (1) (x1) (x1) (1) (+) (*) (+) (/) (/) (*) 
+
+Em ordem infixa:( x1 * ( x1 / ( 1 / ( 1 + ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015861120
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0679662377
+---------------------------------
+Geracao 33: 
+
+Melhor da geracao: 33: -1032663.8750000000
+
+(x1) (x1) (1) (1) (x1) (x1) (1) (+) (*) (+) (/) (/) (*) 
+
+Em ordem infixa:( x1 * ( x1 / ( 1 / ( 1 + ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0017777600
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0675111711
+---------------------------------
+Geracao 34: 
+
+Melhor da geracao: 34: -1032663.8750000000
+
+(x1) (x1) (1) (1) (x1) (x1) (1) (+) (*) (+) (/) (/) (*) 
+
+Em ordem infixa:( x1 * ( x1 / ( 1 / ( 1 + ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015635201
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0660572499
+---------------------------------
+Geracao 35: 
+
+Melhor da geracao: 35: -1032663.8750000000
+
+(x1) (x1) (1) (1) (x1) (x1) (1) (+) (*) (+) (/) (/) (*) 
+
+Em ordem infixa:( x1 * ( x1 / ( 1 / ( 1 + ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015699520
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0656708479
+---------------------------------
+Geracao 36: 
+
+Melhor da geracao: 36: -1032663.8750000000
+
+(x1) (x1) (1) (1) (x1) (x1) (1) (+) (*) (+) (/) (/) (*) 
+
+Em ordem infixa:( x1 * ( x1 / ( 1 / ( 1 + ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0017920641
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0652168021
+---------------------------------
+Geracao 37: 
+
+Melhor da geracao: 37: -1032663.8750000000
+
+(x1) (x1) (1) (1) (x1) (x1) (1) (+) (*) (+) (/) (/) (*) 
+
+Em ordem infixa:( x1 * ( x1 / ( 1 / ( 1 + ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015677121
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0656846389
+---------------------------------
+Geracao 38: 
+
+Melhor da geracao: 38: -1032663.8750000000
+
+(x1) (x1) (1) (1) (x1) (x1) (1) (+) (*) (+) (/) (/) (*) 
+
+Em ordem infixa:( x1 * ( x1 / ( 1 / ( 1 + ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015778560
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0651051551
+---------------------------------
+Geracao 39: 
+
+Melhor da geracao: 39: -1032663.8750000000
+
+(x1) (x1) (1) (1) (x1) (x1) (1) (+) (*) (+) (/) (/) (*) 
+
+Em ordem infixa:( x1 * ( x1 / ( 1 / ( 1 + ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015840640
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0681750700
+---------------------------------
+Geracao 40: 
+
+Melhor da geracao: 40: -1032663.8750000000
+
+(x1) (x1) (1) (1) (x1) (x1) (1) (+) (*) (+) (/) (/) (*) 
+
+Em ordem infixa:( x1 * ( x1 / ( 1 / ( 1 + ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015851200
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0669547543
+---------------------------------
+Geracao 41: 
+
+Melhor da geracao: 41: -1032663.8750000000
+
+(x1) (x1) (1) (1) (x1) (x1) (1) (+) (*) (+) (/) (/) (*) 
+
+Em ordem infixa:( x1 * ( x1 / ( 1 / ( 1 + ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015817280
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0678578541
+---------------------------------
+Geracao 42: 
+
+Melhor da geracao: 42: -1032663.8750000000
+
+(x1) (x1) (1) (1) (x1) (x1) (1) (+) (*) (+) (/) (/) (*) 
+
+Em ordem infixa:( x1 * ( x1 / ( 1 / ( 1 + ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015732480
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0656634867
+---------------------------------
+Geracao 43: 
+
+Melhor da geracao: 43: -1032663.8750000000
+
+(x1) (x1) (1) (1) (x1) (x1) (1) (+) (*) (+) (/) (/) (*) 
+
+Em ordem infixa:( x1 * ( x1 / ( 1 / ( 1 + ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015841280
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0673376992
+---------------------------------
+Geracao 44: 
+
+Melhor da geracao: 44: -1032663.8750000000
+
+(x1) (x1) (1) (1) (x1) (x1) (1) (+) (*) (+) (/) (/) (*) 
+
+Em ordem infixa:( x1 * ( x1 / ( 1 / ( 1 + ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015909760
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0684795529
+---------------------------------
+Geracao 45: 
+
+Melhor da geracao: 45: -1032663.8750000000
+
+(x1) (x1) (1) (1) (x1) (x1) (1) (+) (*) (+) (/) (/) (*) 
+
+Em ordem infixa:( x1 * ( x1 / ( 1 / ( 1 + ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015688640
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0668679699
+---------------------------------
+Geracao 46: 
+
+Melhor da geracao: 46: -1032663.8750000000
+
+(x1) (x1) (1) (1) (x1) (x1) (1) (+) (*) (+) (/) (/) (*) 
+
+Em ordem infixa:( x1 * ( x1 / ( 1 / ( 1 + ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015854080
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0668222383
+---------------------------------
+Geracao 47: 
+
+Melhor da geracao: 47: -1032663.8750000000
+
+(x1) (x1) (1) (1) (x1) (x1) (1) (+) (*) (+) (/) (/) (*) 
+
+Em ordem infixa:( x1 * ( x1 / ( 1 / ( 1 + ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015765760
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0676760301
+---------------------------------
+Geracao 48: 
+
+Melhor da geracao: 48: -1032663.8750000000
+
+(x1) (x1) (1) (1) (x1) (x1) (1) (+) (*) (+) (/) (/) (*) 
+
+Em ordem infixa:( x1 * ( x1 / ( 1 / ( 1 + ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0015673920
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0665540174
+---------------------------------
+Geracao 49: 
+
+Melhor da geracao: 49: -1032663.8750000000
+
+(x1) (x1) (1) (1) (x1) (x1) (1) (+) (*) (+) (/) (/) (*) 
+
+Em ordem infixa:( x1 * ( x1 / ( 1 / ( 1 + ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0016396160
+max local size: 1024
+Local: 1024, Global: 512000, Grupos: 500
+Tempo de avaliacao: 	 0.0655909106
+---------------------------------
+Geracao 50: 
+
+Melhor da geracao: 50: -1032663.8750000000
+
+(x1) (x1) (1) (1) (x1) (x1) (1) (+) (*) (+) (/) (/) (*) 
+
+Em ordem infixa:( x1 * ( x1 / ( 1 / ( 1 + ( x1 * ( x1 + 1 ) ) ) ) ) )
+
+Tempo de substituicao: 	 0.0016220480
+Tempo total: 	 3.2420876026

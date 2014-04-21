@@ -66,8 +66,7 @@ __kernel void avaliacao(__global individuo *pop,
 }
 
 __kernel void avaliacao_gpu(__global individuo *pop, 
-			__global const t_regra * Gramatica,	
-		
+			__global t_regra * Gramatica,
 			#ifdef Y_DOES_NOT_FIT_IN_CONSTANT_BUFFER
 	 		__global const
 			#else
@@ -116,7 +115,7 @@ __kernel void avaliacao_gpu(__global individuo *pop,
                       if( iter * LOCAL_SIZE + lid < TAMANHO_DATABASE )
 	              {
 	    	#endif		
-			erros[lid] += pown(Avalia(programa, dataBase, iter * LOCAL_SIZE + lid), 2);
+			erros[lid] += 1;//pown(Avalia(programa, dataBase, iter * LOCAL_SIZE + lid), 2);
 		
 		#ifdef NUM_POINTS_IS_NOT_DIVISIBLE_BY_LOCAL_SIZE
 		      }
@@ -126,7 +125,7 @@ __kernel void avaliacao_gpu(__global individuo *pop,
 
 		  int next_power_of_2 = LOCAL_SIZE_ROUNDED_UP_TO_POWER_OF_2;
 	
-		  for(int s = next_power_of_2*0.5;s>0;s*=0.5){
+		  for(int s = next_power_of_2*0.5;s>0 ; s*=0.5){
 		  	barrier(CLK_LOCAL_MEM_FENCE);
 			
 			#ifndef LOCAL_SIZE_IS_NOT_POWER_OF_2

@@ -66,8 +66,7 @@ __kernel void avaliacao(__global individuo *pop,
 }
 
 __kernel void avaliacao_gpu(__global individuo *pop, 
-			__global const t_regra * Gramatica,	
-		
+			__global t_regra * Gramatica,
 			#ifdef Y_DOES_NOT_FIT_IN_CONSTANT_BUFFER
 	 		__global const
 			#else

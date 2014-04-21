@@ -1,0 +1,7 @@
+#Script para plotar o gráfico
+gnuplot>
+	set logscale
+	set terminal png
+	set output 'grafico.png'	
+	set title 'Tempo de execução X tamanho do banco de dados'
+	plot  "execucoes/time.txt" using 1:1 title 'Número de registros' 1:2 title 'Tempo de execução'
