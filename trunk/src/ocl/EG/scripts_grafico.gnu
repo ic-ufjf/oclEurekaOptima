@@ -1,13 +1,13 @@
 set terminal png
 
-set output 'Experimento/grafico.png'	
+set output 'grafico.png'	
 set title 'Tempo de execução X número de amostras'
-set xrange [0:100000]
-set yrange [0:4]
+set xrange [0:1000000]
+set yrange [0:100]
 
-set xlabel "Numero de amostras (R)"
-set ylabel "Tempo de execução (P)"
+set xlabel "Número de amostras"
+set ylabel "Tempo de execução (s)"
 
-plot 'execucoes/time.txt' u($1):($2) title 'Tempo'
+plot 'execucoes/time.txt' u($1):($2) title 'Tempo' with lines
 
 

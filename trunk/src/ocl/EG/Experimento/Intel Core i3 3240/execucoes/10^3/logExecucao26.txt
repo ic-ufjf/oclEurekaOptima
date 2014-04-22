@@ -1,0 +1,556 @@
+Banco de dados: problems/p4_10^3.txt
+-----------------------------------------------------------
+Tamanho do banco de dados:1000 	 Número de variáveis:2
+-----------------------------------------------------------
+Tempo de avaliacao: 	 0.0083544189
+Tempo de avaliacao: 	 0.0088110371
+---------------------------------
+Geracao 1: 
+
+Melhor da geracao: 1: -114510688.0000000000
+
+(x1) (x1) (x1) (*) (*) 
+
+Em ordem infixa:( x1 * ( x1 * x1 ) )
+
+Tempo de substituicao: 	 0.0005827760
+Tempo de avaliacao: 	 0.0100351097
+---------------------------------
+Geracao 2: 
+
+Melhor da geracao: 2: -114510688.0000000000
+
+(x1) (x1) (x1) (*) (*) 
+
+Em ordem infixa:( x1 * ( x1 * x1 ) )
+
+Tempo de substituicao: 	 0.0005130450
+Tempo de avaliacao: 	 0.0109821111
+---------------------------------
+Geracao 3: 
+
+Melhor da geracao: 3: -105943272.0000000000
+
+(1) (x1) (1) (/) (+) (x1) (x1) (*) (*) 
+
+Em ordem infixa:( ( 1 + ( x1 / 1 ) ) * ( x1 * x1 ) )
+
+Tempo de substituicao: 	 0.0004905300
+Tempo de avaliacao: 	 0.0105488244
+---------------------------------
+Geracao 4: 
+
+Melhor da geracao: 4: -5660672.0000000000
+
+(x1) (x1) (x1) (1) (*) (x1) (*) (*) (*) 
+
+Em ordem infixa:( x1 * ( x1 * ( ( x1 * 1 ) * x1 ) ) )
+
+Tempo de substituicao: 	 0.0004479570
+Tempo de avaliacao: 	 0.0105256550
+---------------------------------
+Geracao 5: 
+
+Melhor da geracao: 5: -5660672.0000000000
+
+(x1) (x1) (x1) (1) (*) (x1) (*) (*) (*) 
+
+Em ordem infixa:( x1 * ( x1 * ( ( x1 * 1 ) * x1 ) ) )
+
+Tempo de substituicao: 	 0.0004640150
+Tempo de avaliacao: 	 0.0107948696
+---------------------------------
+Geracao 6: 
+
+Melhor da geracao: 6: -5660672.0000000000
+
+(x1) (x1) (x1) (1) (*) (x1) (*) (*) (*) 
+
+Em ordem infixa:( x1 * ( x1 * ( ( x1 * 1 ) * x1 ) ) )
+
+Tempo de substituicao: 	 0.0004633020
+Tempo de avaliacao: 	 0.0115664024
+---------------------------------
+Geracao 7: 
+
+Melhor da geracao: 7: -5660672.0000000000
+
+(x1) (x1) (x1) (1) (*) (x1) (*) (*) (*) 
+
+Em ordem infixa:( x1 * ( x1 * ( ( x1 * 1 ) * x1 ) ) )
+
+Tempo de substituicao: 	 0.0004682730
+Tempo de avaliacao: 	 0.0124785686
+---------------------------------
+Geracao 8: 
+
+Melhor da geracao: 8: -226359.9375000000
+
+(x1) (x1) (x1) (x1) (*) (x1) (+) (*) (*) 
+
+Em ordem infixa:( x1 * ( x1 * ( ( x1 * x1 ) + x1 ) ) )
+
+Tempo de substituicao: 	 0.0005002280
+Tempo de avaliacao: 	 0.0137326242
+---------------------------------
+Geracao 9: 
+
+Melhor da geracao: 9: -226359.9375000000
+
+(x1) (x1) (x1) (x1) (x1) (*) (x1) (+) (*) (x1) (*) (-) (-) 
+
+Em ordem infixa:( x1 - ( x1 - ( ( x1 * ( ( x1 * x1 ) + x1 ) ) * x1 ) ) )
+
+Tempo de substituicao: 	 0.0004867870
+Tempo de avaliacao: 	 0.0137829203
+---------------------------------
+Geracao 10: 
+
+Melhor da geracao: 10: -226359.8750000000
+
+(x1) (1) (x1) (+) (1) (x1) (*) (*) (x1) (*) (*) 
+
+Em ordem infixa:( x1 * ( ( ( 1 + x1 ) * ( 1 * x1 ) ) * x1 ) )
+
+Tempo de substituicao: 	 0.0004920000
+Tempo de avaliacao: 	 0.0145823564
+---------------------------------
+Geracao 11: 
+
+Melhor da geracao: 11: -226359.8750000000
+
+(x1) (x1) (x1) (1) (+) (x1) (*) (*) (*) 
+
+Em ordem infixa:( x1 * ( x1 * ( ( x1 + 1 ) * x1 ) ) )
+
+Tempo de substituicao: 	 0.0004737210
+Tempo de avaliacao: 	 0.0145572424
+---------------------------------
+Geracao 12: 
+
+Melhor da geracao: 12: -226359.8750000000
+
+(x1) (1) (x1) (+) (1) (x1) (*) (*) (x1) (*) (*) 
+
+Em ordem infixa:( x1 * ( ( ( 1 + x1 ) * ( 1 * x1 ) ) * x1 ) )
+
+Tempo de substituicao: 	 0.0005103350
+Tempo de avaliacao: 	 0.0152567001
+---------------------------------
+Geracao 13: 
+
+Melhor da geracao: 13: -226359.8750000000
+
+(x1) (1) (x1) (+) (1) (x1) (*) (*) (x1) (*) (*) 
+
+Em ordem infixa:( x1 * ( ( ( 1 + x1 ) * ( 1 * x1 ) ) * x1 ) )
+
+Tempo de substituicao: 	 0.0005113570
+Tempo de avaliacao: 	 0.0153451255
+---------------------------------
+Geracao 14: 
+
+Melhor da geracao: 14: -226359.8750000000
+
+(x1) (1) (x1) (+) (1) (x1) (*) (*) (x1) (*) (*) 
+
+Em ordem infixa:( x1 * ( ( ( 1 + x1 ) * ( 1 * x1 ) ) * x1 ) )
+
+Tempo de substituicao: 	 0.0004843090
+Tempo de avaliacao: 	 0.0148752276
+---------------------------------
+Geracao 15: 
+
+Melhor da geracao: 15: -226359.8750000000
+
+(x1) (1) (x1) (+) (1) (x1) (*) (*) (x1) (*) (*) 
+
+Em ordem infixa:( x1 * ( ( ( 1 + x1 ) * ( 1 * x1 ) ) * x1 ) )
+
+Tempo de substituicao: 	 0.0004780470
+Tempo de avaliacao: 	 0.0145600624
+---------------------------------
+Geracao 16: 
+
+Melhor da geracao: 16: -226359.8750000000
+
+(x1) (x1) (x1) (1) (+) (x1) (*) (*) (*) 
+
+Em ordem infixa:( x1 * ( x1 * ( ( x1 + 1 ) * x1 ) ) )
+
+Tempo de substituicao: 	 0.0004908720
+Tempo de avaliacao: 	 0.0147494813
+---------------------------------
+Geracao 17: 
+
+Melhor da geracao: 17: -226359.8750000000
+
+(x1) (1) (x1) (+) (1) (x1) (*) (*) (x1) (*) (*) 
+
+Em ordem infixa:( x1 * ( ( ( 1 + x1 ) * ( 1 * x1 ) ) * x1 ) )
+
+Tempo de substituicao: 	 0.0004966020
+Tempo de avaliacao: 	 0.0141142625
+---------------------------------
+Geracao 18: 
+
+Melhor da geracao: 18: -226359.8750000000
+
+(x1) (1) (x1) (+) (1) (x1) (*) (*) (x1) (*) (*) 
+
+Em ordem infixa:( x1 * ( ( ( 1 + x1 ) * ( 1 * x1 ) ) * x1 ) )
+
+Tempo de substituicao: 	 0.0004795330
+Tempo de avaliacao: 	 0.0140778590
+---------------------------------
+Geracao 19: 
+
+Melhor da geracao: 19: -226359.8750000000
+
+(x1) (1) (x1) (+) (1) (x1) (*) (*) (x1) (*) (*) 
+
+Em ordem infixa:( x1 * ( ( ( 1 + x1 ) * ( 1 * x1 ) ) * x1 ) )
+
+Tempo de substituicao: 	 0.0004784550
+Tempo de avaliacao: 	 0.0138044572
+---------------------------------
+Geracao 20: 
+
+Melhor da geracao: 20: -226359.8750000000
+
+(x1) (1) (x1) (+) (1) (x1) (*) (*) (x1) (*) (*) 
+
+Em ordem infixa:( x1 * ( ( ( 1 + x1 ) * ( 1 * x1 ) ) * x1 ) )
+
+Tempo de substituicao: 	 0.0004894400
+Tempo de avaliacao: 	 0.0140934959
+---------------------------------
+Geracao 21: 
+
+Melhor da geracao: 21: -164284.0625000000
+
+(1) (x1) (+) (x1) (*) (x1) (*) (x1) (*) (x1) (+) (x1) (+) 
+
+Em ordem infixa:( ( ( ( ( ( 1 + x1 ) * x1 ) * x1 ) * x1 ) + x1 ) + x1 )
+
+Tempo de substituicao: 	 0.0004682550
+Tempo de avaliacao: 	 0.0142791858
+---------------------------------
+Geracao 22: 
+
+Melhor da geracao: 22: -164284.0625000000
+
+(1) (x1) (+) (x1) (*) (x1) (*) (x1) (*) (x1) (+) (x1) (+) 
+
+Em ordem infixa:( ( ( ( ( ( 1 + x1 ) * x1 ) * x1 ) * x1 ) + x1 ) + x1 )
+
+Tempo de substituicao: 	 0.0004536040
+Tempo de avaliacao: 	 0.0142855188
+---------------------------------
+Geracao 23: 
+
+Melhor da geracao: 23: -164284.0625000000
+
+(1) (x1) (+) (x1) (*) (x1) (*) (x1) (*) (x1) (+) (x1) (+) 
+
+Em ordem infixa:( ( ( ( ( ( 1 + x1 ) * x1 ) * x1 ) * x1 ) + x1 ) + x1 )
+
+Tempo de substituicao: 	 0.0004697530
+Tempo de avaliacao: 	 0.0138376951
+---------------------------------
+Geracao 24: 
+
+Melhor da geracao: 24: -10095.2646484375
+
+(x1) (1) (x1) (+) (x1) (x1) (*) (*) (x1) (+) (*) 
+
+Em ordem infixa:( x1 * ( ( ( 1 + x1 ) * ( x1 * x1 ) ) + x1 ) )
+
+Tempo de substituicao: 	 0.0004871850
+Tempo de avaliacao: 	 0.0139174489
+---------------------------------
+Geracao 25: 
+
+Melhor da geracao: 25: -10095.2646484375
+
+(x1) (1) (x1) (+) (x1) (x1) (*) (*) (x1) (+) (*) 
+
+Em ordem infixa:( x1 * ( ( ( 1 + x1 ) * ( x1 * x1 ) ) + x1 ) )
+
+Tempo de substituicao: 	 0.0004785490
+Tempo de avaliacao: 	 0.0136562623
+---------------------------------
+Geracao 26: 
+
+Melhor da geracao: 26: -10095.2646484375
+
+(x1) (1) (x1) (+) (x1) (x1) (*) (*) (x1) (+) (*) 
+
+Em ordem infixa:( x1 * ( ( ( 1 + x1 ) * ( x1 * x1 ) ) + x1 ) )
+
+Tempo de substituicao: 	 0.0004861370
+Tempo de avaliacao: 	 0.0136322007
+---------------------------------
+Geracao 27: 
+
+Melhor da geracao: 27: -10095.2529296875
+
+(x1) (x1) (x1) (x1) (1) (+) (*) (x1) (*) (+) (*) 
+
+Em ordem infixa:( x1 * ( x1 + ( ( x1 * ( x1 + 1 ) ) * x1 ) ) )
+
+Tempo de substituicao: 	 0.0004859230
+Tempo de avaliacao: 	 0.0140784066
+---------------------------------
+Geracao 28: 
+
+Melhor da geracao: 28: -0.0000094748
+
+(1) (x1) (+) (x1) (*) (x1) (*) (x1) (+) (1) (+) (x1) (*) 
+
+Em ordem infixa:( ( ( ( ( ( 1 + x1 ) * x1 ) * x1 ) + x1 ) + 1 ) * x1 )
+
+Tempo de substituicao: 	 0.0004940390
+Tempo de avaliacao: 	 0.0143330852
+---------------------------------
+Geracao 29: 
+
+Melhor da geracao: 29: -0.0000094748
+
+(1) (x1) (+) (x1) (*) (x1) (*) (x1) (+) (1) (+) (x1) (*) 
+
+Em ordem infixa:( ( ( ( ( ( 1 + x1 ) * x1 ) * x1 ) + x1 ) + 1 ) * x1 )
+
+Tempo de substituicao: 	 0.0004916490
+Tempo de avaliacao: 	 0.0148340883
+---------------------------------
+Geracao 30: 
+
+Melhor da geracao: 30: -0.0000094748
+
+(1) (x1) (+) (x1) (*) (x1) (*) (x1) (+) (1) (+) (x1) (*) 
+
+Em ordem infixa:( ( ( ( ( ( 1 + x1 ) * x1 ) * x1 ) + x1 ) + 1 ) * x1 )
+
+Tempo de substituicao: 	 0.0004983230
+Tempo de avaliacao: 	 0.0142721217
+---------------------------------
+Geracao 31: 
+
+Melhor da geracao: 31: -0.0000094691
+
+(1) (x1) (+) (x1) (*) (x1) (*) (1) (+) (x1) (+) (x1) (*) 
+
+Em ordem infixa:( ( ( ( ( ( 1 + x1 ) * x1 ) * x1 ) + 1 ) + x1 ) * x1 )
+
+Tempo de substituicao: 	 0.0005014420
+Tempo de avaliacao: 	 0.0144444797
+---------------------------------
+Geracao 32: 
+
+Melhor da geracao: 32: -0.0000094691
+
+(1) (x1) (+) (x1) (*) (x1) (*) (1) (+) (x1) (+) (x1) (*) 
+
+Em ordem infixa:( ( ( ( ( ( 1 + x1 ) * x1 ) * x1 ) + 1 ) + x1 ) * x1 )
+
+Tempo de substituicao: 	 0.0004899730
+Tempo de avaliacao: 	 0.0146076726
+---------------------------------
+Geracao 33: 
+
+Melhor da geracao: 33: -0.0000094691
+
+(1) (x1) (+) (x1) (*) (x1) (*) (1) (+) (x1) (+) (x1) (*) 
+
+Em ordem infixa:( ( ( ( ( ( 1 + x1 ) * x1 ) * x1 ) + 1 ) + x1 ) * x1 )
+
+Tempo de substituicao: 	 0.0005093390
+Tempo de avaliacao: 	 0.0149510186
+---------------------------------
+Geracao 34: 
+
+Melhor da geracao: 34: -0.0000094691
+
+(1) (x1) (+) (x1) (*) (x1) (*) (1) (+) (x1) (+) (x1) (*) 
+
+Em ordem infixa:( ( ( ( ( ( 1 + x1 ) * x1 ) * x1 ) + 1 ) + x1 ) * x1 )
+
+Tempo de substituicao: 	 0.0004994730
+Tempo de avaliacao: 	 0.0152059747
+---------------------------------
+Geracao 35: 
+
+Melhor da geracao: 35: -0.0000094691
+
+(1) (x1) (+) (x1) (*) (x1) (*) (1) (+) (x1) (+) (x1) (*) 
+
+Em ordem infixa:( ( ( ( ( ( 1 + x1 ) * x1 ) * x1 ) + 1 ) + x1 ) * x1 )
+
+Tempo de substituicao: 	 0.0005003670
+Tempo de avaliacao: 	 0.0145874191
+---------------------------------
+Geracao 36: 
+
+Melhor da geracao: 36: -0.0000094691
+
+(1) (x1) (+) (x1) (*) (x1) (*) (1) (+) (x1) (+) (x1) (*) 
+
+Em ordem infixa:( ( ( ( ( ( 1 + x1 ) * x1 ) * x1 ) + 1 ) + x1 ) * x1 )
+
+Tempo de substituicao: 	 0.0005032290
+Tempo de avaliacao: 	 0.0143630849
+---------------------------------
+Geracao 37: 
+
+Melhor da geracao: 37: -0.0000094691
+
+(1) (x1) (+) (x1) (*) (x1) (*) (1) (+) (x1) (+) (x1) (*) 
+
+Em ordem infixa:( ( ( ( ( ( 1 + x1 ) * x1 ) * x1 ) + 1 ) + x1 ) * x1 )
+
+Tempo de substituicao: 	 0.0005187090
+Tempo de avaliacao: 	 0.0136932135
+---------------------------------
+Geracao 38: 
+
+Melhor da geracao: 38: -0.0000094691
+
+(1) (x1) (+) (x1) (*) (x1) (*) (1) (+) (x1) (+) (x1) (*) 
+
+Em ordem infixa:( ( ( ( ( ( 1 + x1 ) * x1 ) * x1 ) + 1 ) + x1 ) * x1 )
+
+Tempo de substituicao: 	 0.0005010900
+Tempo de avaliacao: 	 0.0140122762
+---------------------------------
+Geracao 39: 
+
+Melhor da geracao: 39: -0.0000094691
+
+(1) (x1) (+) (x1) (*) (x1) (*) (1) (+) (x1) (+) (x1) (*) 
+
+Em ordem infixa:( ( ( ( ( ( 1 + x1 ) * x1 ) * x1 ) + 1 ) + x1 ) * x1 )
+
+Tempo de substituicao: 	 0.0005040140
+Tempo de avaliacao: 	 0.0135633321
+---------------------------------
+Geracao 40: 
+
+Melhor da geracao: 40: -0.0000094691
+
+(1) (x1) (+) (x1) (*) (x1) (*) (1) (+) (x1) (+) (x1) (*) 
+
+Em ordem infixa:( ( ( ( ( ( 1 + x1 ) * x1 ) * x1 ) + 1 ) + x1 ) * x1 )
+
+Tempo de substituicao: 	 0.0005058940
+Tempo de avaliacao: 	 0.0132977311
+---------------------------------
+Geracao 41: 
+
+Melhor da geracao: 41: -0.0000094691
+
+(1) (x1) (+) (x1) (*) (x1) (*) (1) (+) (x1) (+) (x1) (*) 
+
+Em ordem infixa:( ( ( ( ( ( 1 + x1 ) * x1 ) * x1 ) + 1 ) + x1 ) * x1 )
+
+Tempo de substituicao: 	 0.0005098630
+Tempo de avaliacao: 	 0.0136383660
+---------------------------------
+Geracao 42: 
+
+Melhor da geracao: 42: -0.0000094691
+
+(1) (x1) (+) (x1) (*) (x1) (*) (1) (+) (x1) (+) (x1) (*) 
+
+Em ordem infixa:( ( ( ( ( ( 1 + x1 ) * x1 ) * x1 ) + 1 ) + x1 ) * x1 )
+
+Tempo de substituicao: 	 0.0005113420
+Tempo de avaliacao: 	 0.0133264009
+---------------------------------
+Geracao 43: 
+
+Melhor da geracao: 43: -0.0000092432
+
+(x1) (x1) (*) (x1) (1) (+) (*) (1) (+) (x1) (+) (x1) (*) 
+
+Em ordem infixa:( ( ( ( ( x1 * x1 ) * ( x1 + 1 ) ) + 1 ) + x1 ) * x1 )
+
+Tempo de substituicao: 	 0.0005144280
+Tempo de avaliacao: 	 0.0136616109
+---------------------------------
+Geracao 44: 
+
+Melhor da geracao: 44: -0.0000092432
+
+(x1) (x1) (*) (x1) (1) (+) (*) (1) (+) (x1) (+) (x1) (*) 
+
+Em ordem infixa:( ( ( ( ( x1 * x1 ) * ( x1 + 1 ) ) + 1 ) + x1 ) * x1 )
+
+Tempo de substituicao: 	 0.0005166900
+Tempo de avaliacao: 	 0.0138585959
+---------------------------------
+Geracao 45: 
+
+Melhor da geracao: 45: -0.0000092432
+
+(x1) (x1) (*) (x1) (1) (+) (*) (1) (+) (x1) (+) (x1) (*) 
+
+Em ordem infixa:( ( ( ( ( x1 * x1 ) * ( x1 + 1 ) ) + 1 ) + x1 ) * x1 )
+
+Tempo de substituicao: 	 0.0005057390
+Tempo de avaliacao: 	 0.0143701229
+---------------------------------
+Geracao 46: 
+
+Melhor da geracao: 46: -0.0000092432
+
+(x1) (x1) (*) (x1) (1) (+) (*) (1) (+) (x1) (+) (x1) (*) 
+
+Em ordem infixa:( ( ( ( ( x1 * x1 ) * ( x1 + 1 ) ) + 1 ) + x1 ) * x1 )
+
+Tempo de substituicao: 	 0.0005135690
+Tempo de avaliacao: 	 0.0147254113
+---------------------------------
+Geracao 47: 
+
+Melhor da geracao: 47: -0.0000092432
+
+(x1) (x1) (*) (x1) (1) (+) (*) (1) (+) (x1) (+) (x1) (*) 
+
+Em ordem infixa:( ( ( ( ( x1 * x1 ) * ( x1 + 1 ) ) + 1 ) + x1 ) * x1 )
+
+Tempo de substituicao: 	 0.0005033060
+Tempo de avaliacao: 	 0.0148154488
+---------------------------------
+Geracao 48: 
+
+Melhor da geracao: 48: -0.0000092432
+
+(x1) (x1) (*) (x1) (1) (+) (*) (1) (+) (x1) (+) (x1) (*) 
+
+Em ordem infixa:( ( ( ( ( x1 * x1 ) * ( x1 + 1 ) ) + 1 ) + x1 ) * x1 )
+
+Tempo de substituicao: 	 0.0005015860
+Tempo de avaliacao: 	 0.0144468434
+---------------------------------
+Geracao 49: 
+
+Melhor da geracao: 49: -0.0000092432
+
+(x1) (x1) (*) (x1) (1) (+) (*) (1) (+) (x1) (+) (x1) (*) 
+
+Em ordem infixa:( ( ( ( ( x1 * x1 ) * ( x1 + 1 ) ) + 1 ) + x1 ) * x1 )
+
+Tempo de substituicao: 	 0.0005047640
+Tempo de avaliacao: 	 0.0141717354
+---------------------------------
+Geracao 50: 
+
+Melhor da geracao: 50: -0.0000092432
+
+(x1) (x1) (*) (x1) (1) (+) (*) (1) (+) (x1) (+) (x1) (*) 
+
+Em ordem infixa:( ( ( ( ( x1 * x1 ) * ( x1 + 1 ) ) + 1 ) + x1 ) * x1 )
+
+Tempo de substituicao: 	 0.0004997080
+Tempo total: 	 0.7470455766

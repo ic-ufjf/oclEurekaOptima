@@ -225,12 +225,14 @@ void opencl_init(int cores, int kernel, Database *dataBase){
 
     check_cl(status, "Erro ao obter as plataformas disponiveis");
 
+    //printf("\nPlataformas: %d\n", numPlatforms);
+
    	//---------------------------------------------
 	// 2: Descoberta e inicialização do(s) dispositivo(s)
 	//---------------------------------------------
 
 	//Obtém o número de dispositivos na plataforma de índice 0
-	status = clGetDeviceIDs(platforms[0],
+	status = clGetDeviceIDs(platforms[1],
 							CL_DEVICE_TYPE_ALL,
 							0,
 							NULL,
@@ -243,13 +245,14 @@ void opencl_init(int cores, int kernel, Database *dataBase){
 	devices = (cl_device_id*) malloc(numDevices*sizeof(cl_device_id));
 
 	//Obtém os dispositivos
-	status = clGetDeviceIDs(platforms[0],
+	status = clGetDeviceIDs(platforms[1],
 							CL_DEVICE_TYPE_ALL,
 							numDevices,
 							devices,
 							NULL);
 
     check_cl(status, "Erro ao obter os dispositivos");
+
 
     //---------------------------------------------
 	// 3: Criação do contexto de execução
@@ -269,7 +272,6 @@ void opencl_init(int cores, int kernel, Database *dataBase){
     //---------------------------------------------
 
     device = devices[0];
-
 
     /* Consulta as propriedades do dispositivo */
 
