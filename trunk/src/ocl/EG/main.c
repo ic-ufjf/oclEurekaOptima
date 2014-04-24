@@ -52,7 +52,7 @@ int main(int argc, char * argv[])
         switch (c)
         {
             case 'd':
-                printf("Banco de dados: %s\n", optarg);
+                //printf("Banco de dados: %s\n", optarg);
                 strcpy(arquivoBancoDeDados, optarg);
                 break;
 
@@ -79,20 +79,20 @@ int main(int argc, char * argv[])
     }
 
     if(strlen(arquivoBancoDeDados) == 0){
-        print_usage();
-        printf("Banco de dados não especificado. Utilizando o arquivo 'problems/2X^2.txt'\n");
+        //print_usage();
+        //printf("Banco de dados não especificado. Utilizando o arquivo 'problems/2X^2.txt'\n");
         strcpy(arquivoBancoDeDados, "problems/2X^2.txt");
     }
 
     Database * dataBase = database_read(arquivoBancoDeDados);
 
-    puts("-----------------------------------------------------------");
+   /* puts("-----------------------------------------------------------");
     printf("Tamanho do banco de dados:%d \t Número de variáveis:%d\n", dataBase->numRegistros, dataBase->numVariaveis);
-    puts("-----------------------------------------------------------");
+    puts("-----------------------------------------------------------");*/
 
 	LeGramatica("grammars/g1.txt", Gramatica);
 
-	eg_paralela(populacao, Gramatica, dataBase, pcores, kernelAG);
+    eg_paralela(populacao, Gramatica, dataBase, pcores, kernelAG);
 
     free(dataBase->registros);
     free(dataBase);

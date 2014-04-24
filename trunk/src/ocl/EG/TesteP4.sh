@@ -6,7 +6,7 @@ make media -B
 mkdir Experimento/execucoes
 
 touch Experimento/execucoes/time.txt 
-printf "" > Experimento/execucoes/time.txt 
+echo -e "N\tAvaliacao\tProcessamento\tTransfMemoria\tTransfMemoria inicial\tTotal(proc+mem)" > Experimento/execucoes/time.txt 
 
 #--------------------------------------------------------
 echo "Execução ge - P4(x) com 10 registros"
@@ -15,16 +15,16 @@ mkdir Experimento/execucoes/10
 touch Experimento/execucoes/10/time.txt
 printf "" > Experimento/execucoes/10/time.txt 
 
-for i in {1..50}
+for i in {1..30}
 do
    echo "Execucao - $i"
    touch  Experimento/execucoes/10/logExecucao$i.txt
-   ( /usr/bin/time  -f "%e" ./eg --database="problems/p4_10.txt") > Experimento/execucoes/10/logExecucao$i.txt  2>> Experimento/execucoes/10/time.txt
+   ./eg --database="problems/p4_10.txt" >> Experimento/execucoes/10/time.txt
 
 done
 
 printf "10\t" >> Experimento/execucoes/time.txt
-./media "execucoes/10/time.txt" >> Experimento/execucoes/time.txt
+./media "Experimento/execucoes/10/time.txt" >> Experimento/execucoes/time.txt
 printf "\n" >> Experimento/execucoes/time.txt
 
 #--------------------------------------------------------
@@ -35,16 +35,16 @@ mkdir Experimento/execucoes/10^2
 touch Experimento/execucoes/10^2/time.txt
 printf "" > Experimento/execucoes/10^2/time.txt 
 
-for i in {1..50}
+for i in {1..30}
 do
    echo "Execucao - $i"
    touch  Experimento/execucoes/10^2/logExecucao$i.txt
-   ( /usr/bin/time  -f "%e" ./eg --database="problems/p4_10^2.txt") > Experimento/execucoes/10^2/logExecucao$i.txt  2>> Experimento/execucoes/10^2/time.txt
+   ./eg --database="problems/p4_10^2.txt" >> Experimento/execucoes/10^2/time.txt
 
 done
 
 printf "100\t" >> Experimento/execucoes/time.txt
-./media "execucoes/10^2/time.txt" >> Experimento/execucoes/time.txt
+./media "Experimento/execucoes/10^2/time.txt" >> Experimento/execucoes/time.txt
 printf "\n" >> Experimento/execucoes/time.txt
 
 #--------------------------------------------------------
@@ -55,16 +55,16 @@ mkdir Experimento/execucoes/10^3
 touch Experimento/execucoes/10^3/time.txt
 printf "" > Experimento/execucoes/10^3/time.txt 
 
-for i in {1..50}
+for i in {1..30}
 do
    echo "Execucao - $i"
    touch  Experimento/execucoes/10^3/logExecucao$i.txt
-   ( /usr/bin/time  -f "%e" ./eg --database="problems/p4_10^3.txt") > Experimento/execucoes/10^3/logExecucao$i.txt  2>> Experimento/execucoes/10^3/time.txt
+   ./eg --database="problems/p4_10^3.txt" >> Experimento/execucoes/10^3/time.txt
 
 done
 
 printf "1000\t" >> Experimento/execucoes/time.txt
-./media "execucoes/10^3/time.txt" >> Experimento/execucoes/time.txt
+./media "Experimento/execucoes/10^3/time.txt" >> Experimento/execucoes/time.txt
 printf "\n" >> Experimento/execucoes/time.txt
 
 
@@ -76,16 +76,16 @@ mkdir Experimento/execucoes/10^4
 touch Experimento/execucoes/10^4/time.txt
 printf "" > Experimento/execucoes/10^4/time.txt 
 
-for i in {1..50}
+for i in {1..30}
 do
    echo "Execucao - $i"
    touch  Experimento/execucoes/10^4/logExecucao$i.txt
-   ( /usr/bin/time  -f "%e" ./eg --database="problems/p4_10^4.txt") > Experimento/execucoes/10^4/logExecucao$i.txt  2>> Experimento/execucoes/10^4/time.txt
+   ./eg --database="problems/p4_10^4.txt" >> Experimento/execucoes/10^4/time.txt
 
 done
 
 printf "10000\t" >> Experimento/execucoes/time.txt
-./media "execucoes/10^4/time.txt" >> Experimento/execucoes/time.txt
+./media "Experimento/execucoes/10^4/time.txt" >> Experimento/execucoes/time.txt
 printf "\n" >> Experimento/execucoes/time.txt
 
 #--------------------------------------------------------
@@ -96,16 +96,16 @@ mkdir Experimento/execucoes/10^5
 touch Experimento/execucoes/10^5/time.txt
 printf "" > Experimento/execucoes/10^5/time.txt 
 
-for i in {1..50}
+for i in {1..30}
 do
    echo "Execucao - $i"
    touch  Experimento/execucoes/10^5/logExecucao$i.txt
-   ( /usr/bin/time  -f "%e" ./eg --database="problems/p4_10^5.txt") > Experimento/execucoes/10^5/logExecucao$i.txt  2>> Experimento/execucoes/10^5/time.txt
+   ./eg --database="problems/p4_10^5.txt" >> Experimento/execucoes/10^5/time.txt
 
 done
 
 printf "100000\t" >> Experimento/execucoes/time.txt
-./media "execucoes/10^5/time.txt" >> Experimento/execucoes/time.txt
+./media "Experimento/execucoes/10^5/time.txt" >> Experimento/execucoes/time.txt
 printf "\n" >> Experimento/execucoes/time.txt
 
 #--------------------------------------------------------
@@ -116,16 +116,16 @@ mkdir Experimento/execucoes/10^6
 touch Experimento/execucoes/10^6/time.txt
 printf "" > Experimento/execucoes/10^6/time.txt 
 
-for i in {1..50}
+for i in {1..30}
 do
    echo "Execucao - $i"
    touch  Experimento/execucoes/10^6/logExecucao$i.txt
-   ( /usr/bin/time  -f "%e" ./eg --database="problems/p4_10^6.txt") > Experimento/execucoes/10^6/logExecucao$i.txt  2>> Experimento/execucoes/10^6/time.txt
+   ./eg --database="problems/p4_10^6.txt" >> Experimento/execucoes/10^6/time.txt
 
 done
 
 printf "1000000\t" >> Experimento/execucoes/time.txt
-./media "execucoes/10^6/time.txt" >> Experimento/execucoes/time.txt
+./media "Experimento/execucoes/10^6/time.txt" >> Experimento/execucoes/time.txt
 printf "\n" >> Experimento/execucoes/time.txt
 
 #Script para plotar o gráfico

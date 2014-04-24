@@ -18,6 +18,6 @@ void openc_init();
 
 void eg_paralela(individuo * pop, t_regra *gramatica, Database *dataBase, int pcores, int kernelAG);
 
-void dispose();
+void opencl_dispose();
 
 #endif // EG_OPENCL_H_INCLUDED
