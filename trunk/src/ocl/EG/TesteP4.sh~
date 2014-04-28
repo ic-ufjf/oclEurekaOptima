@@ -15,7 +15,7 @@ mkdir Experimento/execucoes/10
 touch Experimento/execucoes/10/time.txt
 printf "" > Experimento/execucoes/10/time.txt 
 
-for i in {1..2}
+for i in {1..30}
 do
    echo "Execucao - $i"
    touch  Experimento/execucoes/10/logExecucao$i.txt
@@ -35,7 +35,7 @@ mkdir Experimento/execucoes/10^2
 touch Experimento/execucoes/10^2/time.txt
 printf "" > Experimento/execucoes/10^2/time.txt 
 
-for i in {1..50}
+for i in {1..30}
 do
    echo "Execucao - $i"
    touch  Experimento/execucoes/10^2/logExecucao$i.txt
@@ -55,7 +55,7 @@ mkdir Experimento/execucoes/10^3
 touch Experimento/execucoes/10^3/time.txt
 printf "" > Experimento/execucoes/10^3/time.txt 
 
-for i in {1..50}
+for i in {1..30}
 do
    echo "Execucao - $i"
    touch  Experimento/execucoes/10^3/logExecucao$i.txt
@@ -76,7 +76,7 @@ mkdir Experimento/execucoes/10^4
 touch Experimento/execucoes/10^4/time.txt
 printf "" > Experimento/execucoes/10^4/time.txt 
 
-for i in {1..50}
+for i in {1..30}
 do
    echo "Execucao - $i"
    touch  Experimento/execucoes/10^4/logExecucao$i.txt
@@ -96,7 +96,7 @@ mkdir Experimento/execucoes/10^5
 touch Experimento/execucoes/10^5/time.txt
 printf "" > Experimento/execucoes/10^5/time.txt 
 
-for i in {1..50}
+for i in {1..30}
 do
    echo "Execucao - $i"
    touch  Experimento/execucoes/10^5/logExecucao$i.txt
@@ -116,7 +116,7 @@ mkdir Experimento/execucoes/10^6
 touch Experimento/execucoes/10^6/time.txt
 printf "" > Experimento/execucoes/10^6/time.txt 
 
-for i in {1..50}
+for i in {1..30}
 do
    echo "Execucao - $i"
    touch  Experimento/execucoes/10^6/logExecucao$i.txt

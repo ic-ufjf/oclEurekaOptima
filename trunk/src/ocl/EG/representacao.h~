@@ -6,7 +6,7 @@
 typedef struct{
 
     short genotipo[TAMANHO_INDIVIDUO];
-    int aptidao;
+    float aptidao;
 
 } individuo;
 

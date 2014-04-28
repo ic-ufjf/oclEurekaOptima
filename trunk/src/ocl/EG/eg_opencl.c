@@ -241,7 +241,7 @@ void opencl_init(int cores, int kernel, Database *dataBase){
 	//---------------------------------------------
 
 	//Obtém o número de dispositivos na plataforma de índice 0
-	status = clGetDeviceIDs(platforms[0],
+	status = clGetDeviceIDs(platforms[1],
 							CL_DEVICE_TYPE_ALL,
 							0,
 							NULL,
@@ -254,7 +254,7 @@ void opencl_init(int cores, int kernel, Database *dataBase){
 	devices = (cl_device_id*) malloc(numDevices*sizeof(cl_device_id));
 
 	//Obtém os dispositivos
-	status = clGetDeviceIDs(platforms[0],
+	status = clGetDeviceIDs(platforms[1],
 							CL_DEVICE_TYPE_ALL,
 							numDevices,
 							devices,
@@ -318,7 +318,9 @@ void opencl_init(int cores, int kernel, Database *dataBase){
                                 "#define TAMANHO_GRAMATICA " + ToString(5) + "\n" +
                                 "#define TAMANHO_DATABASE " + ToString(dataBase->numRegistros) + "\n" +
                                 "#define NUM_VARIAVEIS " + ToString(dataBase->numVariaveis) + "\n" +
-                                "#define ELITE " + ToString(ELITE) + "\n";
+                                "#define ELITE " + ToString(ELITE) + "\n"+
+                                "#define IH " + ToString(getRealTime())+"\n";
+
 
     long constant_size = sizeof(t_regra)*5 + (dataBase->numRegistros * sizeof(cl_float));
 
@@ -335,7 +337,7 @@ void opencl_init(int cores, int kernel, Database *dataBase){
         header_string += " #define LOCAL_SIZE_IS_NOT_POWER_OF_2 \n ";
 
     std::string body_string   = LoadKernel("kernel.cl");
-    std::string kernel_string = header_string + body_string ;
+    std::string kernel_string = header_string + body_string;
 
     kernel_srt = kernel_string.c_str();
 
@@ -350,13 +352,29 @@ void opencl_init(int cores, int kernel, Database *dataBase){
 
     check_cl(status, "Erro ao criar o programa");
 
+    double start  = getRealTime();
+
 	//Compilação do programa
 	status = clBuildProgram(program,
                             1,
 				devices,
-				"-I ./include -I include/Random123 -I include/vsmc",
+				"-I ./ -I ./include -I include/Random123 -I include/vsmc",
 				NULL,
 				NULL);
+
+    if(status != CL_SUCCESS){
+
+        // Determine the reason for the error
+        char buildLog[16384];
+        clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG,
+                              sizeof(buildLog), buildLog, NULL);
+
+        printf("Erros no kernel: \n %s \n", buildLog);
+
+        clReleaseProgram(program);
+    }
+
+    //printf("\nTempo de compilação: %lf\n", getRealTime()-start);
 
     check_cl(status, "Erro ao compilar o programa");
 
@@ -399,7 +417,7 @@ void opencl_init(int cores, int kernel, Database *dataBase){
 
     check_cl(status, "Erro ao criar kernel kernelInicializacao");
 
-     if(CPU){
+    if(CPU){
 
         status = clGetDeviceInfo(devices[0], CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint),
                                  &max_compute_units, NULL);
@@ -409,7 +427,6 @@ void opencl_init(int cores, int kernel, Database *dataBase){
     }
     else{
 
-
         //Obtém o tamanho  do qual o groupsize deve ser múltiplo
         status = clGetKernelWorkGroupInfo(kernelInicializacao, device,
                                           CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
@@ -417,7 +434,6 @@ void opencl_init(int cores, int kernel, Database *dataBase){
                                           &preferred_workgroup_size_multiple,
                                           NULL);
     }
-
 
 	//Cria o kernel de mutação/recombinação
 
@@ -724,7 +740,7 @@ void avaliacao(individuo *pop, t_regra * gramatica, cl_mem bufferPop){
         size_t localWorkSize[1];
         size_t globalWorkSize[1];
 
-        printf("max local size: %d\n", (int)max_local_size);
+        //printf("max local size: %d\n", (int)max_local_size);
 
         if(tamanhoBancoDeDados < max_local_size)
             localWorkSize[0] = tamanhoBancoDeDados;
@@ -734,7 +750,7 @@ void avaliacao(individuo *pop, t_regra * gramatica, cl_mem bufferPop){
         // Um indivíduo por work-group
         globalWorkSize[0] = localWorkSize[0] * TAMANHO_POPULACAO;
 
-        printf("Local: %ld, Global: %ld, Grupos: %ld\n",localWorkSize[0], globalWorkSize[0], globalWorkSize[0]/localWorkSize[0]);
+        //printf("Local: %ld, Global: %ld, Grupos: %ld\n",localWorkSize[0], globalWorkSize[0], globalWorkSize[0]/localWorkSize[0]);
 
         status = clSetKernelArg(kernelAvaliacao,  3, sizeof(float)*localWorkSize[0],  NULL);
         check_cl(status, "Erro ao adicionar argumento ao kernel");
@@ -1028,8 +1044,6 @@ void eg_paralela(individuo * pop, t_regra *gramatica, Database *dataBase, int pc
 
     tamanhoBancoDeDados = dataBase->numRegistros;
 
-    kernelAG = KERNEL_N_POR_WORK_GROUP;
-
     opencl_init(pcores, kernelAG, dataBase);
 
     carrega_gramatica(gramatica);
@@ -1057,6 +1071,7 @@ void eg_paralela(individuo * pop, t_regra *gramatica, Database *dataBase, int pc
       printf("%.10f\n", tempoTotalProcessamento + tempoTotalTransfMemoria);
       //printf("kernel substituicao: \t %.10f\n", tempoTotalSubstituicao);
       //printf("kernel ag: \t %.10f\n", tempoTotalAG);
+
    #endif
 }
 

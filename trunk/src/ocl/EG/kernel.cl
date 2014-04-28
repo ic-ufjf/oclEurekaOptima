@@ -40,11 +40,9 @@ void crossover_um_ponto(individuo *pais, individuo *filhos, cburng4x32 *rng){
 
     for(i=ponto;i<TAMANHO_INDIVIDUO;i++){
        filhos[0].genotipo[i] = pais[1].genotipo[i];
-       filhos[1].genotipo[i] = pais[0].genotipo[i];
- 
+       filhos[1].genotipo[i] = pais[0].genotipo[i]; 
    }
 }
-
 
 
 void crossover_um_ponto2(__local individuo *pais, __local individuo *filhos, cburng4x32 *rng, int lid, int ponto){
@@ -298,7 +296,13 @@ __kernel void iteracao_2_por_work_group(__global individuo *pop,
     cburng4x32 rng;
     cburng4x32_init(&rng);
     rng.key.v[0] = seed;
-    rng.ctr = counter[tid];
+    
+    if(geracao <= 1){
+    	 rng.ctr.v[0] = rng.ctr.v[1] = 0;
+    }
+    else{
+    	rng.ctr = counter[tid];
+    } 
 
     /*
 	Seleção
@@ -374,7 +378,13 @@ __kernel void iteracao_n_por_work_group(__global individuo *pop,
     cburng4x32 rng;
     cburng4x32_init(&rng);
     rng.key.v[0] = seed;
-    rng.ctr = counter[tid];
+    
+    if(geracao <= 1){
+    	 rng.ctr.v[0] = rng.ctr.v[1] = 0;
+    }
+    else{
+    	rng.ctr = counter[tid];
+    } 
 
     /*
 	Seleção

@@ -1,7 +1,5 @@
 #define DATABASE(x,y) dataBase[x*NUM_VARIAVEIS + y]
 
-
-
 #include "representacao.h"
 #include "substituicao.cl"
 #include "utils.cl"
@@ -42,11 +40,9 @@ void crossover_um_ponto(individuo *pais, individuo *filhos, cburng4x32 *rng){
 
     for(i=ponto;i<TAMANHO_INDIVIDUO;i++){
        filhos[0].genotipo[i] = pais[1].genotipo[i];
-       filhos[1].genotipo[i] = pais[0].genotipo[i];
- 
+       filhos[1].genotipo[i] = pais[0].genotipo[i]; 
    }
 }
-
 
 
 void crossover_um_ponto2(__local individuo *pais, __local individuo *filhos, cburng4x32 *rng, int lid, int ponto){

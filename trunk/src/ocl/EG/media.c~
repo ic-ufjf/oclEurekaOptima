@@ -10,7 +10,7 @@ int main(int argc, char** arvgv){
 	int linhas = 0; 
 
 	if(arq == NULL)
-			printf("Erro, nao foi possivel abrir o arquivo\n");
+		printf("Erro, nao foi possivel abrir o arquivo\n");
 	else
 		while( (fscanf(arq,"%f\t%f\t%f\t%f\t%f\n", &v1, &v2, &v3, &v4, &v5))!=EOF ){
 			
@@ -31,5 +31,5 @@ int main(int argc, char** arvgv){
 	media4/=(float)linhas;
 	media5/=(float)linhas;	
 	
-	printf("%.8f\t%.8f\t%.8f\t%.8f\t%.8f", media1, media2, media3, media4, media5);
+	printf("%.10f\t%.10f\t%.10f\t%.10f\t%.10f", media1, media2, media3, media4, media5);
 }
