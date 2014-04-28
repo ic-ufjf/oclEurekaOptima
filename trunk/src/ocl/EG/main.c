@@ -26,10 +26,9 @@ int main(int argc, char * argv[])
 	t_regra Gramatica[10];
     individuo * populacao = (individuo*) malloc(sizeof(individuo)*TAMANHO_POPULACAO);
 
-
     char arquivoBancoDeDados[50] = "";
 
-    int pcores = 0, kernelAG = 0;
+    int pcores = 0, kernelAG = 2;
     char c;
     while (1)
     {

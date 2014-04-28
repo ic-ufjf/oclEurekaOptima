@@ -10,7 +10,7 @@ int main(int argc, char** arvgv){
 	int linhas = 0; 
 
 	if(arq == NULL)
-			printf("Erro, nao foi possivel abrir o arquivo\n");
+		printf("Erro, nao foi possivel abrir o arquivo\n");
 	else
 		while( (fscanf(arq,"%f\t%f\t%f\t%f\t%f\n", &v1, &v2, &v3, &v4, &v5))!=EOF ){
 			
