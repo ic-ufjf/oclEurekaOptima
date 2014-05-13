@@ -42,7 +42,7 @@ int main(int argc, char * argv[])
 
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "dc", long_options, &option_index);
+        c = getopt_long(argc, argv, "dc", long_options, &option_index);
 
         if (c == -1){
             break;
@@ -57,12 +57,12 @@ int main(int argc, char * argv[])
 
             case 'c':
                 pcores = atoi(optarg);
-                printf("Cores: %d\n", pcores);
+                //printf("Cores: %d\n", pcores);
                 break;
 
             case 'k':
                 kernelAG = atoi(optarg);
-                printf("KernelAG: %d\n", kernelAG);
+                //printf("KernelAG: %d\n", kernelAG);
                 break;
 
             case '?':

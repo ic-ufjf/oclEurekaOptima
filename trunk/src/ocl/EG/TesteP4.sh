@@ -5,6 +5,9 @@ make media -B
 
 mkdir Experimento/execucoes
 
+declare -i PCORES
+PCORES=4
+
 touch Experimento/execucoes/time.txt 
 echo -e "N\tAvaliacao\tProcessamento\tTransfMemoria\tTransfMemoria inicial\tTotal(proc+mem)" > Experimento/execucoes/time.txt 
 
@@ -19,7 +22,7 @@ for i in {1..30}
 do
    echo "Execucao - $i"
    touch  Experimento/execucoes/10/logExecucao$i.txt
-   ./eg --database="problems/p4_10.txt" >> Experimento/execucoes/10/time.txt
+   ./eg --database="problems/p4_10.txt" --cores=$PCORES >> Experimento/execucoes/10/time.txt
 
 done
 
@@ -39,7 +42,7 @@ for i in {1..30}
 do
    echo "Execucao - $i"
    touch  Experimento/execucoes/10^2/logExecucao$i.txt
-   ./eg --database="problems/p4_10^2.txt" >> Experimento/execucoes/10^2/time.txt
+   ./eg --database="problems/p4_10^2.txt"  --cores=$PCORES >> Experimento/execucoes/10^2/time.txt
 
 done
 
@@ -59,7 +62,7 @@ for i in {1..30}
 do
    echo "Execucao - $i"
    touch  Experimento/execucoes/10^3/logExecucao$i.txt
-   ./eg --database="problems/p4_10^3.txt" >> Experimento/execucoes/10^3/time.txt
+   ./eg --database="problems/p4_10^3.txt"  --cores=$PCORES >> Experimento/execucoes/10^3/time.txt
 
 done
 
@@ -80,7 +83,7 @@ for i in {1..30}
 do
    echo "Execucao - $i"
    touch  Experimento/execucoes/10^4/logExecucao$i.txt
-   ./eg --database="problems/p4_10^4.txt" >> Experimento/execucoes/10^4/time.txt
+   ./eg --database="problems/p4_10^4.txt"  --cores=$PCORES >> Experimento/execucoes/10^4/time.txt
 
 done
 
@@ -100,7 +103,7 @@ for i in {1..30}
 do
    echo "Execucao - $i"
    touch  Experimento/execucoes/10^5/logExecucao$i.txt
-   ./eg --database="problems/p4_10^5.txt" >> Experimento/execucoes/10^5/time.txt
+   ./eg --database="problems/p4_10^5.txt"  --cores=$PCORES >> Experimento/execucoes/10^5/time.txt
 
 done
 
@@ -120,7 +123,7 @@ for i in {1..30}
 do
    echo "Execucao - $i"
    touch  Experimento/execucoes/10^6/logExecucao$i.txt
-   ./eg --database="problems/p4_10^6.txt" >> Experimento/execucoes/10^6/time.txt
+   ./eg --database="problems/p4_10^6.txt"  --cores=$PCORES >> Experimento/execucoes/10^6/time.txt
 
 done
 

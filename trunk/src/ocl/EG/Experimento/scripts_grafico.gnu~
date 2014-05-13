@@ -1,13 +1,13 @@
 set terminal pdf
-set logscale
+
 set output 'grafico_logscale.pdf'	
-set title 'Tempo de execução X número de amostras'
+set title 'Número de amostras X Tempo de execução'
 set xrange [1:1000000]
-set yrange [1:1000]
+set yrange [1:1700]
+set logscale
+set pointsize 0.4
 
 set xlabel "Número de amostras"
 set ylabel "Tempo total de execução (s)"
 
-plot 'Intel Core i3 3240/execucoes/time.txt' u($1):($6) title 'CORE I3 3240' with lines, 'Intel Core i5 3210M/execucoes/time.txt' u($1):($6) title 'CORE I5 3210M' with lines, 'NVIDIA GTX 650 TI/execucoes/time.txt' u($1):($6) title 'Nvidia GTX 650 TI' with lines 
-
-
+plot 'Intel Core i3 3240 (AMD)/execucoes/time.txt' u($1):($6) title 'CORE I3 3240' with linespoints ,  'Intel Core i5 3210M (1 core - AMD)/execucoes/time.txt' u($1):($6) title 'CORE I5 3210M (1 core)' with linespoints, 'Intel Core i5 3210M (4 cores - AMD)/execucoes/time.txt' u($1):($6) title 'CORE I5 3210M (4 cores)' with linespoints,'NVIDIA GTX 650 TI/execucoes/time.txt' u($1):($6) title 'Nvidia GTX 650 TI' with linespoints

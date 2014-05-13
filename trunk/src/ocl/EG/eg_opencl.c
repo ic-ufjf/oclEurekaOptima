@@ -134,26 +134,25 @@ void CriaSubDevices(){
     //-----------------------
     // Criação dos subdevices
     //-----------------------
-
-    /*status = clGetDeviceInfo(devices[0], CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &max_compute_units, NULL);
+    status = clGetDeviceInfo(devices[0], CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &max_compute_units, NULL);
 
     cl_uint ncores = std::min((int)max_compute_units, (int)pcores);
 
-    cout << "max comput units:" << ncores << endl;
+    //cout << "max comput units:" << ncores << endl;
 
     const cl_device_partition_property subdevice_properties[] =
     { CL_DEVICE_PARTITION_BY_COUNTS,
         ncores, 0, CL_DEVICE_PARTITION_BY_COUNTS_LIST_END, 0 };
 
-    cl_device_id device_ids[2];
+    cl_device_id device_ids[1];
 
-    numSubDevices=2;
+    numSubDevices=1;
 
     status = clCreateSubDevices(devices[0], subdevice_properties, numSubDevices, devices, NULL);
 
     device = devices[0];
 
-    check_cl(status, "Erro ao criar os subdevices");*/
+    check_cl(status, "Erro ao criar os subdevices");
 }
 
 int binario_para_decimal2(short *binarios, int inicio, int fim){
@@ -241,7 +240,7 @@ void opencl_init(int cores, int kernel, Database *dataBase){
 	//---------------------------------------------
 
 	//Obtém o número de dispositivos na plataforma de índice 0
-	status = clGetDeviceIDs(platforms[0],
+	status = clGetDeviceIDs(platforms[1],
 							CL_DEVICE_TYPE_ALL,
 							0,
 							NULL,
@@ -254,14 +253,13 @@ void opencl_init(int cores, int kernel, Database *dataBase){
 	devices = (cl_device_id*) malloc(numDevices*sizeof(cl_device_id));
 
 	//Obtém os dispositivos
-	status = clGetDeviceIDs(platforms[0],
+	status = clGetDeviceIDs(platforms[1],
 							CL_DEVICE_TYPE_ALL,
 							numDevices,
 							devices,
 							NULL);
 
     check_cl(status, "Erro ao obter os dispositivos");
-
 
     //---------------------------------------------
 	// 3: Criação do contexto de execução
@@ -277,6 +275,11 @@ void opencl_init(int cores, int kernel, Database *dataBase){
     check_cl(status, "Erro ao criar o contexto de execução");
 
 
+    clGetDeviceInfo(devices[0], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_local_size, NULL);
+
+
+    if(pcores>0)
+        CriaSubDevices();
 
     device = devices[0];
 
@@ -648,7 +651,6 @@ void inicializa_populacao(individuo * pop){
 							&seed);
     check_cl(status, "Erro ao adicionar 1 argumento ao kernel");
 
-
     /*//Transfere a população para o bufferA
     status = clEnqueueWriteBuffer(cmdQueue,
 								  bufferA,
@@ -904,10 +906,10 @@ void substituicao(individuo *pop, t_regra * gramatica){
     clFinish(cmdQueue);
 
     if(melhor1[0].aptidao > melhor2[0].aptidao){
-       //exibe_melhor(melhor1, gramatica);
+       exibe_melhor(melhor1, gramatica);
     }
     else{
-       //exibe_melhor(melhor2, gramatica);
+       exibe_melhor(melhor2, gramatica);
     }
 
     #ifdef PROFILING
