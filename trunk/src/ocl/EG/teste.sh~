@@ -1,7 +1,0 @@
-for i in {1..2}
-do
-   echo "Execucao - $i"
-   touch  Experimento/execucoes/10^6/logExecucao$i.txt
-   ./eg --database="problems/p4_10^6.txt"  --cores=$PCORES >> Experimento/execucoes/10^6/time.txt
-
-done
