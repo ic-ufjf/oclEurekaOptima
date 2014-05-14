@@ -8,7 +8,7 @@ void opencl_init(Database *dataBase);
 
 void avaliacao_init(t_regra *gramatica, Database *dataBase);
 
-void avaliacao_paralela(individuo * pop);
+void avaliacao_paralela(individuo *pop, t_prog * programas);
 
 void opencl_dispose();
 

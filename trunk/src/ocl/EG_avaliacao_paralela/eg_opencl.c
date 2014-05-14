@@ -68,7 +68,7 @@ cl_program program;
 
 size_t datasize;
 
-cl_mem bufferA, bufferProgramas, bufferGramatica, bufferDatabase;
+cl_mem bufferA, bufferProgramas, bufferFitness, bufferGramatica, bufferDatabase;
 
 int tamanhoBancoDeDados;
 
@@ -133,7 +133,6 @@ void CriaSubDevices(){
 
 void opencl_init(Database *dataBase){
 
-
     #ifdef cpu
         CPU = 1;
     #else
@@ -169,7 +168,7 @@ void opencl_init(Database *dataBase){
 							&numDevices);
 
     check_cl(status, "Erro ao obter os dispositivos");
-
+    
 
     //Aloca espaço para cada dispositivo
 	devices = (cl_device_id*) malloc(numDevices*sizeof(cl_device_id));
@@ -297,9 +296,11 @@ void opencl_init(Database *dataBase){
 
     datasize = sizeof(individuo)*TAMANHO_POPULACAO;
 
-	bufferA = clCreateBuffer(context, CL_MEM_READ_WRITE, datasize, NULL, &status);
+	bufferA = clCreateBuffer(context, CL_MEM_READ_WRITE, TAMANHO_POPULACAO * sizeof(t_prog), NULL, &status);
     check_cl(status, "Erro ao criar buffer de memoria bufferA");
-
+    
+   	bufferFitness = clCreateBuffer(context, CL_MEM_READ_WRITE, TAMANHO_POPULACAO * sizeof(float), NULL, &status);
+    check_cl(status, "Erro ao criar buffer de memoria bufferFitness");
 
     //bufferProgramas = clCreateBuffer(context, CL_MEM_READ_WRITE, TAMANHO_POPULACAO*sizeof(t_prog), NULL, &status);
     bufferGramatica = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(t_regra)*5, NULL, &status);
@@ -386,28 +387,27 @@ void carrega_bancoDeDados(Database *dataBase){
 }
 
 
-void avaliacao_kernel(individuo *pop, cl_mem bufferPop){
+void avaliacao_kernel(t_prog *pop, float * fitness, cl_mem bufferPop){
 
-    cl_event eventoAvaliacao;
+    cl_event eventoAvaliacao, eventoEscrita, eventoLeitura;
     
-    /* Envia a população p/ o buffer  */
-    
+    /* Envia a população p/ o buffer  */    
     status = clEnqueueWriteBuffer(cmdQueue,
-                                  bufferPop,
+                                  bufferA,
                                   CL_TRUE,
                                   0,
-                                  sizeof(individuo)*TAMANHO_POPULACAO,
+                                  sizeof(t_prog)*TAMANHO_POPULACAO,
                                   pop,
                                   0,
                                   NULL,
-                                  NULL);
+                                  &eventoEscrita);
                                   
     check_cl(status, "Erro ao escrever buffer da população");                                                                     
 
     status = clSetKernelArg(kernelAvaliacao, 0,  sizeof(bufferPop), &bufferPop);
     check_cl(status, "Erro ao adicionar argumento ao kernel");
 
-    status = clSetKernelArg(kernelAvaliacao,  1, sizeof(bufferGramatica), &bufferGramatica);
+    status = clSetKernelArg(kernelAvaliacao,  1, sizeof(bufferFitness), &bufferFitness);
     check_cl(status, "Erro ao adicionar argumento ao kernel");
 
     status = clSetKernelArg(kernelAvaliacao,  2, sizeof(bufferDatabase),  &bufferDatabase);
@@ -462,14 +462,14 @@ void avaliacao_kernel(individuo *pop, cl_mem bufferPop){
    
      clFinish(cmdQueue);
      
-     status = clEnqueueReadBuffer(cmdQueue, bufferPop, CL_TRUE, 0, sizeof(individuo)*TAMANHO_POPULACAO, pop, 0, NULL, &event3);
+     status = clEnqueueReadBuffer(cmdQueue, bufferFitness, CL_TRUE, 0, sizeof(float)*TAMANHO_POPULACAO, 
+                                    fitness, 0, NULL, &eventoLeitura);
 
      check_cl(status, "Erro ao enfileirar leitura de buffer de memoria");    
      
-     clFinish(cmdQueue);   
-     
+     clFinish(cmdQueue);        
 
-    /* #ifdef PROFILING
+     #ifdef PROFILING
 
         float tempoAvaliacao = getTempoDecorrido(eventoAvaliacao) / 1000000000.0 ;
         tempoTotal += tempoAvaliacao;
@@ -477,7 +477,16 @@ void avaliacao_kernel(individuo *pop, cl_mem bufferPop){
         tempoTotalAvaliacao += tempoAvaliacao;
         tempoTotalProcessamento += tempoAvaliacao;
 
-     #endif*/
+        float tempoEscrita = getTempoDecorrido(eventoEscrita) / 1000000000.0 ;
+        tempoTotal += tempoEscrita;
+        tempoTotalTransfMemoria += tempoEscrita;        
+        
+        float tempoLeitura = getTempoDecorrido(eventoLeitura) / 1000000000.0 ;
+        tempoTotal += tempoLeitura;
+        tempoTotalTransfMemoria += tempoLeitura;
+
+
+     #endif
 }
 
 void avaliacao_init(t_regra *gramatica, Database *dataBase){
@@ -491,13 +500,20 @@ void avaliacao_init(t_regra *gramatica, Database *dataBase){
     carrega_bancoDeDados(dataBase);
 }
 
-void avaliacao_paralela(individuo * pop){
+void avaliacao_paralela(individuo * pop, t_prog * programas){
 
     check(pop != NULL, "A população não pode ser nula");
   
-    avaliacao_kernel(pop, bufferA);
+    float fitness[TAMANHO_POPULACAO];
+  
+    avaliacao_kernel(programas, fitness, bufferA);
     
-
+    int i;
+    for(i=0; i < TAMANHO_POPULACAO; i++){   
+        //printf("%d - %f\n", i, fitness[i]);     
+        pop[i].aptidao = fitness[i];        
+    }
+    
     /*#ifdef PROFILING
 
       //printf("Tempos\nAvaliação:\tProcessamento\tTransf memoria\tTransf memoria inicial\tProc+Memoria\n");
@@ -515,7 +531,22 @@ void avaliacao_paralela(individuo * pop){
 
 void opencl_dispose(){
 
+#ifdef PROFILING
+
+      //printf("Tempos\nAvaliação:\tProcessamento\tTransf memoria\tTransf memoria inicial\tProc+Memoria\n");
+
+      printf("%.10f\t", tempoTotalAvaliacao);
+      printf("%.10f\t", tempoTotalProcessamento);
+      printf("%.10f\t", tempoTotalTransfMemoria);
+      printf("%.10f\t", tempoTransfMemoriaInicial);
+      printf("%.10f\n", tempoTotalProcessamento + tempoTotalTransfMemoria);
+      //printf("kernel substituicao: \t %.10f\n", tempoTotalSubstituicao);
+      //printf("kernel ag: \t %.10f\n", tempoTotalAG);
+
+   #endif
+
     clReleaseMemObject(bufferA);
+    clReleaseMemObject(bufferFitness);
     clReleaseMemObject(bufferGramatica);
     clReleaseMemObject(bufferDatabase);
     clReleaseKernel(kernelAvaliacao);

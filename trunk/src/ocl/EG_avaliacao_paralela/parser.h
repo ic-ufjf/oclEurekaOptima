@@ -30,6 +30,7 @@ typedef struct{
 	int proximo;
 } t_item_programa;
 
+
 typedef struct{
 	int num_simbolos;
 	type_simbolo simbolos[50];

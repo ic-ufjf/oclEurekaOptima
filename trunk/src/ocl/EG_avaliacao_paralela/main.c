@@ -94,6 +94,6 @@ int main(int argc, char * argv[])
     free(dataBase->registros);
     free(dataBase);
     free(populacao);
-
+    
     return 0;
 }

@@ -3,8 +3,7 @@
 
 #include "representacao.h"
 #include "gramatica.h"
-#include "parser.h"	
-
+#include "parser.h"
 
 void eg(individuo * pop, t_regra *gramatica, Database *dataBase);
 

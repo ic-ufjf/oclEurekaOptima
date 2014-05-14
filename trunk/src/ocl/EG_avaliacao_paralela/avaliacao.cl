@@ -5,8 +5,8 @@
 #include "gramatica.cl"
 #include "utils.cl"
 
-__kernel void avaliacao(__global individuo *pop, 
-			__global const t_regra * Gramatica,
+__kernel void avaliacao(__global t_prog *pop,
+			__global float * fitness,
 			
 			#ifdef Y_DOES_NOT_FIT_IN_CONSTANT_BUFFER
 	 		__global const
@@ -18,45 +18,45 @@ __kernel void avaliacao(__global individuo *pop,
 	int tid = get_global_id(0),
    	    lid = get_local_id(0),
    	    gid = get_group_id(0);
-        
-	if(lid==0){ 	 
 
-		__private short fenotipo[DIMENSOES_PROBLEMA];
-		        
-		__local t_item_programa programa[TAMANHO_MAX_PROGRAMA]; 	
-	 	__local int erro;
-	 	 
-		erro = 0;
+    __local t_item_programa programa[TAMANHO_MAX_PROGRAMA];   	    
+ 	__local int erro;
+   	    
+	if(lid==0){		
 		
-		obtem_fenotipo_individuo(pop[gid], fenotipo);
-	
-		int program_ctr = Decodifica(Gramatica, fenotipo, programa);
-	 	
-	 	if(program_ctr == -1){
-		    pop[gid].aptidao = MAXFLOAT*(-1);
+	    int idx = 0;
+	 	    
+ 	    while(idx!=-1){
+ 	        programa[idx] = pop[gid].programa[idx];
+ 	        idx =  pop[gid].programa[idx].proximo;   
+ 	    }
+ 	    	 	 
+		erro = 0;	
+		
+	 	if(programa[0].t.v[0] == -1){
+		    fitness[gid] = MAXFLOAT*(-1);
 	 	}
 	 	else{
 	 	
 	 	    float erro = 0;
 	 		 	
 	 	    for(int j=0; j < TAMANHO_DATABASE; j++){
-			erro += pown(Avalia(programa, dataBase, j), 2);
-			
-			if( isinf( erro ) || isnan( erro ) ) { erro = MAXFLOAT; break; }
+			    erro += pown(Avalia(programa, dataBase, j), 2);			
+			    if( isinf( erro ) || isnan( erro ) ) { erro = MAXFLOAT; break; }
 		    }   
 
-	   	    if(erro == MAXFLOAT) pop[gid].aptidao= MAXFLOAT*(-1);
+	   	    if(erro == MAXFLOAT) fitness[gid] = MAXFLOAT*(-1);
 	   	       	    	
 		    else{
-		    	pop[gid].aptidao = erro*(-1.0);
+		    	fitness[gid] = erro*(-1.0);
     	    }
 		    
 		}
 	}	
 }
 
-__kernel void avaliacao_gpu(__global individuo *pop, 
-			__global t_regra * Gramatica,
+__kernel void avaliacao_gpu(__global t_prog *pop, 
+			__global float * fitness,
 			#ifdef Y_DOES_NOT_FIT_IN_CONSTANT_BUFFER
 	 		__global const
 			#else
@@ -71,26 +71,27 @@ __kernel void avaliacao_gpu(__global individuo *pop,
 	    LOCAL_SIZE = get_local_size(0);
                 
 	__local t_item_programa programa[TAMANHO_MAX_PROGRAMA]; 	 	 
- 	__local int program_ctr;
- 	 
-   	//1 workitem realiza o mapeamento
-	if(lid==0){ 	 	
-		
-        short fenotipo[DIMENSOES_PROBLEMA];
 
-		obtem_fenotipo_individuo(pop[gid], fenotipo);
+   	//1 workitem realiza a cópia do programa da memória global -> local
+	if(lid==0){		
 		
-		program_ctr = Decodifica(Gramatica, fenotipo, programa);
-
-	 	if(program_ctr == -1){
- 		    pop[gid].aptidao = MAXFLOAT*(-1);
-	 	}		 	
+	 	if(pop[gid].programa[0].t.v[0] == -1){
+		    fitness[gid] = MAXFLOAT*(-1);
+	 	}	 		 	
+	 	else{
+	 	    int idx = 0;
+	 	    
+	 	    while(idx!=-1){
+	 	        programa[idx] = pop[gid].programa[idx];
+	 	        idx =  pop[gid].programa[idx].proximo;   
+	 	    }	 	
+	 	}
  	}
  	 	
  	//Sincronismo local para que todos os workitens acessem o programa mapeado 	
  	barrier(CLK_LOCAL_MEM_FENCE);	
  	
- 	if(program_ctr != -1){
+ 	if(pop[gid].programa[0].t.v[0] != -1){
 		
   		 erros[lid] = 0;
 		 //Avaliação paralela entre work-itens do mesmo work-group
@@ -102,10 +103,10 @@ __kernel void avaliacao_gpu(__global individuo *pop,
    		   for( uint iter = 0; iter < ceil( TAMANHO_DATABASE / (float) LOCAL_SIZE ); ++iter )
    		   {
 
-                      if( iter * LOCAL_SIZE + lid < TAMANHO_DATABASE )
-	              {
-	    	#endif		
-			erros[lid] += pown(Avalia(programa, dataBase, iter * LOCAL_SIZE + lid), 2);
+              if( iter * LOCAL_SIZE + lid < TAMANHO_DATABASE )
+              {
+    	#endif		
+			    erros[lid] += pown(Avalia(programa, dataBase, iter * LOCAL_SIZE + lid), 2);
 		
 		#ifdef NUM_POINTS_IS_NOT_DIVISIBLE_BY_LOCAL_SIZE
 		      }
@@ -129,8 +130,8 @@ __kernel void avaliacao_gpu(__global individuo *pop,
 		  if(lid==0){
 
             if( isinf( erros[0] ) || isnan( erros[0] ) ) erros[0] = MAXFLOAT;
-                pop[gid].aptidao = erros[0]*(-1);		
+               fitness[gid] = erros[0]*(-1.0);
 
-		  } 		
-	}		
+		  }
+	}
 }

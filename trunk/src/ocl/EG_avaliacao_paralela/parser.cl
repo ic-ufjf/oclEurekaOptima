@@ -43,12 +43,12 @@ float OperaBinario(float a, float b, float x){
     if(x == T_SOMA)
         return a+b;
     if(x == T_SUB)
-	return a-b;
+	    return a-b;
     if(x == T_MUL)
-	return a*b;
+	    return a*b;
     if(x == T_DIV){
 	if(b!=0) return a/b;
-	else return 1;
+	    else return 1;
     }
     
     return 0;
@@ -57,15 +57,15 @@ float OperaBinario(float a, float b, float x){
 float OperaUnario(float a, float x){
 
     if(x == T_SEN)
-	return (float)sin(a);
+	    return (float)sin(a);
     if(x == T_COS)
-	return (float)cos(a);
+	    return (float)cos(a);
     if(x == T_SQRT){    	
-    	if(a<=0) return 0;    
-	return (float)sqrt(a);
+    	if(a<=0) return 0;
+	    return (float)sqrt(a);
     }
     if(x == T_MENOS){
-	return a*(-1);
+	    return a*(-1);
     }
 
     return 0;
