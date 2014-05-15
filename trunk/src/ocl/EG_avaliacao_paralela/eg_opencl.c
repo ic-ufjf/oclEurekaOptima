@@ -195,8 +195,6 @@ void opencl_init(Database *dataBase){
 						 	 &status);
     check_cl(status, "Erro ao criar o contexto de execução");
 
-    clGetDeviceInfo(devices[0], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_local_size, NULL);
-
     //if(pcores>0) CriaSubDevices();
 
     device = devices[0];

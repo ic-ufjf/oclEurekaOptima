@@ -70,7 +70,7 @@ __kernel void avaliacao_gpu(__global t_prog *pop,
    	    gid = get_group_id(0),
 	    LOCAL_SIZE = get_local_size(0);
                 
-	__local t_item_programa programa[TAMANHO_MAX_PROGRAMA]; 	 	 
+	__local t_item_programa programa[300]; 	 	 
 
    	//1 workitem realiza a cópia do programa da memória global -> local
 	if(lid==0){		

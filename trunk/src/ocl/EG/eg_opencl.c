@@ -238,7 +238,7 @@ void opencl_init(int cores, int kernel, Database *dataBase){
 	//---------------------------------------------
 
 	//Obtém o número de dispositivos na plataforma de índice 0
-	status = clGetDeviceIDs(platforms[1],
+	status = clGetDeviceIDs(platforms[0],
 							CL_DEVICE_TYPE_ALL,
 							0,
 							NULL,
@@ -251,7 +251,7 @@ void opencl_init(int cores, int kernel, Database *dataBase){
 	devices = (cl_device_id*) malloc(numDevices*sizeof(cl_device_id));
 
 	//Obtém os dispositivos
-	status = clGetDeviceIDs(platforms[1],
+	status = clGetDeviceIDs(platforms[0],
 							CL_DEVICE_TYPE_ALL,
 							numDevices,
 							devices,

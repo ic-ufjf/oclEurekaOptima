@@ -25,6 +25,7 @@ char *trim(char *s)
 }
 
 int  next_power_of_2(int a){
+
     return (int)pow(2, (int) ceil( log2( a ) ) );
 }
 

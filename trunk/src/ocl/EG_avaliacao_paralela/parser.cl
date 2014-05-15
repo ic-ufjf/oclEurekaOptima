@@ -64,6 +64,7 @@ float OperaUnario(float a, float x){
     	if(a<=0) return 0;
 	    return (float)sqrt(a);
     }
+    
     if(x == T_MENOS){
 	    return a*(-1);
     }
