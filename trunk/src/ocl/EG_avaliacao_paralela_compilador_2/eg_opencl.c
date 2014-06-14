@@ -72,7 +72,7 @@ float fitness[TAMANHO_POPULACAO];
 
 cl_mem bufferA, bufferProgramas, bufferFitness, bufferGramatica, bufferDatabase;
 
-int tamanhoBancoDeDados;
+int tamanhoBancoDeDados, numVariaveis;
 
 //Eventos utilizados para medir o tempo de execução do kernel
 //e das trocas de memória
@@ -115,24 +115,32 @@ float getTempoDecorrido(cl_event event){
 
 void compila_programa(t_prog * pop){
     
+    int k;    
     cl_ulong max_constant_buffer_size;
+    char programaTexto[TAMANHO_MAX_PROGRAMA];
 
     clGetDeviceInfo(device, CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, sizeof(cl_ulong),
                                  &max_constant_buffer_size, NULL);
 
-     std::string header_string ="#define DIMENSOES_PROBLEMA " + ToString(DIMENSOES_PROBLEMA)  + "\n" +
+    std::string header_string ="#define DIMENSOES_PROBLEMA " + ToString(DIMENSOES_PROBLEMA)  + "\n" +
                                 "#define TAMANHO_POPULACAO " + ToString(TAMANHO_POPULACAO) + "\n" +
                                 "#define TAMANHO_VALOR " + ToString(TAMANHO_VALOR) + "\n" +
                                 "#define TAMANHO_INDIVIDUO DIMENSOES_PROBLEMA*TAMANHO_VALOR  " + "\n" +                               
-                                "#define TAMANHO_GRAMATICA " + ToString(5) + "\n" +
                                 "#define TAMANHO_DATABASE " + ToString(tamanhoBancoDeDados) + "\n" +
-                                "#define NUM_VARIAVEIS " + ToString(2) + "\n";
+                                "#define NUM_VARIAVEIS " + ToString(numVariaveis) + "\n"+
+                                "#define DATABASE(row,column) dataBase[(row)*NUM_VARIAVEIS + (column)] \n";
     
-    std::string fitness_string = ToString("float funcaoobjetivo(int p, float x1){ \n") +
-                                 ToString("switch(p){ \n");
+    std::string fitness_string = ToString("float funcaoobjetivo(int p, __global float * dataBase, int line){ \n");
+        
+    //Obtém o valor de cada variável no registro
+    for(k=1; k < numVariaveis; k++){        
+        fitness_string += "float x" + ToString(k) + " = DATABASE(line, "+ ToString(k-1)+ "); \n";        
+    }
+    
+    //cout << fitness_string << endl;
+   
+    fitness_string+= ToString("switch(p){ \n");
 
-    char programaTexto[TAMANHO_MAX_PROGRAMA];
-    int k;                        
     for(k=0; k<TAMANHO_POPULACAO; k++){
     
          if(pop[k].programa[0].t.v[0] != -1){
@@ -145,27 +153,28 @@ void compila_programa(t_prog * pop){
            
     //Caso o programa seja inválido, será selecionado o caso default, que retorna MAXFLOAT
     fitness_string+= "default: return MAXFLOAT; break; \n } \n } \n";   
-    //cout << fitness_string.c_str() << endl;
 
-    long constant_size = tamanhoBancoDeDados * sizeof(cl_float);
+    //long constant_size = tamanhoBancoDeDados * sizeof(cl_float);
 
-    if(constant_size > max_constant_buffer_size )
-        header_string += " #define Y_DOES_NOT_FIT_IN_CONSTANT_BUFFER \n ";
+    /*if(constant_size > max_constant_buffer_size )
+        header_string += " #define Y_DOES_NOT_FIT_IN_CONSTANT_BUFFER \n ";*/
 
-    header_string += " #define LOCAL_SIZE_ROUNDED_UP_TO_POWER_OF_2 "
+    header_string += "#define LOCAL_SIZE_ROUNDED_UP_TO_POWER_OF_2 "
                       + ToString( next_power_of_2( localWorkSize[0]) ) + " \n ";
 
     if(tamanhoBancoDeDados % localWorkSize[0] != 0 )
-        header_string += " #define NUM_POINTS_IS_NOT_DIVISIBLE_BY_LOCAL_SIZE \n";
+        header_string += "#define NUM_POINTS_IS_NOT_DIVISIBLE_BY_LOCAL_SIZE \n";
 
     if(is_power_of_2( localWorkSize[0] ) )
-        header_string += " #define LOCAL_SIZE_IS_NOT_POWER_OF_2 \n ";
+        header_string += "#define LOCAL_SIZE_IS_NOT_POWER_OF_2 \n ";
 
     std::string body_string   = LoadKernel("avaliacao.cl");
     std::string kernel_string = header_string + fitness_string + body_string;
 
     kernel_srt = kernel_string.c_str();
-
+    
+   // cout << kernel_srt << endl;    
+    
  	size_t programSize = (size_t)strlen(kernel_srt);
 
 	//Cria o programa
@@ -197,7 +206,7 @@ void compila_programa(t_prog * pop){
         printf("Erros no kernel: \n %s \n", buildLog);       
     }
 
-    printf("\nTempo de compilação: %lf\n", getRealTime()-start);
+    //printf("\nTempo de compilação: %lf\n", getRealTime()-start);
 
     check_cl(status, "Erro ao compilar o programa");    
     
@@ -205,14 +214,7 @@ void compila_programa(t_prog * pop){
 	// 7: Criação do kernel
 	//---------------------------------------------
 
-	//Cria o kernel de avaliação
-
-    if(CPU){
-        kernelAvaliacao = clCreateKernel(program, "avaliacao", &status);
-    }
-    else{
-        kernelAvaliacao = clCreateKernel(program, "avaliacao_gpu", &status);
-    }
+	kernelAvaliacao = clCreateKernel(program, "avaliacao_gpu", &status);   
 
     check_cl(status, "Erro ao criar kernel 'avaliacao'");
 }
@@ -226,6 +228,7 @@ void opencl_init(Database *dataBase){
     #endif
     
     tamanhoBancoDeDados = dataBase->numRegistros;
+    numVariaveis = dataBase->numVariaveis;
 
     //---------------------------------------------
 	// 1: Descoberta e inicialização da(s) plataforma(s)
@@ -358,7 +361,6 @@ void carrega_bancoDeDados(Database *dataBase){
 
     #endif
 }
-
 
 void avaliacao_kernel(float * fitness, cl_mem bufferPop){
 

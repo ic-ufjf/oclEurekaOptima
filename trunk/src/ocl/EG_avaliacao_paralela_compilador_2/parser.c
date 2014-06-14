@@ -157,7 +157,7 @@ Database *database_read(char nomeArquivo[]){
 	fgets(linha,200, arq);
 
 	#ifdef DEBUG
-		//printf("Banco de dados: \n");
+		printf("Banco de dados: \n");
 	#endif
 
 	/* Processa primeira linha (possui os nomes das variáveis) */
