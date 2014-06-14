@@ -1,6 +1,6 @@
 
 #define FIM_PROGRAMA -1
-#define TAMANHO_MAX_PROGRAMA 1000
+#define TAMANHO_MAX_PROGRAMA 128
 
 typedef enum { DEFAULT, NAOTERMINAL, OPERADOR_BINARIO, OPERADOR_UNARIO, NUMERO_INTEIRO, NUMERO_COM_PONTO, VARIAVEL} TipoSimbolo;
 
@@ -76,7 +76,7 @@ float Avalia(__local t_item_programa programa[],
 		#ifdef Y_DOES_NOT_FIT_IN_CONSTANT_BUFFER
 	 		__global const
 		#else
-			__constant 
+			__constant
 		#endif
 		float * dataBase,
 		int linha) {
@@ -107,6 +107,10 @@ float Avalia(__local t_item_programa programa[],
 	   	   case OPERADOR_UNARIO:
 			   pilha[topo] = OperaUnario(pilha[topo], programa[i].t.v[1]);
 			   break;
+		   case NAOTERMINAL:
+    		    pilha[topo] = MAXFLOAT;
+    		    i = FIM_PROGRAMA;
+    		    break;
 	   }
 
 	   i = programa[i].proximo;

@@ -86,7 +86,7 @@ __kernel void avaliacao_gpu(__global individuo *pop,
    	//1 workitem realiza o mapeamento
 	if(lid==0){ 	 	
 		
-	        short fenotipo[DIMENSOES_PROBLEMA];
+        short fenotipo[DIMENSOES_PROBLEMA];
 
 		obtem_fenotipo_individuo3(pop[gid], fenotipo);
 		
@@ -138,7 +138,7 @@ __kernel void avaliacao_gpu(__global individuo *pop,
 			
 		  if(lid==0){
 
-	              if( isinf( erros[0] ) || isnan( erros[0] ) ) erros[0] = MAXFLOAT;
+              if( isinf( erros[0] ) || isnan( erros[0] ) ) erros[0] = MAXFLOAT;
 		      pop[gid].aptidao = erros[0]*(-1);		
 
 		  } 		

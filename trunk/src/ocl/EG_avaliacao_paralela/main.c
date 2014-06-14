@@ -1,9 +1,9 @@
 //System includes
 #include <stdio.h>
 #include <time.h>
+#include <sys/time.h>
 
 #include "ag.h"
-//#include "eg_opencl.h"
 #include "eg.h"
 
 //getopt
@@ -11,6 +11,13 @@
 
 #include "parser.h"
 #include "gramatica.h"
+
+double getTime()
+{
+    struct timeval tv;
+    gettimeofday(&tv,0);
+    return (double)tv.tv_sec + 1.0e-6*(double)tv.tv_usec;
+}
 
 void print_usage(){
     puts("-----------------------------------------------------------");
@@ -48,19 +55,16 @@ int main(int argc, char * argv[])
 
         switch (c)
         {
-            case 'd':
-                //printf("Banco de dados: %s\n", optarg);
+            case 'd':                
                 strcpy(arquivoBancoDeDados, optarg);
                 break;
 
             case 'c':
                 pcores = atoi(optarg);
-                //printf("Cores: %d\n", pcores);
                 break;
 
             case 'k':
                 kernelAG = atoi(optarg);
-                //printf("KernelAG: %d\n", kernelAG);
                 break;
 
             case '?':
@@ -76,8 +80,7 @@ int main(int argc, char * argv[])
     }
 
     if(strlen(arquivoBancoDeDados) == 0){
-        //print_usage();
-        //printf("Banco de dados não especificado. Utilizando o arquivo 'problems/2X^2.txt'\n");
+        printf("Banco de dados não especificado. Utilizando o arquivo 'problems/2X^2.txt'\n");
         strcpy(arquivoBancoDeDados, "problems/2X^2.txt");
     }
 
@@ -89,7 +92,13 @@ int main(int argc, char * argv[])
 
     LeGramatica("grammars/g1.txt", Gramatica);
 
+    double inicio = getTime();
+
     eg(populacao, Gramatica, dataBase);
+
+    double fim = getTime()-inicio;
+    
+    printf("Tempo total: %lf\n", fim);    
 
     free(dataBase->registros);
     free(dataBase);

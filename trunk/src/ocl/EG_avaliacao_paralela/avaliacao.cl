@@ -68,9 +68,9 @@ __kernel void avaliacao_gpu(__global t_prog *pop,
 	int tid = get_global_id(0),
    	    lid = get_local_id(0),
    	    gid = get_group_id(0),
-	    LOCAL_SIZE = get_local_size(0);
+	    local_size = get_local_size(0);
                 
-	__local t_item_programa programa[300]; 	 	 
+	__local t_item_programa programa[100]; 	 	 
 
    	//1 workitem realiza a cópia do programa da memória global -> local
 	if(lid==0){		
@@ -97,16 +97,16 @@ __kernel void avaliacao_gpu(__global t_prog *pop,
 		 //Avaliação paralela entre work-itens do mesmo work-group
 
 		#ifndef NUM_POINTS_IS_NOT_DIVISIBLE_BY_LOCAL_SIZE
-		   for( uint iter = 0; iter < TAMANHO_DATABASE/LOCAL_SIZE; ++iter )
+		   for( uint iter = 0; iter < TAMANHO_DATABASE/local_size; ++iter )
 		   {	
 		#else
-   		   for( uint iter = 0; iter < ceil( TAMANHO_DATABASE / (float) LOCAL_SIZE ); ++iter )
+   		   for( uint iter = 0; iter < ceil( TAMANHO_DATABASE / (float) local_size ); ++iter )
    		   {
 
-              if( iter * LOCAL_SIZE + lid < TAMANHO_DATABASE )
+              if( iter * local_size + lid < TAMANHO_DATABASE )
               {
     	#endif		
-			    erros[lid] += pown(Avalia(programa, dataBase, iter * LOCAL_SIZE + lid), 2);
+			    erros[lid] += pown(Avalia(programa, dataBase, iter * local_size + lid), 2);
 		
 		#ifdef NUM_POINTS_IS_NOT_DIVISIBLE_BY_LOCAL_SIZE
 		      }
@@ -122,7 +122,7 @@ __kernel void avaliacao_gpu(__global t_prog *pop,
 			#ifndef LOCAL_SIZE_IS_NOT_POWER_OF_2
 			      if( lid < s )
 			#else
-			      if(lid < s && (lid + s < LOCAL_SIZE ) )
+			      if(lid < s && (lid + s < local_size ) )
 			#endif		        
 			erros[lid] += erros[lid+s];
 		  }		

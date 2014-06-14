@@ -65,7 +65,7 @@ void avaliacao(individuo * pop, t_prog * programas, t_regra * gramatica){
        //ImprimeInfixa(programas[i].programa);
     }  
         
-    avaliacao_paralela(pop, programas);    
+    avaliacao_paralela(pop, programas);
 }
 
 void eg(individuo * pop, t_regra *gramatica, Database *dataBase){

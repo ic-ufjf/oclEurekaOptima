@@ -170,7 +170,7 @@ void LeGramatica(char nomeArquivo[], t_regra  * Gramatica){
 
 int Decodifica(t_regra * Gramatica, short * fenotipo, t_item_programa * programa){
 
-    #undef DEBUG
+    //#undef DEBUG
 
 	int m, fenotipo_ctr = 0;
 
@@ -204,9 +204,7 @@ int Decodifica(t_regra * Gramatica, short * fenotipo, t_item_programa * programa
 
 			//i++;
 			i = programa[i].proximo;
-
-			/* Verifica se há somente terminais */
-			//if(counter == program_ctr) break;
+		
 		}
 
 		/* Verifica se há somente terminais */
@@ -249,7 +247,7 @@ int Decodifica(t_regra * Gramatica, short * fenotipo, t_item_programa * programa
 		ImprimeIndividuo(programa);
 	#endif
 
-	//printf("pc=%d, fc=%d", program_ctr, fenotipo_ctr);
+	printf("pc=%d, fc=%d", program_ctr, fenotipo_ctr);
 
 	return program_ctr;
 }

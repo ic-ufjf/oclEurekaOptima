@@ -1,6 +1,7 @@
 //System includes
 #include <stdio.h>
 #include <time.h>
+#include <sys/time.h>
 
 #include "ag.h"
 //#include "eg_opencl.h"
@@ -16,6 +17,14 @@ void print_usage(){
     puts("-----------------------------------------------------------");
     printf("Usage: --database='file' [--cores=num] [--kernelAG=num]\n");
     puts("-----------------------------------------------------------");
+}
+
+
+double getTime()
+{
+    struct timeval tv;
+    gettimeofday(&tv,0);
+    return (double)tv.tv_sec + 1.0e-6*(double)tv.tv_usec;
 }
 
 int main(int argc, char * argv[])
@@ -89,8 +98,14 @@ int main(int argc, char * argv[])
 
     LeGramatica("grammars/g1.txt", Gramatica);
 
+    double inicio = getTime();
+
     eg(populacao, Gramatica, dataBase);
 
+    double fim = getTime()-inicio;
+    
+    printf("Tempo total: %lf\n", fim);    
+    
     free(dataBase->registros);
     free(dataBase);
     free(populacao);

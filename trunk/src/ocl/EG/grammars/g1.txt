@@ -1,6 +1,6 @@
 <expr> ::= <expr> <expr> <op>
         	|<var>
-		|<val>
+		    |<val>
 
 <op> ::= +  
 		|-

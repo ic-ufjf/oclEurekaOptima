@@ -28,7 +28,7 @@ int main(int argc, char * argv[])
 
     char arquivoBancoDeDados[50] = "";
 
-    int pcores = 0, kernelAG = 2;
+    int pcores = 0, kernelAG = 0;
     char c;
     while (1)
     {

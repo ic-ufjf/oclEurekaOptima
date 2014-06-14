@@ -18,7 +18,6 @@ void imprime_melhor(individuo * pop, t_regra * gramatica){
 		else{
 			indice_melhor =  ELITE;	
 		}
-
 	}
 	#else
 		indice_melhor =  0;
@@ -63,8 +62,8 @@ void avaliacao(individuo * pop, t_prog * programas, t_regra * gramatica){
        }
        
        //ImprimeInfixa(programas[i].programa);
-    }  
-        
+    }
+            
     avaliacao_paralela(pop, programas);    
 }
 
@@ -76,10 +75,13 @@ void eg(individuo * pop, t_regra *gramatica, Database *dataBase){
 	int geracao=1;
     
     opencl_init(dataBase);
+    
     avaliacao_init(gramatica, dataBase);    
     
 	cria_populacao_inicial(pop);	
-	avaliacao(pop, programas, gramatica);		
+
+	avaliacao(pop, programas, gramatica);
+
 	sort(pop);
 
 	while(geracao <= NUMERO_DE_GERACOES){

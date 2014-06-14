@@ -12,7 +12,7 @@ __kernel void somaOLD(__global int* E,
        if(lo_id < s){
 	 
     	   int value1 = E[lo_id], value2 = E[lo_id+s];
-	   EP[lo_id] = value1+value2;
+	       EP[lo_id] = value1+value2;
        }
 
     }

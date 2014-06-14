@@ -68,6 +68,8 @@ cl_program program;
 
 size_t datasize;
 
+float fitness[TAMANHO_POPULACAO];
+
 cl_mem bufferA, bufferProgramas, bufferFitness, bufferGramatica, bufferDatabase;
 
 int tamanhoBancoDeDados;
@@ -111,34 +113,7 @@ float getTempoDecorrido(cl_event event){
     return time_end - time_start;
 }
 
-void CriaSubDevices(){
-
-    /*//-----------------------
-    // Criação dos subdevices
-    //-----------------------
-   
-
-    cl_uint ncores = std::min((int)max_compute_units, (int)pcores);
-
-    //cout << "max comput units:" << ncores << endl;
-
-    const cl_device_partition_property subdevice_properties[] =
-    { CL_DEVICE_PARTITION_BY_COUNTS,
-        ncores, 0, CL_DEVICE_PARTITION_BY_COUNTS_LIST_END, 0 };
-
-    cl_device_id device_ids[1];
-
-    numSubDevices=1;
-
-    status = clCreateSubDevices(devices[0], subdevice_properties, numSubDevices, devices, NULL);
-
-    device = devices[0];
-
-    check_cl(status, "Erro ao criar os subdevices");*/
-}
-
-void compila_programa(t_prog * pop){   
-    
+void compila_programa(t_prog * pop){
     
     cl_ulong max_constant_buffer_size;
 
@@ -152,43 +127,38 @@ void compila_programa(t_prog * pop){
                                 "#define TAMANHO_GRAMATICA " + ToString(5) + "\n" +
                                 "#define TAMANHO_DATABASE " + ToString(tamanhoBancoDeDados) + "\n" +
                                 "#define NUM_VARIAVEIS " + ToString(2) + "\n";
-                         //       "#define FUNCAO_OBJETIVO(x1) " + (funcaoObjetivo) + "\n";
-                                
-    int k;
-    /*for(k=0;k<500;k++){
-            header_string += " #define FUNCAO_OBJETIVO"+ToString(k) +"(x1) " + (funcaoObjetivo) + "\n";    
-    }*/
     
     std::string fitness_string = ToString("float funcaoobjetivo(int p, float x1){ \n") +
                                  ToString("switch(p){ \n");
 
     char programaTexto[TAMANHO_MAX_PROGRAMA];
-                                 
-    for(k=0;k<TAMANHO_POPULACAO;k++){
+    int k;                        
+    for(k=0; k<TAMANHO_POPULACAO; k++){
     
          if(pop[k].programa[0].t.v[0] != -1){
     
             fitness_string += ToString(" case "+ToString(k)+": \n");            
             GetProgramaInfixo(pop[k].programa, &programaTexto[0]);
             fitness_string += ToString(" return " + ToString(programaTexto) +  "; break; \n");            
-        }
-    }      
+         }
+    }
            
-    fitness_string+= "default: return 0; break; \n } \n } \n";   
+    //Caso o programa seja inválido, será selecionado o caso default, que retorna MAXFLOAT
+    fitness_string+= "default: return MAXFLOAT; break; \n } \n } \n";   
     //cout << fitness_string.c_str() << endl;
 
-    long constant_size = sizeof(t_regra)*5 + (tamanhoBancoDeDados * sizeof(cl_float));
+    long constant_size = tamanhoBancoDeDados * sizeof(cl_float);
 
     if(constant_size > max_constant_buffer_size )
         header_string += " #define Y_DOES_NOT_FIT_IN_CONSTANT_BUFFER \n ";
 
     header_string += " #define LOCAL_SIZE_ROUNDED_UP_TO_POWER_OF_2 "
-                      + ToString( next_power_of_2( max_local_size) ) + " \n ";
+                      + ToString( next_power_of_2( localWorkSize[0]) ) + " \n ";
 
-    if(tamanhoBancoDeDados % max_local_size != 0 )
+    if(tamanhoBancoDeDados % localWorkSize[0] != 0 )
         header_string += " #define NUM_POINTS_IS_NOT_DIVISIBLE_BY_LOCAL_SIZE \n";
 
-    if( is_power_of_2( max_local_size ) )
+    if(is_power_of_2( localWorkSize[0] ) )
         header_string += " #define LOCAL_SIZE_IS_NOT_POWER_OF_2 \n ";
 
     std::string body_string   = LoadKernel("avaliacao.cl");
@@ -224,16 +194,14 @@ void compila_programa(t_prog * pop){
         clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG,
                               sizeof(buildLog), buildLog, NULL);
 
-        printf("Erros no kernel: \n %s \n", buildLog);
-
-        clReleaseProgram(program);
+        printf("Erros no kernel: \n %s \n", buildLog);       
     }
 
-   // printf("\nTempo de compilação: %lf\n", getRealTime()-start);
+    printf("\nTempo de compilação: %lf\n", getRealTime()-start);
 
     check_cl(status, "Erro ao compilar o programa");    
     
-     //---------------------------------------------
+    //---------------------------------------------
 	// 7: Criação do kernel
 	//---------------------------------------------
 
@@ -246,8 +214,7 @@ void compila_programa(t_prog * pop){
         kernelAvaliacao = clCreateKernel(program, "avaliacao_gpu", &status);
     }
 
-    check_cl(status, "Erro ao criar kernel 'avaliacao'");  
-
+    check_cl(status, "Erro ao criar kernel 'avaliacao'");
 }
 
 void opencl_init(Database *dataBase){
@@ -325,9 +292,21 @@ void opencl_init(Database *dataBase){
     clGetDeviceInfo(devices[0], CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &max_compute_units, NULL);    
     clGetDeviceInfo(devices[0], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_local_size, NULL);
 
-    if(max_local_size>1024) max_local_size = 1024;
+    if(max_local_size>1024) max_local_size = 1024;    
     
-    //-----------------------
+    if(tamanhoBancoDeDados < max_local_size)
+        localWorkSize[0] = tamanhoBancoDeDados;
+    else
+        localWorkSize[0] = max_local_size;        
+  
+    // Um indivíduo por work-group
+    globalWorkSize[0] = localWorkSize[0] * TAMANHO_POPULACAO;   
+
+    printf("local: %ld, global: %ld, grupos:%ld\n", localWorkSize[0], 
+    globalWorkSize[0],  globalWorkSize[0]/localWorkSize[0]);       
+    
+    
+    //---------------------------------------------
     // 4: Criação da fila de execução
     //---------------------------------------------
 
@@ -338,76 +317,17 @@ void opencl_init(Database *dataBase){
 
     check_cl(status, "Erro ao criar a fila de execução");
 
-    //-----------------------------------=----------
-    // 5: Criação e compilação do programa
-    //----------------------------------------------
-    
-    //compila_programa(dataBase, "2*(x1*x1)");
-
     //---------------------------------------------
 	// 6: Criação dos buffers de memória
 	//---------------------------------------------
 	
-	
-    //Estratégia "fitness parallel"          
     
-    if((long)ceil((float)tamanhoBancoDeDados/max_compute_units) < (long)max_local_size){
-          localWorkSize[0] = ceil((float)tamanhoBancoDeDados/max_compute_units);
-    }
-    else
-        localWorkSize[0] = max_local_size;
-      //printf("workload: %d, max_local: %ld", (int)ceil((float)tamanhoBancoDeDados/max_compute_units), max_local_size );
-    
-     globalWorkSize[0] = ceil((float)tamanhoBancoDeDados/localWorkSize[0]) * localWorkSize[0];
-
-    num_workgroups = globalWorkSize[0]/localWorkSize[0];		
-
-    datasize = sizeof(individuo)*TAMANHO_POPULACAO;
-
-	bufferA = clCreateBuffer(context, CL_MEM_READ_WRITE, TAMANHO_POPULACAO * sizeof(t_prog), NULL, &status);
-    check_cl(status, "Erro ao criar buffer de memoria bufferA");
-    
-   	bufferFitness = clCreateBuffer(context, CL_MEM_READ_WRITE, num_workgroups * sizeof(float), NULL, &status);
+   	bufferFitness = clCreateBuffer(context, CL_MEM_READ_WRITE, TAMANHO_POPULACAO * sizeof(float), NULL, &status);
     check_cl(status, "Erro ao criar buffer de memoria bufferFitness");
 
-    //bufferProgramas = clCreateBuffer(context, CL_MEM_READ_WRITE, TAMANHO_POPULACAO*sizeof(t_prog), NULL, &status);
-    bufferGramatica = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(t_regra)*5, NULL, &status);
-    check_cl(status, "Erro ao criar buffer de memoria bufferGramatica");
-
-    bufferDatabase  = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(float)*(dataBase->numRegistros)*(dataBase->numVariaveis), NULL, &status);
+    bufferDatabase  = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(float)*(dataBase->numRegistros)*(dataBase->numVariaveis), NULL, &status);
     check_cl(status, "Erro ao criar buffer de memoria bufferDatabase");   
 }
-
-
-void carrega_gramatica(t_regra * gramatica){
-
-    cl_event eventoCargaGramatica;
-
-    status = clEnqueueWriteBuffer(cmdQueue,
-                                      bufferGramatica,
-                                      CL_FALSE,
-                                      0,
-                                      sizeof(t_regra)*5,
-                                      gramatica,
-                                      0,
-                                      NULL,
-                                      &eventoCargaGramatica);
-    check_cl(status, "Erro ao carregar o buffer da gramatica");
-
-    //Espera o término da fila de execução
-    status = clFinish(cmdQueue);
-    check_cl(status, "Erro ao carregar o buffer da gramatica");
-
-    #ifdef PROFILING
-
-    float tempoCarga = getTempoDecorrido(eventoCargaGramatica) / 1000000000.0 ;
-    tempoTotal += tempoCarga;
-    tempoTotalTransfMemoria += tempoCarga;
-    tempoTransfMemoriaInicial += tempoCarga;
-
-    #endif
-}
-
 
 void carrega_bancoDeDados(Database *dataBase){
 
@@ -440,7 +360,7 @@ void carrega_bancoDeDados(Database *dataBase){
 }
 
 
-void avaliacao_kernel(float * fitness, cl_mem bufferPop, int p){
+void avaliacao_kernel(float * fitness, cl_mem bufferPop){
 
     cl_event eventoAvaliacao, eventoLeitura;
     
@@ -452,46 +372,21 @@ void avaliacao_kernel(float * fitness, cl_mem bufferPop, int p){
     
     status = clSetKernelArg(kernelAvaliacao,  2, sizeof(float)*localWorkSize[0],  NULL);
     check_cl(status, "Erro ao adicionar argumento ao kernel");  
-    
-   status = clSetKernelArg(kernelAvaliacao,  3, sizeof(p),  &p);
-    check_cl(status, "Erro ao adicionar argumento ao kernel");  
-     
   
-
-   /* printf("local size: %ld, \n", localWorkSize[0]);    
-    printf("global size: %ld, \n", globalWorkSize[0]);
-    printf("workgroups: %d, \n", num_workgroups);*/
-    
-    if(!CPU)
-    {
-        status = clEnqueueNDRangeKernel(cmdQueue,
-                                   kernelAvaliacao,
-                                   1,
-                                   NULL,
-                                   globalWorkSize,
-                                   localWorkSize,
-                                   0,
-                                   NULL,
-                                   &eventoAvaliacao);
-     }
-     else{
-
-        status = clEnqueueNDRangeKernel(cmdQueue,
-                               kernelAvaliacao,
-                               1,
-                               NULL,
-                               globalWorkSize,
-                               localWorkSize,
-                               0,
-                               NULL,
-                               &eventoAvaliacao);
-     }
+    status = clEnqueueNDRangeKernel(cmdQueue,
+                           kernelAvaliacao,
+                           1,
+                           NULL,
+                           globalWorkSize,
+                           localWorkSize,
+                           0,
+                           NULL,
+                           &eventoAvaliacao);
+   
 
      check_cl(status, "Erro ao enfileirar o kernel para execucao");
-   
-     clFinish(cmdQueue);
-     
-     status = clEnqueueReadBuffer(cmdQueue, bufferFitness, CL_TRUE, 0, sizeof(float)*num_workgroups, 
+        
+     status = clEnqueueReadBuffer(cmdQueue, bufferFitness, CL_TRUE, 0, sizeof(float)*TAMANHO_POPULACAO, 
                                     fitness, 0, NULL, &eventoLeitura);
 
      check_cl(status, "Erro ao enfileirar leitura de buffer de memoria");    
@@ -520,66 +415,33 @@ void avaliacao_init(t_regra *gramatica, Database *dataBase){
     
     tamanhoBancoDeDados = dataBase->numRegistros;
     
-    carrega_gramatica(gramatica);
     carrega_bancoDeDados(dataBase);
 }
 
 void avaliacao_paralela(individuo * pop, t_prog * programas){
-
+    
     check(pop != NULL, "A população não pode ser nula");
-  
-   // printf("workgroups: %d\n",num_workgroups);
-  
-    float *fitness = (float*)malloc(sizeof(float)*num_workgroups);
-   
-    int i;
-        
-    //printf("Iniciando a avaliação paralela\n");
-   
+
+    printf("Iniciando a avaliação paralela...\n");    
+    printf("Compilando a população...\n");
+    
     compila_programa(programas);
     
+    avaliacao_kernel(fitness, bufferA);
+    
+    int i;
     for(i=0; i < TAMANHO_POPULACAO; i++){
-    
-       // printf("Compilando o programa %d\n", i);
-    
+       
         //Programa inválido
         if(programas[i].programa[0].t.v[0] == -1){
             pop[i].aptidao = -99999999999999;    
-            //printf("Programa inválido\n");    
         }
         else{
-    
-            // GetProgramaInfixo(programas[i].programa, &programaTexto[0]);            
-            //printf("Programa: %s\n", programaTexto);
-            
-            // printf("%d\n", i);  
-            
-            //compila_programa("( x1 * ( ( ( ( ( x1 * x1 ) + x1 ) * x1 ) + x1 ) + 1 ) )");
-
-            //compila_programa(programaTexto);
-            
-            avaliacao_kernel(fitness, bufferA, i);
-           
-            //Redução global
-            pop[i].aptidao = 0.0f;	
-
-            int j;
-            for(j=0;j<num_workgroups;j++){ 
-                //printf("%f ", fitness[j]);
-                
-                if(isinf(pop[i].aptidao) || isnan(pop[i].aptidao)){
-                    pop[i].aptidao =  -99999999999999;
-                    break;                    
-                }
-                                             
-                pop[i].aptidao += fitness[j];
-            }
-                                                               
-           // printf("Aptidao: %.10f\n", pop[i].aptidao);  
+            pop[i].aptidao = fitness[i];
+            //printf("%d - %f\n", i, fitness[i]);                       
+	        //ImprimeInfixa(programas[i].programa);                     
         }
     }
-    
-    free(fitness);
     
     /*#ifdef PROFILING
 
@@ -598,19 +460,14 @@ void avaliacao_paralela(individuo * pop, t_prog * programas){
 
 void opencl_dispose(){
 
-#ifdef PROFILING
-
-      //printf("Tempos\nAvaliação:\tProcessamento\tTransf memoria\tTransf memoria inicial\tProc+Memoria\n");
-
-      printf("%.10f\t", tempoTotalAvaliacao);
-      printf("%.10f\t", tempoTotalProcessamento);
-      printf("%.10f\t", tempoTotalTransfMemoria);
-      printf("%.10f\t", tempoTransfMemoriaInicial);
-      printf("%.10f\n", tempoTotalProcessamento + tempoTotalTransfMemoria);
-      //printf("kernel substituicao: \t %.10f\n", tempoTotalSubstituicao);
-      //printf("kernel ag: \t %.10f\n", tempoTotalAG);
-
-   #endif
+    #ifdef PROFILING
+        //printf("Tempos\nAvaliação:\tProcessamento\tTransf memoria\tTransf memoria inicial\tProc+Memoria\n");
+        printf("%.10f\t", tempoTotalAvaliacao);
+        printf("%.10f\t", tempoTotalProcessamento);
+        printf("%.10f\t", tempoTotalTransfMemoria);
+        printf("%.10f\t", tempoTransfMemoriaInicial);
+        printf("%.10f\n", tempoTotalProcessamento + tempoTotalTransfMemoria);
+    #endif
 
     clReleaseMemObject(bufferA);
     clReleaseMemObject(bufferFitness);

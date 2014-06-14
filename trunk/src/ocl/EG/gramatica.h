@@ -8,7 +8,7 @@
 #define DELIMITADOR_REGRAS "::="
 #define DELIMITADOR_ESCOLHAS "|"
 #define DELIMITADOR_TERMINAIS " "
-#define D_FENOTIPO 30
+#define D_FENOTIPO DIMENSOES_PROBLEMA
 
 void LeGramatica(char nomeArquivo[], t_regra  * Gramatica);
 void ProcessaEscolha(char * escolha, t_escolha * nova_escolha);

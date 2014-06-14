@@ -7,7 +7,7 @@ int GetRegra(__global const t_regra *gramatica, type_simbolo simbolo){
 	    if(gramatica[i].simbolo.v[1] == simbolo.v[1]) return i;
 	}
 
-	return -1;
+	return -1;  
 }
 
 int Decodifica(__global t_regra *Gramatica, short fenotipo[], __local t_item_programa * programa){
@@ -16,9 +16,7 @@ int Decodifica(__global t_regra *Gramatica, short fenotipo[], __local t_item_pro
 
 	/* Inicializa o programa com o símbolo inicial */
 
-	//char elementoInicial[8] = "<expr>";
-
-	type_simbolo inicial;// = GetSimboloParser(elementoInicial);
+	type_simbolo inicial;
 	
 	inicial.v[0] = NAOTERMINAL;
 	inicial.v[1] = 0;	
@@ -45,7 +43,7 @@ int Decodifica(__global t_regra *Gramatica, short fenotipo[], __local t_item_pro
  
 		    i = programa[i].proximo;
 		}
-
+        
 		/* Verifica se há somente terminais */
 		if((int)programa[i].t.v[0] != NAOTERMINAL) break;
 		
@@ -67,10 +65,10 @@ int Decodifica(__global t_regra *Gramatica, short fenotipo[], __local t_item_pro
 
 		    for(m=1; m < Gramatica[idRegra].escolhas[opcao].num_simbolos; m++){
 
-			programa[program_ctr].t = Gramatica[idRegra].escolhas[opcao].simbolos[m];
-			programa[program_ctr].proximo = program_ctr+1;
+			    programa[program_ctr].t = Gramatica[idRegra].escolhas[opcao].simbolos[m];
+			    programa[program_ctr].proximo = program_ctr+1;
 
-			program_ctr++;
+			    program_ctr++;
 		    }
 			
 		    programa[program_ctr-1].proximo = proximoAnterior;

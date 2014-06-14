@@ -316,8 +316,7 @@ void opencl_init(int cores, int kernel, Database *dataBase){
                                 "#define TAMANHO_GRAMATICA " + ToString(5) + "\n" +
                                 "#define TAMANHO_DATABASE " + ToString(dataBase->numRegistros) + "\n" +
                                 "#define NUM_VARIAVEIS " + ToString(dataBase->numVariaveis) + "\n" +
-                                "#define ELITE " + ToString(ELITE) + "\n"+
-                                "#define IH " + ToString(getRealTime())+"\n";
+                                "#define ELITE " + ToString(ELITE) + "\n";
 
 
     long constant_size = sizeof(t_regra)*5 + (dataBase->numRegistros * sizeof(cl_float));
@@ -518,8 +517,9 @@ void exibe_melhor(individuo * melhor, t_regra * gramatica){
 
         exit(EXIT_SUCCESS);
     }
+    
     */
-
+    
     printf("---------------------------------");
     printf("\nGeracao %d: \n", geracao);
     printf("\nMelhor da geracao: %d: %.10f\n", geracao, melhor->aptidao);

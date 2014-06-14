@@ -70,6 +70,8 @@ size_t datasize;
 
 cl_mem bufferA, bufferProgramas, bufferFitness, bufferGramatica, bufferDatabase;
 
+float fitness[TAMANHO_POPULACAO];
+
 int tamanhoBancoDeDados;
 
 //Eventos utilizados para medir o tempo de execução do kernel
@@ -501,36 +503,19 @@ void avaliacao_init(t_regra *gramatica, Database *dataBase){
 void avaliacao_paralela(individuo * pop, t_prog * programas){
 
     check(pop != NULL, "A população não pode ser nula");
-  
-    float fitness[TAMANHO_POPULACAO];
-  
+
     avaliacao_kernel(programas, fitness, bufferA);
     
     int i;
     for(i=0; i < TAMANHO_POPULACAO; i++){   
         //printf("%d - %f\n", i, fitness[i]);     
         pop[i].aptidao = fitness[i];        
-    }
-    
-    /*#ifdef PROFILING
-
-      //printf("Tempos\nAvaliação:\tProcessamento\tTransf memoria\tTransf memoria inicial\tProc+Memoria\n");
-
-      printf("%.10f\t", tempoTotalAvaliacao);
-      printf("%.10f\t", tempoTotalProcessamento);
-      printf("%.10f\t", tempoTotalTransfMemoria);
-      printf("%.10f\t", tempoTransfMemoriaInicial);
-      printf("%.10f\n", tempoTotalProcessamento + tempoTotalTransfMemoria);
-      //printf("kernel substituicao: \t %.10f\n", tempoTotalSubstituicao);
-      //printf("kernel ag: \t %.10f\n", tempoTotalAG);
-
-   #endif*/
+    }    
 }
 
 void opencl_dispose(){
 
-#ifdef PROFILING
-
+     #ifdef PROFILING
       //printf("Tempos\nAvaliação:\tProcessamento\tTransf memoria\tTransf memoria inicial\tProc+Memoria\n");
 
       printf("%.10f\t", tempoTotalAvaliacao);
@@ -540,8 +525,7 @@ void opencl_dispose(){
       printf("%.10f\n", tempoTotalProcessamento + tempoTotalTransfMemoria);
       //printf("kernel substituicao: \t %.10f\n", tempoTotalSubstituicao);
       //printf("kernel ag: \t %.10f\n", tempoTotalAG);
-
-   #endif
+    #endif
 
     clReleaseMemObject(bufferA);
     clReleaseMemObject(bufferFitness);
