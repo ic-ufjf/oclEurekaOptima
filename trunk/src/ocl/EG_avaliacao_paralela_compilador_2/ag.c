@@ -9,15 +9,18 @@
 void cria_populacao_inicial(individuo * pop){
 
     int i,j;
-
+    
+    //printf("População inicial:\n");
+    
     for(i=0; i < TAMANHO_POPULACAO; i++){
 
-         for(j=0; j< TAMANHO_INDIVIDUO; j++){
+        for(j=0; j< TAMANHO_INDIVIDUO; j++){
             pop[i].genotipo[j] = rand() % 2;
+            //printf("%d", pop[i].genotipo[j]);
         }
+        //printf("\n");
    }
 }
-
 void torneio(int indice_participante, individuo *populacao, individuo *retorno) {
 
     individuo vencedor = populacao[indice_participante];

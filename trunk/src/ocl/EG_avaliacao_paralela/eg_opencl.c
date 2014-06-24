@@ -507,24 +507,16 @@ void avaliacao_paralela(individuo * pop, t_prog * programas){
     avaliacao_kernel(programas, fitness, bufferA);
     
     int i;
-    for(i=0; i < TAMANHO_POPULACAO; i++){   
-        //printf("%d - %f\n", i, fitness[i]);     
+    for(i=0; i < TAMANHO_POPULACAO; i++){
         pop[i].aptidao = fitness[i];        
+        //printf("%d => %f\n", i, fitness[i]);
     }    
 }
 
 void opencl_dispose(){
 
-     #ifdef PROFILING
-      //printf("Tempos\nAvaliação:\tProcessamento\tTransf memoria\tTransf memoria inicial\tProc+Memoria\n");
-
+    #ifdef PROFILING
       printf("%.10f\t", tempoTotalAvaliacao);
-      printf("%.10f\t", tempoTotalProcessamento);
-      printf("%.10f\t", tempoTotalTransfMemoria);
-      printf("%.10f\t", tempoTransfMemoriaInicial);
-      printf("%.10f\n", tempoTotalProcessamento + tempoTotalTransfMemoria);
-      //printf("kernel substituicao: \t %.10f\n", tempoTotalSubstituicao);
-      //printf("kernel ag: \t %.10f\n", tempoTotalAG);
     #endif
 
     clReleaseMemObject(bufferA);

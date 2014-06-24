@@ -92,13 +92,13 @@ float Avalia(__local t_item_programa programa[],
 	   switch((int)programa[i].t.v[0])
    	   {
 	   	   case NUMERO_INTEIRO:
-   		   	   pilha[++topo] = (int)programa[i].t.v[1];
+   		   	   pilha[++topo] = programa[i].t.v[1];
 	   		   break;
 	   	   case NUMERO_COM_PONTO:
 	   		   pilha[++topo] = programa[i].t.v[1];
 			   break;
 	   	   case VARIAVEL:
-	   		   pilha[++topo] = DATABASE(linha, (int)programa[i].t.v[1]);
+	   		   pilha[++topo] = DATABASE(linha, programa[i].t.v[1]);
 	   		   break;
 	   	   case OPERADOR_BINARIO:
 	   		   pilha[topo-1] = OperaBinario(pilha[topo-1], pilha[topo], programa[i].t.v[1]);

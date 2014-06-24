@@ -29,10 +29,9 @@ void imprime_melhor(individuo * pop, t_regra * gramatica){
 	Decodifica(gramatica, fenotipo, programa);
 
 	printf("\nMelhor:\n");
+	ImprimeInfixa(programa);	
+	printf("\nAptidao: %.10f\n", pop[indice_melhor].aptidao);	
 
-	ImprimeInfixa(programa);
-	
-	printf("\nAptidao: %f\n", pop[indice_melhor].aptidao);	
 }
 
 void imprime_populacao(individuo * pop){
@@ -60,8 +59,10 @@ void avaliacao(individuo * pop, t_prog * programas, t_regra * gramatica){
        if(program_ctr==-1){
             programas[i].programa[0].t.v[0]=-1;
        }
-       
-       //ImprimeInfixa(programas[i].programa);
+       /*else{
+           printf("%d \t", i);
+           ImprimeInfixa(programas[i].programa);           
+       }*/
     }
             
     avaliacao_paralela(pop, programas);    
@@ -79,9 +80,7 @@ void eg(individuo * pop, t_regra *gramatica, Database *dataBase){
     avaliacao_init(gramatica, dataBase);    
     
 	cria_populacao_inicial(pop);	
-
 	avaliacao(pop, programas, gramatica);
-
 	sort(pop);
 
 	while(geracao <= NUMERO_DE_GERACOES){
@@ -89,6 +88,8 @@ void eg(individuo * pop, t_regra *gramatica, Database *dataBase){
 	    printf("-------------------------------------\n");
 		printf("Geração %d:\n", geracao);		
 		imprime_melhor(pop, gramatica);
+        
+        //imprime_populacao(pop);
 
 		cria_nova_populacao(pop, newPop);
     	avaliacao(newPop, programas, gramatica);

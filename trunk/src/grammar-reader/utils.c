@@ -5,6 +5,8 @@
  *      Author: igorsr
  */
 
+#include<string.h>
+
 
 char *ltrim(char *s)
 {

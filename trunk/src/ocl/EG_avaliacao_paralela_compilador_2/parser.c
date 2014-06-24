@@ -157,7 +157,7 @@ Database *database_read(char nomeArquivo[]){
 	fgets(linha,200, arq);
 
 	#ifdef DEBUG
-		printf("Banco de dados: \n");
+		//printf("Banco de dados: \n");
 	#endif
 
 	/* Processa primeira linha (possui os nomes das variáveis) */
@@ -202,6 +202,8 @@ void GetNomeElemento(type_simbolo *s, char *nome){
 
 		case NUMERO_COM_PONTO:
 			sprintf(nome, "%f", s->v[1]);
+            strcat(nome, "f");
+            //printf("número com ponto flutuante: %s\n",nome);
 			break;
 
 		default:
@@ -429,83 +431,12 @@ void ImprimePosfixa(t_item_programa * programa){
 
 void ImprimeInfixa(t_item_programa *programa){
 
-   No * p = NULL;
+   char text[TAMANHO_MAX_PROGRAMA];
+  
+   GetProgramaInfixo(programa, text);
+    
+   puts(text);
 
-   int i=0;
-
-   char aux1[TAMANHO_MAX_PROGRAMA];
-   char aux2[20];
-
-   while(i != FIM_PROGRAMA){
-
-	   switch((int)programa[i].t.v[0])
-	   {
-	   	   case NUMERO_INTEIRO:
-
-	   		   GetNomeElemento(&programa[i].t, aux2);
-	   		   p = EmpilhaExpressao(p, aux2);
-
-	   		   break;
-
-	   	   case NUMERO_COM_PONTO:
-
-               GetNomeElemento(&programa[i].t, aux2);
-	   		   p = EmpilhaExpressao(p, aux2);
-
-			   break;
-	   	   case VARIAVEL:
-
-               GetNomeElemento(&programa[i].t, aux2);
-	   		   p = EmpilhaExpressao(p, aux2);
-
-	   		   break;
-
-	   	   case OPERADOR_BINARIO:
-
-               strcpy(aux1, "( ");
-	   		   strcat(aux1,  p->proximo->expr);
-
-	   		   GetNomeElemento(&programa[i].t, aux2);
-
-               strcat(aux1,  " ");
-               strcat(aux1, aux2);
-
-               strcat(aux1,  " ");
-               strcat(aux1,  p->expr);
-               strcat(aux1,  " ");
-               strcat(aux1,  ")");
-
-               No * aux;
-
-               aux = p;
-               p = p->proximo;
-               free(aux);
-
-               strcpy(p->expr, aux1);
-
-	   		   break;
-
-	   	   case OPERADOR_UNARIO:
-
-			   strcpy(aux1, "");
-
-			   GetNomeElemento(&programa[i].t, aux1);
-
-               strcat(aux1, "(");
-               strcat(aux1,  p->expr);
-               strcat(aux1, ")");
-
-               strcpy(p->expr, aux1);
-
-			   break;
-	   }
-
-	   i = programa[i].proximo;
-   }
-
-   puts(p->expr);
-
-   free(p);
 }
 
 void GetProgramaInfixo(t_item_programa *programa, char * textoPrograma){
@@ -543,6 +474,7 @@ void GetProgramaInfixo(t_item_programa *programa, char * textoPrograma){
 
 	   	   case OPERADOR_BINARIO:
 
+               //strcpy(aux1, "((float)( ");
                strcpy(aux1, "( ");
 	   		   strcat(aux1,  p->proximo->expr);
 
@@ -554,8 +486,13 @@ void GetProgramaInfixo(t_item_programa *programa, char * textoPrograma){
                strcat(aux1,  " ");
                strcat(aux1,  p->expr);
                strcat(aux1,  " ");
+               
+               if(programa[i].t.v[1] == T_MUL || programa[i].t.v[1] == T_DIV){               
+                    strcat(aux1,  "+(0.0)");
+               }
+               
                strcat(aux1,  ")");
-
+               
                No * aux;
 
                aux = p;
@@ -572,6 +509,7 @@ void GetProgramaInfixo(t_item_programa *programa, char * textoPrograma){
 
 			   GetNomeElemento(&programa[i].t, aux1);
 
+              // strcat(aux1, "((float)(");
                strcat(aux1, "(");
                strcat(aux1,  p->expr);
                strcat(aux1, ")");
@@ -590,7 +528,3 @@ void GetProgramaInfixo(t_item_programa *programa, char * textoPrograma){
 
    free(p);
 }
-
-
-
-

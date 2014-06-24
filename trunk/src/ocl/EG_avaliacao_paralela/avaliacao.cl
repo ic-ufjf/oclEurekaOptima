@@ -1,3 +1,4 @@
+
 #define DATABASE(x,y) dataBase[x*NUM_VARIAVEIS + y]
 
 #include "representacao.h"
@@ -64,13 +65,17 @@ __kernel void avaliacao_gpu(__global t_prog *pop,
 			#endif 
 			float * dataBase,
 			__local float * erros){
+			
+	  
 	
 	int tid = get_global_id(0),
    	    lid = get_local_id(0),
    	    gid = get_group_id(0),
 	    local_size = get_local_size(0);
                 
-	__local t_item_programa programa[100]; 	 	 
+	__local t_item_programa programa[100]; 	 	
+    
+	//#define TAMANHO_DATABASE 1000
 
    	//1 workitem realiza a cópia do programa da memória global -> local
 	if(lid==0){		
@@ -89,11 +94,11 @@ __kernel void avaliacao_gpu(__global t_prog *pop,
  	}
  	 	
  	//Sincronismo local para que todos os workitens acessem o programa mapeado 	
- 	barrier(CLK_LOCAL_MEM_FENCE);	
+ 	barrier(CLK_LOCAL_MEM_FENCE);
  	
  	if(pop[gid].programa[0].t.v[0] != -1){
 		
-  		 erros[lid] = 0;
+  		 erros[lid] = 0.0;
 		 //Avaliação paralela entre work-itens do mesmo work-group
 
 		#ifndef NUM_POINTS_IS_NOT_DIVISIBLE_BY_LOCAL_SIZE
@@ -105,8 +110,9 @@ __kernel void avaliacao_gpu(__global t_prog *pop,
 
               if( iter * local_size + lid < TAMANHO_DATABASE )
               {
-    	#endif		
-			    erros[lid] += pown(Avalia(programa, dataBase, iter * local_size + lid), 2);
+    	#endif
+    	        float result = Avalia(programa, dataBase, iter * local_size + lid);
+			    erros[lid]  += pown (result,2);
 		
 		#ifdef NUM_POINTS_IS_NOT_DIVISIBLE_BY_LOCAL_SIZE
 		      }
@@ -124,9 +130,9 @@ __kernel void avaliacao_gpu(__global t_prog *pop,
 			#else
 			      if(lid < s && (lid + s < local_size ) )
 			#endif		        
-			erros[lid] += erros[lid+s];
-		  }		
-			
+			        erros[lid] += erros[lid+s];
+		  }			  
+		
 		  if(lid==0){
 
             if( isinf( erros[0] ) || isnan( erros[0] ) ) erros[0] = MAXFLOAT;

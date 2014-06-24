@@ -202,6 +202,8 @@ void GetNomeElemento(type_simbolo *s, char *nome){
 
 		case NUMERO_COM_PONTO:
 			sprintf(nome, "%f", s->v[1]);
+            strcat(nome, "f");
+            //printf("número com ponto flutuante: %s\n",nome);
 			break;
 
 		default:
@@ -429,6 +431,16 @@ void ImprimePosfixa(t_item_programa * programa){
 
 void ImprimeInfixa(t_item_programa *programa){
 
+   char text[TAMANHO_MAX_PROGRAMA];
+  
+   GetProgramaInfixo(programa, text);
+    
+   puts(text);
+
+}
+
+void GetProgramaInfixo(t_item_programa *programa, char * textoPrograma){
+
    No * p = NULL;
 
    int i=0;
@@ -462,6 +474,7 @@ void ImprimeInfixa(t_item_programa *programa){
 
 	   	   case OPERADOR_BINARIO:
 
+               //strcpy(aux1, "((float)( ");
                strcpy(aux1, "( ");
 	   		   strcat(aux1,  p->proximo->expr);
 
@@ -473,8 +486,13 @@ void ImprimeInfixa(t_item_programa *programa){
                strcat(aux1,  " ");
                strcat(aux1,  p->expr);
                strcat(aux1,  " ");
+               
+               if(programa[i].t.v[1] == T_MUL || programa[i].t.v[1] == T_DIV){               
+                   strcat(aux1,  "+(0.0)");
+               }               
+               
                strcat(aux1,  ")");
-
+               
                No * aux;
 
                aux = p;
@@ -491,6 +509,7 @@ void ImprimeInfixa(t_item_programa *programa){
 
 			   GetNomeElemento(&programa[i].t, aux1);
 
+              // strcat(aux1, "((float)(");
                strcat(aux1, "(");
                strcat(aux1,  p->expr);
                strcat(aux1, ")");
@@ -502,8 +521,10 @@ void ImprimeInfixa(t_item_programa *programa){
 
 	   i = programa[i].proximo;
    }
+    
+   strcpy(textoPrograma, p->expr);
 
-   puts(p->expr);
+//   puts(p->expr);
 
    free(p);
 }

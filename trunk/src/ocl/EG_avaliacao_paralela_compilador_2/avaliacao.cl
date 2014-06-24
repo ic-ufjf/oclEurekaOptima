@@ -12,7 +12,9 @@ __kernel void avaliacao_gpu(
    	    gid = get_group_id(0),
 	    local_size = get_local_size(0);
 	
-     erros[lid] = 0;
+     erros[lid] = 0.0;
+     
+ 	 //#define TAMANHO_DATABASE 1
      
      //Avaliação paralela entre work-itens do mesmo work-group
 
@@ -25,22 +27,12 @@ __kernel void avaliacao_gpu(
           if( iter * local_size + lid < TAMANHO_DATABASE)
           {
      #endif	
-            int line = iter * local_size + lid;
-            
-            //float result = funcaoobjetivo(gid, DATABASE(line, 0));           
-            //float x1 = DATABASE(line, 0);
-            
-            float result = funcaoobjetivo(gid, dataBase, line);		    	        		
+            int line = iter * local_size + lid;            
            
+            float result = funcaoobjetivo(gid, dataBase, line);
             float y = DATABASE(line, NUM_VARIAVEIS-1);
-            
-            if(isnan(result) || isinf(result)){
-                erros[lid] = MAXFLOAT;
-                break;
-            }
-            else{    	        
-                erros[lid] += pown(result-y, 2);
-            }
+                	        
+            erros[lid] += pown(result-y, 2);
 
       #ifdef NUM_POINTS_IS_NOT_DIVISIBLE_BY_LOCAL_SIZE
           }
@@ -59,8 +51,8 @@ __kernel void avaliacao_gpu(
           if(lid < s && (lid + s < local_size ) )
         #endif		        
             erros[lid] += erros[lid+s];
-      }		
-
+      }	
+   
       if(lid==0){
 
         if( isinf( erros[0] ) || isnan( erros[0] ) ) 

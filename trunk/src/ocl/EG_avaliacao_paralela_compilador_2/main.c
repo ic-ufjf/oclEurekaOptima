@@ -1,7 +1,7 @@
 //System includes
 #include <stdio.h>
 #include <time.h>
-#include <sys/time.h>
+
 
 #include "ag.h"
 //#include "eg_opencl.h"
@@ -12,36 +12,34 @@
 
 #include "parser.h"
 #include "gramatica.h"
+#include "utils.h"
 
 void print_usage(){
-    puts("-----------------------------------------------------------");
-    printf("Usage: --database='file' [--cores=num] [--kernelAG=num]\n");
-    puts("-----------------------------------------------------------");
-}
-
-
-double getTime()
-{
-    struct timeval tv;
-    gettimeofday(&tv,0);
-    return (double)tv.tv_sec + 1.0e-6*(double)tv.tv_usec;
+    puts("-------------------------------------------------------------------------------");
+    printf("Usage: --database='file' [--grammar='file'] [--cores=num] [--kernelAG=num]\n");
+    puts("-------------------------------------------------------------------------------");
 }
 
 int main(int argc, char * argv[])
 {
+    #ifdef PROFILING
+        desabilita_cache_compilacao();    
+    #endif
+
     /* Variáveis */
     t_regra Gramatica[10];
     individuo * populacao = (individuo*) malloc(sizeof(individuo)*TAMANHO_POPULACAO);
 
-    char arquivoBancoDeDados[50] = "";
+    char arquivoBancoDeDados[50] = "", arquivoGramatica[50] = "grammars/g1.txt";
 
     int pcores = 0, kernelAG = 2;
     char c;
     while (1)
     {
-        static struct option long_options[] =
+       static struct option long_options[] =
         {
            {"database",  required_argument, 0, 'd'},
+           {"grammar",  required_argument, 0, 'g'},
            {"cores",     required_argument, 0, 'c'},
            {"kernelAG",  required_argument, 0, 'k'},
            {0,  0,  0,  0}
@@ -60,6 +58,10 @@ int main(int argc, char * argv[])
             case 'd':
                 //printf("Banco de dados: %s\n", optarg);
                 strcpy(arquivoBancoDeDados, optarg);
+                break;
+                
+            case 'g':                
+                strcpy(arquivoGramatica, optarg);
                 break;
 
             case 'c':
@@ -92,11 +94,11 @@ int main(int argc, char * argv[])
 
     Database * dataBase = database_read(arquivoBancoDeDados);
 
-    puts("-----------------------------------------------------------");
+    /*puts("-----------------------------------------------------------");
     printf("Tamanho do banco de dados:%d \t Número de variáveis:%d\n", dataBase->numRegistros, dataBase->numVariaveis);
-    puts("-----------------------------------------------------------");
+    puts("-----------------------------------------------------------");*/
 
-    LeGramatica("grammars/g1.txt", Gramatica);
+    LeGramatica(arquivoGramatica, Gramatica);
 
     double inicio = getTime();
 
@@ -104,7 +106,7 @@ int main(int argc, char * argv[])
 
     double fim = getTime()-inicio;
     
-    printf("Tempo total: %lf\n", fim);    
+    printf("%lf\n", fim);    
     
     free(dataBase->registros);
     free(dataBase);

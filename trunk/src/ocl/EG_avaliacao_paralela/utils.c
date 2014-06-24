@@ -1,8 +1,9 @@
 #include <ctype.h>
 #include <string.h>
-#include<stdio.h>
-#include<stdlib.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "utils.h"
+#include <sys/time.h>
 #include "representacao.h"
 
 char *ltrim(char *s)
@@ -25,6 +26,7 @@ char *trim(char *s)
 }
 
 int  next_power_of_2(int a){
+
     return (int)pow(2, (int) ceil( log2( a ) ) );
 }
 
@@ -120,6 +122,17 @@ void obtem_fenotipo_individuo(individuo *p, short fenotipo[]){
        fenotipo[i] = binario_para_decimal(genotipo_binario, j, j+TAMANHO_VALOR);
 
     }
+}
+
+double getTime()
+{
+    struct timeval tv;
+    gettimeofday(&tv,0);
+    return (double)tv.tv_sec + 1.0e-6*(double)tv.tv_usec;
+}
+
+void desabilita_cache_compilacao(){
+    setenv("CUDA_CACHE_DISABLE", "1", 1);
 }
 
 

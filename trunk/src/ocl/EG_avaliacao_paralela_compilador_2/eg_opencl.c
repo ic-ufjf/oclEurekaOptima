@@ -108,7 +108,7 @@ float getTempoDecorrido(cl_event event){
     cl_ulong time_start, time_end;
 
     clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, NULL);
-    clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
+    clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END,   sizeof(time_end), &time_end, NULL);
 
     return time_end - time_start;
 }
@@ -122,7 +122,7 @@ void compila_programa(t_prog * pop){
     clGetDeviceInfo(device, CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, sizeof(cl_ulong),
                                  &max_constant_buffer_size, NULL);
 
-    std::string header_string ="#define DIMENSOES_PROBLEMA " + ToString(DIMENSOES_PROBLEMA)  + "\n" +
+    std::string header_string = "#define DIMENSOES_PROBLEMA " + ToString(DIMENSOES_PROBLEMA)  + "\n" +
                                 "#define TAMANHO_POPULACAO " + ToString(TAMANHO_POPULACAO) + "\n" +
                                 "#define TAMANHO_VALOR " + ToString(TAMANHO_VALOR) + "\n" +
                                 "#define TAMANHO_INDIVIDUO DIMENSOES_PROBLEMA*TAMANHO_VALOR  " + "\n" +                               
@@ -134,7 +134,8 @@ void compila_programa(t_prog * pop){
         
     //Obtém o valor de cada variável no registro
     for(k=1; k < numVariaveis; k++){        
-        fitness_string += "float x" + ToString(k) + " = DATABASE(line, "+ ToString(k-1)+ "); \n";        
+        //fitness_string += "float x" + ToString(k) + " = DATABASE(line, "+ ToString(k-1)+ "); \n";        
+        fitness_string += "#define x" + ToString(k) + " (DATABASE(line, "+ ToString(k-1)+ ")) \n";                        
     }
     
     //cout << fitness_string << endl;
@@ -147,13 +148,15 @@ void compila_programa(t_prog * pop){
     
             fitness_string += ToString(" case "+ToString(k)+": \n");            
             GetProgramaInfixo(pop[k].programa, &programaTexto[0]);
+            // fitness_string += ToString(" return x1; \n");
+            //fitness_string += ToString(" return ( x1 / ( ( 2.0 ) * ( ( ( x1 + x1 * x1 ) * ( 1 - x1) ) ) ) ); break; \n");            
             fitness_string += ToString(" return " + ToString(programaTexto) +  "; break; \n");            
          }
     }
            
     //Caso o programa seja inválido, será selecionado o caso default, que retorna MAXFLOAT
-    fitness_string+= "default: return MAXFLOAT; break; \n } \n } \n";   
-
+    fitness_string+= "default: return MAXFLOAT; break; \n } \n } \n";
+    
     //long constant_size = tamanhoBancoDeDados * sizeof(cl_float);
 
     /*if(constant_size > max_constant_buffer_size )
@@ -192,6 +195,7 @@ void compila_programa(t_prog * pop){
 	status = clBuildProgram(program,
                             1,
 				            devices,
+				            //"-cl-opt-disable",
 				            "",
 				            NULL,
 				            NULL);
@@ -214,8 +218,7 @@ void compila_programa(t_prog * pop){
 	// 7: Criação do kernel
 	//---------------------------------------------
 
-	kernelAvaliacao = clCreateKernel(program, "avaliacao_gpu", &status);   
-
+	kernelAvaliacao = clCreateKernel(program, "avaliacao_gpu", &status);
     check_cl(status, "Erro ao criar kernel 'avaliacao'");
 }
 
@@ -286,8 +289,6 @@ void opencl_init(Database *dataBase){
 						 	 &status);
     check_cl(status, "Erro ao criar o contexto de execução");
 
-    //if(pcores>0) CriaSubDevices();
-
     device = devices[0];
 
     /* Consulta as propriedades do dispositivo */
@@ -305,9 +306,8 @@ void opencl_init(Database *dataBase){
     // Um indivíduo por work-group
     globalWorkSize[0] = localWorkSize[0] * TAMANHO_POPULACAO;   
 
-    printf("local: %ld, global: %ld, grupos:%ld\n", localWorkSize[0], 
-    globalWorkSize[0],  globalWorkSize[0]/localWorkSize[0]);       
-    
+    //printf("local: %ld, global: %ld, grupos:%ld\n", localWorkSize[0], 
+    //globalWorkSize[0],  globalWorkSize[0]/localWorkSize[0]);           
     
     //---------------------------------------------
     // 4: Criação da fila de execução
@@ -322,8 +322,7 @@ void opencl_init(Database *dataBase){
 
     //---------------------------------------------
 	// 6: Criação dos buffers de memória
-	//---------------------------------------------
-	
+	//---------------------------------------------	
     
    	bufferFitness = clCreateBuffer(context, CL_MEM_READ_WRITE, TAMANHO_POPULACAO * sizeof(float), NULL, &status);
     check_cl(status, "Erro ao criar buffer de memoria bufferFitness");
@@ -424,40 +423,18 @@ void avaliacao_paralela(individuo * pop, t_prog * programas){
     
     check(pop != NULL, "A população não pode ser nula");
 
-    printf("Iniciando a avaliação paralela...\n");    
-    printf("Compilando a população...\n");
+    //printf("Iniciando a avaliação paralela...\n");    
+    //printf("Compilando a população...\n");
     
     compila_programa(programas);
     
     avaliacao_kernel(fitness, bufferA);
     
     int i;
-    for(i=0; i < TAMANHO_POPULACAO; i++){
-       
-        //Programa inválido
-        if(programas[i].programa[0].t.v[0] == -1){
-            pop[i].aptidao = -99999999999999;    
-        }
-        else{
-            pop[i].aptidao = fitness[i];
-            //printf("%d - %f\n", i, fitness[i]);                       
-	        //ImprimeInfixa(programas[i].programa);                     
-        }
+    for(i=0; i < TAMANHO_POPULACAO; i++){        
+        pop[i].aptidao = fitness[i];        
+        //printf("%d => %f\n", i, fitness[i]);
     }
-    
-    /*#ifdef PROFILING
-
-      //printf("Tempos\nAvaliação:\tProcessamento\tTransf memoria\tTransf memoria inicial\tProc+Memoria\n");
-
-      printf("%.10f\t", tempoTotalAvaliacao);
-      printf("%.10f\t", tempoTotalProcessamento);
-      printf("%.10f\t", tempoTotalTransfMemoria);
-      printf("%.10f\t", tempoTransfMemoriaInicial);
-      printf("%.10f\n", tempoTotalProcessamento + tempoTotalTransfMemoria);
-      //printf("kernel substituicao: \t %.10f\n", tempoTotalSubstituicao);
-      //printf("kernel ag: \t %.10f\n", tempoTotalAG);
-
-   #endif*/
 }
 
 void opencl_dispose(){
@@ -465,10 +442,10 @@ void opencl_dispose(){
     #ifdef PROFILING
         //printf("Tempos\nAvaliação:\tProcessamento\tTransf memoria\tTransf memoria inicial\tProc+Memoria\n");
         printf("%.10f\t", tempoTotalAvaliacao);
-        printf("%.10f\t", tempoTotalProcessamento);
+       /* printf("%.10f\t", tempoTotalProcessamento);
         printf("%.10f\t", tempoTotalTransfMemoria);
         printf("%.10f\t", tempoTransfMemoriaInicial);
-        printf("%.10f\n", tempoTotalProcessamento + tempoTotalTransfMemoria);
+        printf("%.10f\n", tempoTotalProcessamento + tempoTotalTransfMemoria);*/
     #endif
 
     clReleaseMemObject(bufferA);

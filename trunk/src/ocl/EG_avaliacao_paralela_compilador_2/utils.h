@@ -24,4 +24,8 @@ int is_power_of_2( int n );
 
 void obtem_fenotipo_individuo(individuo *p, short fenotipo[]);
 
+double getTime();
+
+void desabilita_cache_compilacao();
+
 #endif // UTILS_H_INCLUDED

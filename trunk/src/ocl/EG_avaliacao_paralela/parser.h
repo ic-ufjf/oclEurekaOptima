@@ -84,6 +84,7 @@ float Avalia(t_item_programa programa[], float registro[]);
 
 void ImprimePosfixa(t_item_programa * programa);
 void ImprimeInfixa(t_item_programa * programa);
+void GetProgramaInfixo(t_item_programa *programa, char * textoPrograma);
 
 
 #endif // PARSER_H_INCLUDED

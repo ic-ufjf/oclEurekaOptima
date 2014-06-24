@@ -36,7 +36,7 @@ int Decodifica(__global t_regra *Gramatica, short fenotipo[], __local t_item_pro
 		if(fenotipo_ctr == DIMENSOES_PROBLEMA-1){		
 		    program_ctr = -1;
 		    break;
-		}		
+		}
 
 		/* Procura primeiro não terminal à esquerda */
 		int i=0;
@@ -67,10 +67,10 @@ int Decodifica(__global t_regra *Gramatica, short fenotipo[], __local t_item_pro
 
 		    for(m=1; m < Gramatica[idRegra].escolhas[opcao].num_simbolos; m++){
 
-			programa[program_ctr].t = Gramatica[idRegra].escolhas[opcao].simbolos[m];
-			programa[program_ctr].proximo = program_ctr+1;
+			    programa[program_ctr].t = Gramatica[idRegra].escolhas[opcao].simbolos[m];
+			    programa[program_ctr].proximo = program_ctr+1;
 
-			program_ctr++;
+			    program_ctr++;
 		    }
 			
 		    programa[program_ctr-1].proximo = proximoAnterior;

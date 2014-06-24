@@ -40,15 +40,16 @@ typedef struct{
 
 float OperaBinario(float a, float b, float x){
 
-    if(x == T_SOMA)
+    if((int)x == T_SOMA)
         return a+b;
-    if(x == T_SUB)
+    if((int)x == T_SUB)
 	    return a-b;
-    if(x == T_MUL)
+    if((int)x == T_MUL)
 	    return a*b;
-    if(x == T_DIV){
-	if(b!=0) return a/b;
-	    else return 1;
+    if((int)x == T_DIV){
+	    //if(b!=0) return a/b;
+	    //else return 1;
+	    return (a/b);
     }
     
     return 0;
@@ -61,14 +62,13 @@ float OperaUnario(float a, float x){
     if(x == T_COS)
 	    return (float)cos(a);
     if(x == T_SQRT){    	
-    	if(a<=0) return 0;
+    	//if(a<=0) return 0;
 	    return (float)sqrt(a);
-    }
-    
+    }    
     if(x == T_MENOS){
 	    return a*(-1);
     }
-
+    
     return 0;
 }
 
@@ -84,16 +84,14 @@ float Avalia(__local t_item_programa programa[],
 
    float pilha[TAMANHO_MAX_PROGRAMA];
    int topo = -1;
-   float erro = 0;
-   
+  
    int i=0;
-
    while(i != FIM_PROGRAMA){
 
 	   switch((int)programa[i].t.v[0])
    	   {
 	   	   case NUMERO_INTEIRO:
-   		   	   pilha[++topo] = (int)programa[i].t.v[1];
+   		   	   pilha[++topo] = programa[i].t.v[1];
 	   		   break;
 	   	   case NUMERO_COM_PONTO:
 	   		   pilha[++topo] = programa[i].t.v[1];
@@ -113,8 +111,8 @@ float Avalia(__local t_item_programa programa[],
 	   i = programa[i].proximo;
    }
 
-   //Erro absoluto
-   return fabs( pilha[topo] - DATABASE(linha, NUM_VARIAVEIS-1));
+   //Erro
+   return ( pilha[topo] - DATABASE(linha, NUM_VARIAVEIS-1));
 }
 
 
