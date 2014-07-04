@@ -122,7 +122,7 @@ __kernel void avaliacao_gpu(__global t_prog *pop,
 
 		  int next_power_of_2 = LOCAL_SIZE_ROUNDED_UP_TO_POWER_OF_2;
 	
-		  for(int s = next_power_of_2*0.5;s>0 ; s*=0.5){
+		  for(int s = next_power_of_2*0.5; s>0 ; s*=0.5){
 		  	barrier(CLK_LOCAL_MEM_FENCE);
 			
 			#ifndef LOCAL_SIZE_IS_NOT_POWER_OF_2

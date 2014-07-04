@@ -34,16 +34,34 @@ void imprime_melhor(individuo * pop, t_regra * gramatica){
 
 }
 
-void imprime_populacao(individuo * pop){
+void imprime_populacao(individuo * pop, t_regra * gramatica){
 
 	int i,j;
 
+    short fenotipo[DIMENSOES_PROBLEMA];
+    t_item_programa programa[1000];
+    int invalidos=0;
+
 	for(i=0;i<TAMANHO_POPULACAO;i++){
-		for(j=0;j<TAMANHO_INDIVIDUO;j++)
-			printf("%d",pop[i].genotipo[j]);
-		printf("==> %f\n", pop[i].aptidao);
+		
+		printf("%d - ", i);
+		
+		//for(j=0;j<TAMANHO_INDIVIDUO;j++)
+			//printf("%d",pop[i].genotipo[j]);
+			
+	    obtem_fenotipo_individuo(&pop[i], fenotipo);   			
+		
+		int program_ctr = Decodifica(gramatica, fenotipo, programa);     
+		ImprimeInfixa(programa);
+		
+		if(program_ctr==-1){
+		    invalidos++;
+		}
+		
+		printf("==> %f\n\n", pop[i].aptidao);
 	}
-}
+	printf("Inválidos: %d\n", invalidos);
+}	
 
 void avaliacao(individuo * pop, t_prog * programas, t_regra * gramatica){
 
@@ -79,21 +97,22 @@ void eg(individuo * pop, t_regra *gramatica, Database *dataBase){
     
     avaliacao_init(gramatica, dataBase);    
     
-	cria_populacao_inicial(pop);	
+	cria_populacao_inicial(pop);
+	
 	avaliacao(pop, programas, gramatica);
 	sort(pop);
-
+	
 	while(geracao <= NUMERO_DE_GERACOES){
 
 	    printf("-------------------------------------\n");
 		printf("Geração %d:\n", geracao);		
 		imprime_melhor(pop, gramatica);
         
-        //imprime_populacao(pop);
-
 		cria_nova_populacao(pop, newPop);
     	avaliacao(newPop, programas, gramatica);
 		substitui_populacao(pop, newPop);
+		
+        imprime_populacao(pop, gramatica);
 
 		geracao++;
 	}	

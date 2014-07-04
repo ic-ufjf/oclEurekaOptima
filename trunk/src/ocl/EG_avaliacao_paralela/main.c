@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <time.h>
 
+
 #include "ag.h"
+//#include "eg_opencl.h"
 #include "eg.h"
 
 //getopt
@@ -30,13 +32,11 @@ int main(int argc, char * argv[])
 
     char arquivoBancoDeDados[50] = "", arquivoGramatica[50] = "grammars/g1.txt";
 
-	srand(time(NULL));
-
     int pcores = 0, kernelAG = 2;
     char c;
     while (1)
     {
-        static struct option long_options[] =
+       static struct option long_options[] =
         {
            {"database",  required_argument, 0, 'd'},
            {"grammar",  required_argument, 0, 'g'},
@@ -55,20 +55,23 @@ int main(int argc, char * argv[])
 
         switch (c)
         {
-            case 'd':                
+            case 'd':
+                //printf("Banco de dados: %s\n", optarg);
                 strcpy(arquivoBancoDeDados, optarg);
                 break;
                 
-           case 'g':                
+            case 'g':                
                 strcpy(arquivoGramatica, optarg);
                 break;
 
             case 'c':
                 pcores = atoi(optarg);
+                //printf("Cores: %d\n", pcores);
                 break;
 
             case 'k':
                 kernelAG = atoi(optarg);
+                //printf("KernelAG: %d\n", kernelAG);
                 break;
 
             case '?':
@@ -84,7 +87,8 @@ int main(int argc, char * argv[])
     }
 
     if(strlen(arquivoBancoDeDados) == 0){
-        printf("Banco de dados não especificado. Utilizando o arquivo 'problems/2X^2.txt'\n");
+        //print_usage();
+        //printf("Banco de dados não especificado. Utilizando o arquivo 'problems/2X^2.txt'\n");
         strcpy(arquivoBancoDeDados, "problems/2X^2.txt");
     }
 
@@ -93,7 +97,7 @@ int main(int argc, char * argv[])
     /*puts("-----------------------------------------------------------");
     printf("Tamanho do banco de dados:%d \t Número de variáveis:%d\n", dataBase->numRegistros, dataBase->numVariaveis);
     puts("-----------------------------------------------------------");*/
-    
+
     LeGramatica(arquivoGramatica, Gramatica);
 
     double inicio = getTime();
@@ -102,8 +106,8 @@ int main(int argc, char * argv[])
 
     double fim = getTime()-inicio;
     
-    printf("%lf\n", fim);
-
+    printf("%lf\n", fim);    
+    
     free(dataBase->registros);
     free(dataBase);
     free(populacao);

@@ -21,7 +21,6 @@ void cria_populacao_inicial(individuo * pop){
         //printf("\n");
    }
 }
-
 void torneio(int indice_participante, individuo *populacao, individuo *retorno) {
 
     individuo vencedor = populacao[indice_participante];
@@ -38,7 +37,6 @@ void torneio(int indice_participante, individuo *populacao, individuo *retorno) 
 
     for(i=0;i< TAMANHO_INDIVIDUO;i++){
         retorno->genotipo[i] = vencedor.genotipo[i];
-        retorno->aptidao = vencedor.aptidao;
     }
 
 }

@@ -29,9 +29,9 @@ void imprime_melhor(individuo * pop, t_regra * gramatica){
 	obtem_fenotipo_individuo(&pop[indice_melhor], fenotipo);
 	Decodifica(gramatica, fenotipo, programa);
 
-	/*printf("\nMelhor:\n");
+	printf("\nMelhor:\n");
 	ImprimeInfixa(programa);	
-	printf("\nAptidao: %.10f\n", pop[indice_melhor].aptidao);	*/
+	printf("\nAptidao: %.10f\n", pop[indice_melhor].aptidao);
 
 }
 
@@ -121,15 +121,15 @@ void eg(individuo * pop, t_regra *gramatica, Database *dataBase){
 
 	while(geracao <= NUMERO_DE_GERACOES){
 
-	   // printf("-------------------------------------\n");
-	   //  printf("Geração %d:\n", geracao);		
+	    printf("-------------------------------------\n");
+	    printf("Geração %d:\n", geracao);		
 		imprime_melhor(pop, gramatica);
         
 		cria_nova_populacao(pop, newPop);
     	avaliacao(newPop, programas, gramatica);
 		substitui_populacao(pop, newPop);
 
-        //imprime_populacao(pop, gramatica);
+        imprime_populacao(pop, gramatica);
 
 		geracao++;
 	}	
