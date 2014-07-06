@@ -105,7 +105,7 @@ __kernel void avaliacao_gpu(__global t_prog *pop,
 		   for( uint iter = 0; iter < TAMANHO_DATABASE/local_size; ++iter )
 		   {	
 		#else
-   		   for( uint iter = 0; iter < ceil( TAMANHO_DATABASE / (float) local_size ); ++iter )
+   		   for(uint iter = 0; iter < ceil( TAMANHO_DATABASE / (float) local_size ); ++iter )
    		   {
 
               if( iter * local_size + lid < TAMANHO_DATABASE )

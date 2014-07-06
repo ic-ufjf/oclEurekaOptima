@@ -83,6 +83,13 @@ float Avalia(__local t_item_programa programa[],
 		int linha) {
 
    float pilha[TAMANHO_MAX_PROGRAMA];
+   float X[NUM_VARIAVEIS];
+   
+   //Copia o registro para a memória privada   
+   for(int i=0;i < NUM_VARIAVEIS; i++){
+        X[i] = DATABASE(linha, i);
+   }   
+   
    int topo = -1;
   
    int i=0;
@@ -97,7 +104,7 @@ float Avalia(__local t_item_programa programa[],
 	   		   pilha[++topo] = programa[i].t.v[1];
 			   break;
 	   	   case VARIAVEL:
-	   		   pilha[++topo] = DATABASE(linha, (int)programa[i].t.v[1]);
+	   		   pilha[++topo] = X[(int)programa[i].t.v[1]];
 	   		   break;
 	   	   case OPERADOR_BINARIO:
 	   		   pilha[topo-1] = OperaBinario(pilha[topo-1], pilha[topo], programa[i].t.v[1]);

@@ -134,8 +134,8 @@ void compila_programa(t_prog * pop){
         
     //Obtém o valor de cada variável no registro
     for(k=1; k < numVariaveis; k++){        
-        //fitness_string += "float x" + ToString(k) + " = DATABASE(line, "+ ToString(k-1)+ "); \n";        
-        fitness_string += "#define x" + ToString(k) + " (DATABASE(line, "+ ToString(k-1)+ ")) \n";                        
+        fitness_string += "float x" + ToString(k) + " = DATABASE(line, "+ ToString(k-1)+ "); \n";        
+        //fitness_string += "#define x" + ToString(k) + " (DATABASE(line, "+ ToString(k-1)+ ")) \n";                        
     }
     
     //cout << fitness_string << endl;
@@ -148,7 +148,7 @@ void compila_programa(t_prog * pop){
     
             fitness_string += ToString(" case "+ToString(k)+": \n");            
             GetProgramaInfixo(pop[k].programa, &programaTexto[0]);
-            // fitness_string += ToString(" return x1; \n");
+            //fitness_string += ToString(" return x1; \n");
             //fitness_string += ToString(" return ( x1 / ( ( 2.0 ) * ( ( ( x1 + x1 * x1 ) * ( 1 - x1) ) ) ) ); break; \n");            
             fitness_string += ToString(" return " + ToString(programaTexto) +  "; break; \n");            
          }
@@ -158,7 +158,6 @@ void compila_programa(t_prog * pop){
     fitness_string+= "default: return MAXFLOAT; break; \n } \n } \n";
     
     //long constant_size = tamanhoBancoDeDados * sizeof(cl_float);
-
     /*if(constant_size > max_constant_buffer_size )
         header_string += " #define Y_DOES_NOT_FIT_IN_CONSTANT_BUFFER \n ";*/
 
@@ -442,7 +441,7 @@ void opencl_dispose(){
     #ifdef PROFILING
         //printf("Tempos\nAvaliação:\tProcessamento\tTransf memoria\tTransf memoria inicial\tProc+Memoria\n");
         printf("%.10f\t", tempoTotalAvaliacao);
-       /* printf("%.10f\t", tempoTotalProcessamento);
+        /* printf("%.10f\t", tempoTotalProcessamento);
         printf("%.10f\t", tempoTotalTransfMemoria);
         printf("%.10f\t", tempoTransfMemoriaInicial);
         printf("%.10f\n", tempoTotalProcessamento + tempoTotalTransfMemoria);*/
