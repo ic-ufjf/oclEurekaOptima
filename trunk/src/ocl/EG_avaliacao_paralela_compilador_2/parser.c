@@ -488,7 +488,7 @@ void GetProgramaInfixo(t_item_programa *programa, char * textoPrograma){
                strcat(aux1,  " ");
                
                if(programa[i].t.v[1] == T_MUL || programa[i].t.v[1] == T_DIV){               
-                   //strcat(aux1,  "+(0.0)");
+                   strcat(aux1,  "+(0.0)");
                }               
                
                strcat(aux1,  ")");

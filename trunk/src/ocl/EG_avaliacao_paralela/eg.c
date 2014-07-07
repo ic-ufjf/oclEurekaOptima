@@ -121,15 +121,15 @@ void eg(individuo * pop, t_regra *gramatica, Database *dataBase){
 
 	while(geracao <= NUMERO_DE_GERACOES){
 
-	    printf("-------------------------------------\n");
-	    printf("Geração %d:\n", geracao);		
-		imprime_melhor(pop, gramatica);
+	    //printf("-------------------------------------\n");
+	    //printf("Geração %d:\n", geracao);		
+		//imprime_melhor(pop, gramatica);
         
 		cria_nova_populacao(pop, newPop);
     	avaliacao(newPop, programas, gramatica);
 		substitui_populacao(pop, newPop);
 
-        imprime_populacao(pop, gramatica);
+        //imprime_populacao(pop, gramatica);
 
 		geracao++;
 	}	
