@@ -113,11 +113,14 @@ float getTempoDecorrido(cl_event event){
     return time_end - time_start;
 }
 
-void compila_programa(t_prog * pop){
+cl_program* compila_programa(t_prog * pop, int inicio, int fim){
+    
+    cl_program *programa = (cl_program *) malloc(sizeof(cl_program));
     
     int k;    
     cl_ulong max_constant_buffer_size;
     char programaTexto[TAMANHO_MAX_PROGRAMA];
+
 
     clGetDeviceInfo(device, CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, sizeof(cl_ulong),
                                  &max_constant_buffer_size, NULL);
@@ -132,27 +135,31 @@ void compila_programa(t_prog * pop){
     
     std::string fitness_string = ToString("float funcaoobjetivo(int p, __global float * dataBase, int line){ \n");
         
+ 
+        
     //Obtém o valor de cada variável no registro
     for(k=1; k < numVariaveis; k++){        
         //fitness_string += "float x" + ToString(k) + " = DATABASE(line, "+ ToString(k-1)+ "); \n";        
         fitness_string += "#define x" + ToString(k) + " (DATABASE(line, "+ ToString(k-1)+ ")) \n";                        
     }
     
+
+    
     //cout << fitness_string << endl;
    
     fitness_string+= ToString("switch(p){ \n");
 
-    for(k=0; k<TAMANHO_POPULACAO; k++){
+    for(k=inicio; k<fim; k++){
     
          if(pop[k].programa[0].t.v[0] != -1){
     
             fitness_string += ToString(" case "+ToString(k)+": \n");
-            GetProgramaInfixo(pop[k].programa, &programaTexto[0]);
-            //fitness_string += ToString(" return x1; \n");
-            //fitness_string += ToString(" return ( x1 / ( ( 2.0 ) * ( ( ( x1 + x1 * x1 ) * ( 1 - x1) ) ) ) ); break; \n");            
+            GetProgramaInfixo(pop[k].programa, &programaTexto[0]);         
             fitness_string += ToString(" return " + ToString(programaTexto) +  "; break; \n");            
          }
     }
+           
+  
            
     //Caso o programa seja inválido, será selecionado o caso default, que retorna MAXFLOAT
     fitness_string+= "default: return MAXFLOAT; break; \n } \n } \n";
@@ -180,18 +187,18 @@ void compila_programa(t_prog * pop){
  	size_t programSize = (size_t)strlen(kernel_srt);
 
 	//Cria o programa
-	program = clCreateProgramWithSource(context,
+	/*program*/ *programa = clCreateProgramWithSource(context,
 							   1,
 							   (const char **)&kernel_srt,
 							   &programSize,
 							   &status);
-
+	
     check_cl(status, "Erro ao criar o programa");
 
     double start  = getRealTime();
 
 	//Compilação do programa
-	status = clBuildProgram(program,
+	status = clBuildProgram(*programa,
                             1,
 				            devices,
 				            //"-cl-opt-disable",
@@ -203,7 +210,7 @@ void compila_programa(t_prog * pop){
 
         // Exibe os erros de compilação
         char buildLog[16384];
-        clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG,
+        clGetProgramBuildInfo(*programa, device, CL_PROGRAM_BUILD_LOG,
                               sizeof(buildLog), buildLog, NULL);
 
         printf("Erros no kernel: \n %s \n", buildLog);       
@@ -217,8 +224,10 @@ void compila_programa(t_prog * pop){
 	// 7: Criação do kernel
 	//---------------------------------------------
 
-	kernelAvaliacao = clCreateKernel(program, "avaliacao_gpu", &status);
+	kernelAvaliacao = clCreateKernel(*programa, "avaliacao_gpu", &status);
     check_cl(status, "Erro ao criar kernel 'avaliacao'");
+    
+    return programa;
 }
 
 void opencl_init(Database *dataBase){
@@ -261,7 +270,7 @@ void opencl_init(Database *dataBase){
 							&numDevices);
 
     check_cl(status, "Erro ao obter os dispositivos");
-    
+        
 
     //Aloca espaço para cada dispositivo
 	devices = (cl_device_id*) malloc(numDevices*sizeof(cl_device_id));
@@ -360,40 +369,47 @@ void carrega_bancoDeDados(Database *dataBase){
     #endif
 }
 
-void avaliacao_kernel(float * fitness, cl_mem bufferPop){
+void avaliacao_kernel(cl_kernel *kernel, float * fitness, cl_mem bufferPop, int offset, int qtdProgramas){
+
+    //cout << "---------------------------" << endl << "Avaliação kernel" << endl;
+    //cout << "Offset: " << offset << ", " << qtdProgramas << " programas" << endl;
 
     cl_event eventoAvaliacao, eventoLeitura;
     
-    status = clSetKernelArg(kernelAvaliacao,  0, sizeof(bufferFitness), &bufferFitness);
+    status = clSetKernelArg(*kernel,  0, sizeof(bufferFitness), &bufferFitness);
     check_cl(status, "Erro ao adicionar argumento ao kernel");
 
-    status = clSetKernelArg(kernelAvaliacao,  1, sizeof(bufferDatabase),  &bufferDatabase);
+    status = clSetKernelArg(*kernel,  1, sizeof(bufferDatabase),  &bufferDatabase);
     check_cl(status, "Erro ao adicionar argumento ao kernel");
     
-    status = clSetKernelArg(kernelAvaliacao,  2, sizeof(float)*localWorkSize[0],  NULL);
+    status = clSetKernelArg(*kernel,  2, sizeof(float)*localWorkSize[0],  NULL);
+    check_cl(status, "Erro ao adicionar argumento ao kernel");  
+    
+    status = clSetKernelArg(*kernel,  3, sizeof(int), &offset);
     check_cl(status, "Erro ao adicionar argumento ao kernel");  
   
+    globalWorkSize[0] = localWorkSize[0] * qtdProgramas;  
+  
     status = clEnqueueNDRangeKernel(cmdQueue,
-                           kernelAvaliacao,
+                           *kernel,
                            1,
                            NULL,
                            globalWorkSize,
                            localWorkSize,
                            0,
                            NULL,
-                           &eventoAvaliacao);
-   
+                           &eventoAvaliacao);   
 
      check_cl(status, "Erro ao enfileirar o kernel para execucao");
         
-     status = clEnqueueReadBuffer(cmdQueue, bufferFitness, CL_TRUE, 0, sizeof(float)*TAMANHO_POPULACAO, 
-                                    fitness, 0, NULL, &eventoLeitura);
+     /* status = clEnqueueReadBuffer(cmdQueue, bufferFitness, CL_TRUE, 0, sizeof(float)*TAMANHO_POPULACAO, 
+                                    fitness, 0, NULL, &eventoLeitura);*/
 
-     check_cl(status, "Erro ao enfileirar leitura de buffer de memoria");    
+     //check_cl(status, "Erro ao enfileirar leitura de buffer de memoria");    
      
-     clFinish(cmdQueue);        
+    // clFinish(cmdQueue);        
 
-     #ifdef PROFILING
+    /* #ifdef PROFILING
 
         float tempoAvaliacao = getTempoDecorrido(eventoAvaliacao) / 1000000000.0 ;
         tempoTotal += tempoAvaliacao;
@@ -405,7 +421,7 @@ void avaliacao_kernel(float * fitness, cl_mem bufferPop){
         tempoTotal += tempoLeitura;
         tempoTotalTransfMemoria += tempoLeitura;
 
-     #endif
+     #endif*/
 }
 
 void avaliacao_init(t_regra *gramatica, Database *dataBase){
@@ -425,11 +441,48 @@ void avaliacao_paralela(individuo * pop, t_prog * programas){
     //printf("Iniciando a avaliação paralela...\n");    
     //printf("Compilando a população...\n");
     
-    compila_programa(programas);
+    int i,k = 200;    
+    int iteracoes = ceil((float)TAMANHO_POPULACAO / (float)k);
     
-    avaliacao_kernel(fitness, bufferA);
+    vector<cl_program> programasCompilados;
+    vector<cl_kernel> kernels;   
     
-    int i;
+    for(i=0; i < iteracoes; i++){
+        
+        int limiteInferior = i*k;
+        int limiteSuperior = std::min((i+1)*k, TAMANHO_POPULACAO);
+        
+        //cout << "Iteração " << i << ", limites = " << limiteInferior << " até " << limiteSuperior << endl;
+        
+        cl_program *p = compila_programa(programas, limiteInferior, limiteSuperior);
+        cl_kernel kernel  = clCreateKernel(*p, "avaliacao_gpu", &status);
+    
+        avaliacao_kernel(&kernel, fitness, bufferA, limiteInferior, limiteSuperior-limiteInferior);   
+        
+        programasCompilados.push_back(*p);
+        kernels.push_back(kernel);
+    }
+    
+    /* Coleta o fitness após todas as avaliações  */
+    
+    status = clEnqueueReadBuffer(cmdQueue, bufferFitness, CL_TRUE, 0, sizeof(float)*TAMANHO_POPULACAO, 
+                                    fitness, 0, NULL, NULL);
+
+    check_cl(status, "Erro ao enfileirar leitura de buffer de memoria");    
+     
+    clFinish(cmdQueue);   
+    
+    /* Release dos programas */
+    
+    while(!programasCompilados.empty()){
+        
+        clReleaseKernel(kernels.back());
+        kernels.pop_back();
+        clReleaseProgram(programasCompilados.back());
+        programasCompilados.pop_back();
+    }   
+    
+    //int i;
     for(i=0; i < TAMANHO_POPULACAO; i++){        
         pop[i].aptidao = fitness[i];        
         //printf("%d => %f\n", i, fitness[i]);

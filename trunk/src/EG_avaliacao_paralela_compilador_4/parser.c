@@ -409,7 +409,7 @@ No * EmpilhaExpressao(No * pilha, char * expressao){
     No * novo = (No *) malloc(sizeof(No));
     novo->proximo = pilha;
     strcpy(novo->expr, expressao);
-
+    
     return novo;
 }
 
@@ -431,7 +431,7 @@ void ImprimePosfixa(t_item_programa * programa){
 
 void ImprimeInfixa(t_item_programa *programa){
 
-   char text[TAMANHO_MAX_PROGRAMA];
+   char text[TAMANHO_MAX_PROGRAMA*10];
   
    GetProgramaInfixo(programa, text);
     
@@ -445,8 +445,8 @@ void GetProgramaInfixo(t_item_programa *programa, char * textoPrograma){
 
    int i=0;
 
-   char aux1[TAMANHO_MAX_PROGRAMA];
-   char aux2[20];
+   char aux1[TAMANHO_MAX_PROGRAMA*10];
+   char aux2[TAMANHO_MAX_PROGRAMA*10];
 
    while(i != FIM_PROGRAMA){
 
@@ -533,4 +533,5 @@ void GetProgramaInfixo(t_item_programa *programa, char * textoPrograma){
 //   puts(p->expr);
 
    free(p);
+
 }

@@ -86,6 +86,8 @@ void avaliacao(individuo * pop, t_prog * programas, t_regra * gramatica){
     avaliacao_paralela(pop, programas);    
 }
 
+using namespace std;
+
 void eg(individuo * pop, t_regra *gramatica, Database *dataBase){
 	
 	individuo newPop[TAMANHO_POPULACAO];
