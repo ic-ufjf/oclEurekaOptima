@@ -1,0 +1,3 @@
+Implementação da evolução gramatical com OpenCL, parelelizando somente a etapa de avaliação da população.
+A avaliação é feita compilando-se os indivíduos junto com o kernel de avaliação.
+Além disso, é feita uma sobreposição entre compilação/avaliação, isto é, avalia-se "n" individuos, enquanto outros são compilados.

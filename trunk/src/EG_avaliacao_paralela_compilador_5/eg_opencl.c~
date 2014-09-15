@@ -163,9 +163,9 @@ cl_program* compila_programa(t_prog * pop, int inicio, int fim){
     //Caso o programa seja inválido, será selecionado o caso default, que retorna MAXFLOAT
     fitness_string+= "default: return MAXFLOAT; break; \n } \n } \n";
     
-    long constant_size = tamanhoBancoDeDados * sizeof(cl_float);
-    if(constant_size > max_constant_buffer_size )
-        header_string += " #define Y_DOES_NOT_FIT_IN_CONSTANT_BUFFER \n ";
+    //long constant_size = tamanhoBancoDeDados * sizeof(cl_float);
+    /*if(constant_size > max_constant_buffer_size )
+        header_string += " #define Y_DOES_NOT_FIT_IN_CONSTANT_BUFFER \n ";*/
 
     header_string += "#define LOCAL_SIZE_ROUNDED_UP_TO_POWER_OF_2 "
                       + ToString( next_power_of_2( localWorkSize[0]) ) + " \n ";
@@ -451,7 +451,7 @@ void avaliacao_paralela(individuo * pop, t_prog * programas){
         int limiteInferior = i*k;
         int limiteSuperior = std::min((i+1)*k, TAMANHO_POPULACAO);
         
-        cout << "Iteração " << i << ", limites = " << limiteInferior << " até " << limiteSuperior << endl;
+        //cout << "Iteração " << i << ", limites = " << limiteInferior << " até " << limiteSuperior << endl;
         
         cl_program *p = compila_programa(programas, limiteInferior, limiteSuperior);
         cl_kernel kernel  = clCreateKernel(*p, "avaliacao_gpu", &status);

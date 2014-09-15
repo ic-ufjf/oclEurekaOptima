@@ -126,15 +126,16 @@ cl_program* compila_programa(t_prog * pop, int inicio, int fim){
                                  &max_constant_buffer_size, NULL);
 
     std::string header_string = "#define DIMENSOES_PROBLEMA " + ToString(DIMENSOES_PROBLEMA)  + "\n" +
-                                "#define TAMANHO_POPULACAO "  + ToString(TAMANHO_POPULACAO) + "\n" +
-                                "#define TAMANHO_VALOR " + ToString(TAMANHO_VALOR) + "\n" +
-                                "#define TAMANHO_INDIVIDUO DIMENSOES_PROBLEMA*TAMANHO_VALOR  " + "\n" +                               
-                                "#define TAMANHO_DATABASE " + ToString(tamanhoBancoDeDados) + "\n" +
-                                "#define NUM_VARIAVEIS " + ToString(numVariaveis) + "\n"+
-//                              "#define DATABASE(row,column) dataBase[(row)*NUM_VARIAVEIS + (column)] \n";
-                                "#define DATABASE(row,column) dataBase[(column)*TAMANHO_DATABASE + row] \n";
+                    "#define TAMANHO_POPULACAO "  + ToString(TAMANHO_POPULACAO) + "\n" +
+                    "#define TAMANHO_VALOR " + ToString(TAMANHO_VALOR) + "\n" +
+                    "#define TAMANHO_INDIVIDUO DIMENSOES_PROBLEMA*TAMANHO_VALOR  " + "\n" +                               
+                    "#define TAMANHO_DATABASE " + ToString(tamanhoBancoDeDados) + "\n" +
+                    "#define NUM_VARIAVEIS " + ToString(numVariaveis) + "\n"+
+//                  "#define DATABASE(row,column) dataBase[(row)*NUM_VARIAVEIS + (column)] \n";
+                    "#define DATABASE(row,column) dataBase[(column)*TAMANHO_DATABASE + row] \n"+
+                    "void reducao_paralela( __global float * fitness, __local float  * erros, uint gid, uint lid, const int offset);\n";
     
-    std::string fitness_string = ToString("float funcaoobjetivo(int p, __global float * dataBase, int line){ \n");        
+    std::string fitness_string;// = ToString("float funcaoobjetivo(int p, __global float * dataBase, int line){ \n");        
  
         
     //Obtém o valor de cada variável no registro
@@ -142,26 +143,54 @@ cl_program* compila_programa(t_prog * pop, int inicio, int fim){
         //fitness_string += "float x" + ToString(k) + " = DATABASE(line, "+ ToString(k-1)+ "); \n";        
         fitness_string += "#define x" + ToString(k) + " (DATABASE(line, "+ ToString(k-1)+ ")) \n";                        
     }
-
     
-    //cout << fitness_string << endl;
-   
-    fitness_string+= ToString("switch(p){ \n");
+    //cout << fitness_string << endl;   
+    //fitness_string+= ToString("switch(p){ \n");
 
     for(k=inicio; k<fim; k++){
     
          if(pop[k].programa[0].t.v[0] != -1){
-    
-            fitness_string += ToString(" case "+ToString(k)+": \n");
-            GetProgramaInfixo(pop[k].programa, &programaTexto[0]);         
-            fitness_string += ToString(" return " + ToString(programaTexto) +  "; break; \n");            
+
+            //Obtém a expressão do modelo            
+            GetProgramaInfixo(pop[k].programa, &programaTexto[0]);
+                    
+            fitness_string +=  ToString("\n__kernel void programa"+ToString(k)+"( \n") +       
+			ToString("    __global float * fitness,			\n" ) +             
+            ToString("	__global float * dataBase, \n" ) +             
+            ToString("    __local float  * erros){ \n" ) +             
+            ToString("    int tid = get_global_id(0), \n" ) +             
+            ToString("   	    lid = get_local_id(0), \n" ) +              
+            ToString("   	    gid = get_group_id(0), \n" ) +              
+            ToString("        local_size = get_local_size(0); \n" ) +                         
+            ToString("     //Avaliação paralela entre work-itens do mesmo work-group \n" ) +             
+            ToString("     #ifndef NUM_POINTS_IS_NOT_DIVISIBLE_BY_LOCAL_SIZE \n" ) +             
+            ToString("       for( uint iter = 0; iter < TAMANHO_DATABASE/local_size; ++iter ) \n" ) +             
+            ToString("       { \n" ) +             
+            ToString("     uint line = iter * local_size + lid;	\n" ) +             
+            ToString("     #else \n" ) +             
+            ToString("       for( uint iter = 0; iter < ceil( TAMANHO_DATABASE / (float) local_size ); ++iter ) \n" ) +             
+            ToString("       { \n" ) +             
+            ToString("          uint line = iter * local_size + lid; \n" ) +             
+            ToString("          if( line < TAMANHO_DATABASE) \n" ) +             
+            ToString("          { \n" ) +             
+            ToString("     #endif \n" ) +              	                      
+            ToString("            float result = "+ToString(programaTexto)+"; \n" ) +             
+            ToString("            float y = DATABASE(line, NUM_VARIAVEIS-1); \n" ) +             
+            ToString("            erros[lid] += pown(result-y, 2); \n" ) +             
+            ToString("     #ifdef NUM_POINTS_IS_NOT_DIVISIBLE_BY_LOCAL_SIZE \n" ) +             
+            ToString("          } \n" ) +             
+            ToString("      #endif \n" ) +              
+            ToString("      } \n" ) +             
+            ToString("      reducao_paralela(fitness, erros, gid, lid, "+ToString(k)+");      \n" ) +             
+            ToString("}\n\n");                                    
+                        
+            //fitness_string += ToString(" case "+ToString(k)+": \n");
+            //fitness_string += ToString(" return " + ToString(programaTexto) +  "; break; \n");            
          }
     }
            
-  
-           
     //Caso o programa seja inválido, será selecionado o caso default, que retorna MAXFLOAT
-    fitness_string+= "default: return MAXFLOAT; break; \n } \n } \n";
+    //fitness_string+= "default: return MAXFLOAT; break; \n } \n } \n";
     
     long constant_size = tamanhoBancoDeDados * sizeof(cl_float);
     if(constant_size > max_constant_buffer_size )
@@ -181,7 +210,7 @@ cl_program* compila_programa(t_prog * pop, int inicio, int fim){
 
     kernel_srt = kernel_string.c_str();
     
-    //cout << kernel_srt << endl;    
+    cout << kernel_srt << endl;    
     
  	size_t programSize = (size_t)strlen(kernel_srt);
 
@@ -201,7 +230,7 @@ cl_program* compila_programa(t_prog * pop, int inicio, int fim){
                             1,
 				            devices,
 				            //"-cl-opt-disable",
-				            "",
+				"",
 				            NULL,
 				            NULL);
 
@@ -223,8 +252,8 @@ cl_program* compila_programa(t_prog * pop, int inicio, int fim){
 	// 7: Criação do kernel
 	//---------------------------------------------
 
-	kernelAvaliacao = clCreateKernel(*programa, "avaliacao_gpu", &status);
-    check_cl(status, "Erro ao criar kernel 'avaliacao'");
+	//kernelAvaliacao = clCreateKernel(*programa, "avaliacao_gpu", &status);
+    //check_cl(status, "Erro ao criar kernel 'avaliacao'");
     
     return programa;
 }
@@ -368,7 +397,7 @@ void carrega_bancoDeDados(Database *dataBase){
     #endif
 }
 
-void avaliacao_kernel(cl_kernel *kernel, float * fitness, cl_mem bufferPop, int offset, int qtdProgramas){
+void avaliacao_kernel(cl_kernel *kernel, float * fitness, cl_mem bufferPop){
 
     //cout << "---------------------------" << endl << "Avaliação kernel" << endl;
     //cout << "Offset: " << offset << ", " << qtdProgramas << " programas" << endl;
@@ -384,10 +413,7 @@ void avaliacao_kernel(cl_kernel *kernel, float * fitness, cl_mem bufferPop, int 
     status = clSetKernelArg(*kernel,  2, sizeof(float)*localWorkSize[0],  NULL);
     check_cl(status, "Erro ao adicionar argumento ao kernel");  
     
-    status = clSetKernelArg(*kernel,  3, sizeof(int), &offset);
-    check_cl(status, "Erro ao adicionar argumento ao kernel");  
-  
-    globalWorkSize[0] = localWorkSize[0] * qtdProgramas;  
+    globalWorkSize[0] = localWorkSize[0] * 1;  
   
     status = clEnqueueNDRangeKernel(cmdQueue,
                            *kernel,
@@ -399,28 +425,7 @@ void avaliacao_kernel(cl_kernel *kernel, float * fitness, cl_mem bufferPop, int 
                            NULL,
                            &eventoAvaliacao);   
 
-     check_cl(status, "Erro ao enfileirar o kernel para execucao");
-        
-     /* status = clEnqueueReadBuffer(cmdQueue, bufferFitness, CL_TRUE, 0, sizeof(float)*TAMANHO_POPULACAO, 
-                                    fitness, 0, NULL, &eventoLeitura);*/
-
-     //check_cl(status, "Erro ao enfileirar leitura de buffer de memoria");    
-     
-    // clFinish(cmdQueue);        
-
-    /* #ifdef PROFILING
-
-        float tempoAvaliacao = getTempoDecorrido(eventoAvaliacao) / 1000000000.0 ;
-        tempoTotal += tempoAvaliacao;
-
-        tempoTotalAvaliacao += tempoAvaliacao;
-        tempoTotalProcessamento += tempoAvaliacao;
-
-        float tempoLeitura = getTempoDecorrido(eventoLeitura) / 1000000000.0 ;
-        tempoTotal += tempoLeitura;
-        tempoTotalTransfMemoria += tempoLeitura;
-
-     #endif*/
+     check_cl(status, "Erro ao enfileirar o kernel para execucao");        
 }
 
 void avaliacao_init(t_regra *gramatica, Database *dataBase){
@@ -433,6 +438,9 @@ void avaliacao_init(t_regra *gramatica, Database *dataBase){
     carrega_bancoDeDados(dataBase);
 }
 
+#include <stdio.h>
+#include <stdlib.h>
+
 void avaliacao_paralela(individuo * pop, t_prog * programas){
     
     check(pop != NULL, "A população não pode ser nula");
@@ -440,7 +448,7 @@ void avaliacao_paralela(individuo * pop, t_prog * programas){
     //printf("Iniciando a avaliação paralela...\n");    
     //printf("Compilando a população...\n");
     
-    int i,k = 200;
+    int i,k = 200,j;
     int iteracoes = ceil((float)TAMANHO_POPULACAO / (float)k);
     
     vector<cl_program> programasCompilados;
@@ -450,16 +458,19 @@ void avaliacao_paralela(individuo * pop, t_prog * programas){
         
         int limiteInferior = i*k;
         int limiteSuperior = std::min((i+1)*k, TAMANHO_POPULACAO);
-        
+
         cout << "Iteração " << i << ", limites = " << limiteInferior << " até " << limiteSuperior << endl;
         
         cl_program *p = compila_programa(programas, limiteInferior, limiteSuperior);
-        cl_kernel kernel  = clCreateKernel(*p, "avaliacao_gpu", &status);
-    
-        avaliacao_kernel(&kernel, fitness, bufferA, limiteInferior, limiteSuperior-limiteInferior);   
+        
+        for(j=limiteInferior;j<limiteSuperior; j++){
+        
+            cl_kernel kernel  = clCreateKernel(*p, "programa1", &status);    
+            avaliacao_kernel(&kernel, fitness, bufferA);          
+            kernels.push_back(kernel);
+        }
         
         programasCompilados.push_back(*p);
-        kernels.push_back(kernel);
     }
     
     /* Coleta o fitness após todas as avaliações  */

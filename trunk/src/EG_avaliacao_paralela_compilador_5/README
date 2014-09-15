@@ -1,0 +1,3 @@
+Implementação da evolução gramatical com OpenCL, parelelizando somente a etapa de avaliação da população.
+A avaliação é feita compilando-se os modelos candidatos. Nesta implementação, é gerado um kernel para cada indivíduo.
+Os kernels são submetidos à fila de execução à medida em que são criados.
