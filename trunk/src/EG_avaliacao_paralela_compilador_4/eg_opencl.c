@@ -134,8 +134,7 @@ cl_program* compila_programa(t_prog * pop, int inicio, int fim){
 //                              "#define DATABASE(row,column) dataBase[(row)*NUM_VARIAVEIS + (column)] \n";
                                 "#define DATABASE(row,column) dataBase[(column)*TAMANHO_DATABASE + row] \n";
     
-    std::string fitness_string = ToString("float funcaoobjetivo(int p, __global float * dataBase, int line){ \n");
-        
+    std::string fitness_string = ToString("float funcaoobjetivo(int p, __global float * dataBase, int line){ \n");        
  
         
     //Obtém o valor de cada variável no registro
@@ -182,7 +181,7 @@ cl_program* compila_programa(t_prog * pop, int inicio, int fim){
 
     kernel_srt = kernel_string.c_str();
     
-   // cout << kernel_srt << endl;    
+    //cout << kernel_srt << endl;    
     
  	size_t programSize = (size_t)strlen(kernel_srt);
 
@@ -452,7 +451,7 @@ void avaliacao_paralela(individuo * pop, t_prog * programas){
         int limiteInferior = i*k;
         int limiteSuperior = std::min((i+1)*k, TAMANHO_POPULACAO);
         
-        //cout << "Iteração " << i << ", limites = " << limiteInferior << " até " << limiteSuperior << endl;
+        cout << "Iteração " << i << ", limites = " << limiteInferior << " até " << limiteSuperior << endl;
         
         cl_program *p = compila_programa(programas, limiteInferior, limiteSuperior);
         cl_kernel kernel  = clCreateKernel(*p, "avaliacao_gpu", &status);

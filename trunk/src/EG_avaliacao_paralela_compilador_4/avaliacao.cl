@@ -15,7 +15,8 @@ __kernel void avaliacao_gpu(
 
      #ifndef NUM_POINTS_IS_NOT_DIVISIBLE_BY_LOCAL_SIZE
        for( uint iter = 0; iter < TAMANHO_DATABASE/local_size; ++iter )
-       {	
+       {
+	uint line = iter * local_size + lid;	
      #else
        for( uint iter = 0; iter < ceil( TAMANHO_DATABASE / (float) local_size ); ++iter )
        {
