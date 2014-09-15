@@ -19,11 +19,11 @@ __kernel void avaliacao_gpu(
      #else
        for( uint iter = 0; iter < ceil( TAMANHO_DATABASE / (float) local_size ); ++iter )
        {
-          if( iter * local_size + lid < TAMANHO_DATABASE)
+          uint line = iter * local_size + lid;
+          if( line < TAMANHO_DATABASE)
           {
      #endif	
-            int line = iter * local_size + lid;            
-           
+                      
             float result = funcaoobjetivo(offset+gid, dataBase, line);
             float y = DATABASE(line, NUM_VARIAVEIS-1);
 
@@ -35,9 +35,7 @@ __kernel void avaliacao_gpu(
 
       }
 
-      int next_power_of_2 = LOCAL_SIZE_ROUNDED_UP_TO_POWER_OF_2;
-
-      for(int s = next_power_of_2*0.5;s>0 ; s*=0.5){
+      for(uint s = LOCAL_SIZE_ROUNDED_UP_TO_POWER_OF_2*0.5;s>0 ; s*=0.5){
       	barrier(CLK_LOCAL_MEM_FENCE);
 
         #ifndef LOCAL_SIZE_IS_NOT_POWER_OF_2

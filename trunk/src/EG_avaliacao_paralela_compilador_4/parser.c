@@ -116,23 +116,30 @@ void LeVariaveis(char s[]){
 }
 
 
-void database_read_line(char s[], Database *bancoDeDados, int indice){
+void database_read_line(char s[], Database *bancoDeDados, int i){
 
 	char * valorPtr, *saveptr;
-	short countValor=0;
+	short j=0;
 
 	valorPtr = strtok_r(s, "\t", &saveptr);
 
-	while(countValor <= GetQtdVariaveis()){
+	while(j <= GetQtdVariaveis()){
 
-		bancoDeDados->registros[indice*bancoDeDados->numVariaveis + countValor] = atof(valorPtr);
+        /*
+            Armazenamento por linha e coluna: i*bancoDeDados->numVariaveis + j
+            Armazenamento por coluna e linha (transposta): j*bancoDeDados->numRegistros + i
+        */
+
+        int idx = j * bancoDeDados->numRegistros + i;
+
+		bancoDeDados->registros[idx] = atof(valorPtr);
 
 		valorPtr = strtok_r(NULL, "\t", &saveptr);
 
 		#ifdef DEBUG
-			//printf("%f\t", bancoDeDados->registros[indice*bancoDeDados->numVariaveis + countValor]);
+			//printf("%f\t", bancoDeDados->registros[idx]);
 		#endif
-        countValor++;
+        j++;
 	}
 
 	#ifdef DEBUG
@@ -166,11 +173,20 @@ Database *database_read(char nomeArquivo[]){
     int count=0;
 
 	while(fgets(linha,200,arq) != NULL){
-		database_read_line(linha, bancoDeDados, count);
-		count++;
+		database_read_line(linha, bancoDeDados, count++);
 	}
 
 	fclose(arq);
+	
+	/*
+	printf("Dados armazenados (em ordem): \n");
+	
+	int i;
+	for(i=0;i<bancoDeDados->numRegistros*bancoDeDados->numVariaveis;i++){
+	    printf("%f\t", bancoDeDados->registros[i]);
+	    if((i+1)%(bancoDeDados->numRegistros)==0)
+	        printf("\n");
+	}*/
 
 	return bancoDeDados;
 }

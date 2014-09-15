@@ -126,12 +126,13 @@ cl_program* compila_programa(t_prog * pop, int inicio, int fim){
                                  &max_constant_buffer_size, NULL);
 
     std::string header_string = "#define DIMENSOES_PROBLEMA " + ToString(DIMENSOES_PROBLEMA)  + "\n" +
-                                "#define TAMANHO_POPULACAO " + ToString(TAMANHO_POPULACAO) + "\n" +
+                                "#define TAMANHO_POPULACAO "  + ToString(TAMANHO_POPULACAO) + "\n" +
                                 "#define TAMANHO_VALOR " + ToString(TAMANHO_VALOR) + "\n" +
                                 "#define TAMANHO_INDIVIDUO DIMENSOES_PROBLEMA*TAMANHO_VALOR  " + "\n" +                               
                                 "#define TAMANHO_DATABASE " + ToString(tamanhoBancoDeDados) + "\n" +
                                 "#define NUM_VARIAVEIS " + ToString(numVariaveis) + "\n"+
-                                "#define DATABASE(row,column) dataBase[(row)*NUM_VARIAVEIS + (column)] \n";
+//                              "#define DATABASE(row,column) dataBase[(row)*NUM_VARIAVEIS + (column)] \n";
+                                "#define DATABASE(row,column) dataBase[(column)*TAMANHO_DATABASE + row] \n";
     
     std::string fitness_string = ToString("float funcaoobjetivo(int p, __global float * dataBase, int line){ \n");
         
@@ -142,7 +143,6 @@ cl_program* compila_programa(t_prog * pop, int inicio, int fim){
         //fitness_string += "float x" + ToString(k) + " = DATABASE(line, "+ ToString(k-1)+ "); \n";        
         fitness_string += "#define x" + ToString(k) + " (DATABASE(line, "+ ToString(k-1)+ ")) \n";                        
     }
-    
 
     
     //cout << fitness_string << endl;
@@ -441,7 +441,7 @@ void avaliacao_paralela(individuo * pop, t_prog * programas){
     //printf("Iniciando a avaliação paralela...\n");    
     //printf("Compilando a população...\n");
     
-    int i,k = 200;    
+    int i,k = 200;
     int iteracoes = ceil((float)TAMANHO_POPULACAO / (float)k);
     
     vector<cl_program> programasCompilados;
