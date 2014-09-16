@@ -215,7 +215,7 @@ cl_program* compila_programa(t_prog * pop, int inicio, int fim){
         printf("Erros no kernel: \n %s \n", buildLog);       
     }
 
-    //printf("\nTempo de compilação: %lf\n", getRealTime()-start);
+    printf("\nTempo de compilação: %lf\n", getRealTime()-start);
 
     check_cl(status, "Erro ao compilar o programa");    
     

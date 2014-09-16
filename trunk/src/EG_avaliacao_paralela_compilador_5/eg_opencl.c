@@ -210,7 +210,7 @@ cl_program* compila_programa(t_prog * pop, int inicio, int fim){
 
     kernel_srt = kernel_string.c_str();
     
-    cout << kernel_srt << endl;    
+    //cout << kernel_srt << endl;    
     
  	size_t programSize = (size_t)strlen(kernel_srt);
 
@@ -244,7 +244,7 @@ cl_program* compila_programa(t_prog * pop, int inicio, int fim){
         printf("Erros no kernel: \n %s \n", buildLog);       
     }
 
-    //printf("\nTempo de compilação: %lf\n", getRealTime()-start);
+    printf("\nTempo de compilação: %lf\n", getRealTime()-start);
 
     check_cl(status, "Erro ao compilar o programa");    
     
@@ -438,9 +438,6 @@ void avaliacao_init(t_regra *gramatica, Database *dataBase){
     carrega_bancoDeDados(dataBase);
 }
 
-#include <stdio.h>
-#include <stdlib.h>
-
 void avaliacao_paralela(individuo * pop, t_prog * programas){
     
     check(pop != NULL, "A população não pode ser nula");
@@ -463,10 +460,15 @@ void avaliacao_paralela(individuo * pop, t_prog * programas){
         
         cl_program *p = compila_programa(programas, limiteInferior, limiteSuperior);
         
-        for(j=limiteInferior;j<limiteSuperior; j++){
+        for(j=limiteInferior; j<limiteSuperior ;j++){
+            
+            char buf[20];            
+            sprintf(buf, "programa%d", j);
+            printf("Criando kernel: %s\n",buf);
         
-            cl_kernel kernel  = clCreateKernel(*p, "programa1", &status);    
+            cl_kernel kernel  = clCreateKernel(*p, buf, &status);    
             avaliacao_kernel(&kernel, fitness, bufferA);          
+            
             kernels.push_back(kernel);
         }
         
