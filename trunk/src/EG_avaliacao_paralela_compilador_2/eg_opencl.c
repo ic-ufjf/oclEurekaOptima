@@ -113,11 +113,17 @@ float getTempoDecorrido(cl_event event){
     return time_end - time_start;
 }
 
-void compila_programa(t_prog * pop){
+void compila_programa(individuo * pop, int geracao, t_regra * gramatica ){
+    
+     if(geracao>1){    
+        clReleaseKernel(kernelAvaliacao);
+        clReleaseProgram(program);
+     }
+    
     
     int k;    
     cl_ulong max_constant_buffer_size;
-    char programaTexto[TAMANHO_MAX_PROGRAMA];
+    char programaTexto[10*TAMANHO_MAX_PROGRAMA];
 
     clGetDeviceInfo(device, CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, sizeof(cl_ulong),
                                  &max_constant_buffer_size, NULL);
@@ -128,38 +134,13 @@ void compila_programa(t_prog * pop){
                                 "#define TAMANHO_INDIVIDUO DIMENSOES_PROBLEMA*TAMANHO_VALOR  " + "\n" +                               
                                 "#define TAMANHO_DATABASE " + ToString(tamanhoBancoDeDados) + "\n" +
                                 "#define NUM_VARIAVEIS " + ToString(numVariaveis) + "\n"+
-                                "#define DATABASE(row,column) dataBase[(row)*NUM_VARIAVEIS + (column)] \n";
-    
-    std::string fitness_string = ToString("float funcaoobjetivo(int p, __global float * dataBase, int line){ \n");
-        
-    //Obtém o valor de cada variável no registro
-    for(k=1; k < numVariaveis; k++){        
-        //fitness_string += "float x" + ToString(k) + " = DATABASE(line, "+ ToString(k-1)+ "); \n";        
-        fitness_string += "#define x" + ToString(k) + " (DATABASE(line, "+ ToString(k-1)+ ")) \n";                        
-    }
-    
-    //cout << fitness_string << endl;
+ //                             "#define DATABASE(row,column) dataBase[(row)*NUM_VARIAVEIS + (column)] \n";
+                                "#define TAMANHO_BLOCO 500 \n" + 
+                                "#define DATABASE(row,column) dataBase[(column)*TAMANHO_DATABASE + row] \n";
    
-    fitness_string+= ToString("switch(p){ \n");
-
-    for(k=0; k<TAMANHO_POPULACAO; k++){
-    
-         if(pop[k].programa[0].t.v[0] != -1){
-    
-            fitness_string += ToString(" case "+ToString(k)+": \n");
-            GetProgramaInfixo(pop[k].programa, &programaTexto[0]);
-            //fitness_string += ToString(" return x1; \n");
-            //fitness_string += ToString(" return ( x1 / ( ( 2.0 ) * ( ( ( x1 + x1 * x1 ) * ( 1 - x1) ) ) ) ); break; \n");            
-            fitness_string += ToString(" return " + ToString(programaTexto) +  "; break; \n");            
-         }
-    }
-           
-    //Caso o programa seja inválido, será selecionado o caso default, que retorna MAXFLOAT
-    fitness_string+= "default: return MAXFLOAT; break; \n } \n } \n";
-    
-    //long constant_size = tamanhoBancoDeDados * sizeof(cl_float);
-    /*if(constant_size > max_constant_buffer_size )
-        header_string += " #define Y_DOES_NOT_FIT_IN_CONSTANT_BUFFER \n ";*/
+    long constant_size = tamanhoBancoDeDados * sizeof(cl_float);
+    if(constant_size > max_constant_buffer_size )
+        header_string += " #define Y_DOES_NOT_FIT_IN_CONSTANT_BUFFER \n ";
 
     header_string += "#define LOCAL_SIZE_ROUNDED_UP_TO_POWER_OF_2 "
                       + ToString( next_power_of_2( localWorkSize[0]) ) + " \n ";
@@ -168,56 +149,179 @@ void compila_programa(t_prog * pop){
         header_string += "#define NUM_POINTS_IS_NOT_DIVISIBLE_BY_LOCAL_SIZE \n";
 
     if(is_power_of_2( localWorkSize[0] ) )
-        header_string += "#define LOCAL_SIZE_IS_NOT_POWER_OF_2 \n ";
+        header_string += "#define LOCAL_SIZE_IS_NOT_POWER_OF_2 \n ";    
+   
+   
+    int bloco = 200;
+    int iteracoes = ceil((float)TAMANHO_POPULACAO/(float)bloco);
+    int l;   
+   
+   
+    std::string body_string   = "";
+   
+    //Obtém o valor de cada variável no registro
+    for(k=1; k < numVariaveis; k++){        
+        //body_string += "float x" + ToString(k) + " = DATABASE(line, "+ ToString(k-1)+ "); \n";        
+        header_string += "#define x" + ToString(k) + " (DATABASE(line, "+ ToString(k-1)+ ")) \n";                        
+    }   
+    
+    //std::string fitness_string = ToString("float funcaoobjetivo(int p, __global float * dataBase, int line){ \n");      
+    //cout << fitness_string << endl;    
+          
+    t_prog programa;
+    short fenotipo[DIMENSOES_PROBLEMA];    
+    
+    for(l=0; l < iteracoes;l++){
+    
+        int limiteInferior = bloco*l;
+        int limiteSuperior = std::min((l+1)*bloco, TAMANHO_POPULACAO);
+        
+        body_string += "\n float bloco" + ToString(l) + "(int gid, __global float * dataBase, int line){\n";        
+        
+        body_string += ToString("switch(gid){ \n");
+        
+        int li;
+        for(li=limiteInferior; li < limiteSuperior; li++){
+            
+            obtem_fenotipo_individuo(&pop[li], fenotipo);
+            int program_ctr = Decodifica(gramatica, fenotipo, programa.programa);       
+            
+            if(program_ctr != -1){
+    
+                body_string += ToString(" case "+ToString(li)+": \n");                        
+               
+                GetProgramaInfixo(programa.programa, &programaTexto[0]);
+                body_string += ToString(" return  " + ToString(programaTexto) +  "; break; \n");            
+            }                        
+        }
+        
+        body_string += "default: return MAXFLOAT; }\n } \n";
+    }
+    
+     
+    body_string += ToString("float funcaoobjetivo(int gid, __global float * dataBase, int line){ \n");
+    
+    body_string += "int bloco = floor((float)gid/TAMANHO_BLOCO);\n";
 
-    std::string body_string   = LoadKernel("avaliacao.cl");
-    std::string kernel_string = header_string + fitness_string + body_string;
+    body_string += "switch(bloco){ \n";
+  
+    for(l=0; l < iteracoes; l++){
+        body_string += "case "+ToString(l)+": return bloco"+ToString(l)+"(gid, dataBase, line); \n";        
+    }   
+        
+    body_string += "} \n } \n";
+    
+    body_string += ToString("__kernel void avaliacao_gpu") + 
+    ToString(geracao) + ToString("(") + LoadKernel("avaliacao1.cl");
+    
+    
+    /*body_string += ToString("switch(gid){ \n");
+
+    for(k=0; k<TAMANHO_POPULACAO; k++){
+    
+         if(pop[k].programa[0].t.v[0] != -1){
+    
+            body_string += ToString(" case "+ToString(k)+": \n");
+           
+            GetProgramaInfixo(pop[k].programa, &programaTexto[0]);
+            body_string += ToString(" result = " + ToString(programaTexto) +  "; break; \n");            
+         }
+    }*/
+           
+    //Caso o programa seja inválido, será selecionado o caso default, que retorna MAXFLOAT
+    //body_string+= "default: result = MAXFLOAT; break; \n } \n ";
+
+    
+    body_string += LoadKernel("avaliacao2.cl");
+    
+    std::string kernel_string = header_string + body_string;
 
     kernel_srt = kernel_string.c_str();
     
-   // cout << kernel_srt << endl;    
+    //cout << kernel_srt << endl;    
     
  	size_t programSize = (size_t)strlen(kernel_srt);
+ 	
+// 	cout << "Program size: " << strlen(kernel_srt) << endl << endl;
+ 	
 
 	//Cria o programa
-	program = clCreateProgramWithSource(context,
+	
+	//if(geracao==1)
+    	program = clCreateProgramWithSource(context,
 							   1,
 							   (const char **)&kernel_srt,
 							   &programSize,
 							   &status);
+    
 
     check_cl(status, "Erro ao criar o programa");
 
     double start  = getRealTime();
 
-	//Compilação do programa
+    printf("Iniciando compilação\n");
+
+	//Compilação do programa    
+    //if(geracao==1)
 	status = clBuildProgram(program,
                             1,
 				            devices,
 				            //"-cl-opt-disable",
-				            "",
+				            //"",
+				            //-cl-nv-maxrregcount=<20>
+				            "-cl-nv-verbose",
 				            NULL,
 				            NULL);
+    
+    printf("Terminou a compilação\n");
 
-    if(status != CL_SUCCESS){
+    #ifndef SHOW_BUILD_LOG_OPENCL
+        if(status != CL_SUCCESS){   
+    #endif
 
         // Exibe os erros de compilação
         char buildLog[16384];
         clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG,
                               sizeof(buildLog), buildLog, NULL);
 
-        printf("Erros no kernel: \n %s \n", buildLog);       
+        printf("Build log: \n %s \n", buildLog);       
+    
+    #ifndef SHOW_BUILD_LOG_OPENCL
+        clReleaseProgram(program);
+        exit(1);
+                
     }
+    #endif
+    
+    #ifdef SHOW_PROGRAM_BINARIES
+    
+        size_t nb_devices = {1};    
 
-    //printf("\nTempo de compilação: %lf\n", getRealTime()-start);
+        status = clGetProgramInfo(program, CL_PROGRAM_NUM_DEVICES, sizeof(size_t), &nb_devices, NULL);
+        size_t *np = new size_t[nb_devices];
+        status = clGetProgramInfo(program, CL_PROGRAM_BINARY_SIZES, sizeof(size_t)*nb_devices, np, NULL);
+        char** bn = new char* [nb_devices];
+        for(int i =0; i < nb_devices;i++)  bn[i] = new char[np[i]]; 
+      
+        status = clGetProgramInfo(program, CL_PROGRAM_BINARIES, sizeof(unsigned char *)*nb_devices, bn, NULL);
+      
+        printf("%s\n", bn[0]);
+    
+    #endif
+
+    printf("\nTempo de compilação: %lf\n", getRealTime()-start);
 
     check_cl(status, "Erro ao compilar o programa");    
     
     //---------------------------------------------
 	// 7: Criação do kernel
 	//---------------------------------------------
+       
+    char nomeKernel[30];
+    
+    sprintf(nomeKernel, "avaliacao_gpu%d", geracao);
 
-	kernelAvaliacao = clCreateKernel(program, "avaliacao_gpu", &status);
+	kernelAvaliacao = clCreateKernel(program, nomeKernel, &status);
     check_cl(status, "Erro ao criar kernel 'avaliacao'");
 }
 
@@ -304,9 +408,6 @@ void opencl_init(Database *dataBase){
   
     // Um indivíduo por work-group
     globalWorkSize[0] = localWorkSize[0] * TAMANHO_POPULACAO;   
-
-    //printf("local: %ld, global: %ld, grupos:%ld\n", localWorkSize[0], 
-    //globalWorkSize[0],  globalWorkSize[0]/localWorkSize[0]);           
     
     //---------------------------------------------
     // 4: Criação da fila de execução
@@ -328,6 +429,7 @@ void opencl_init(Database *dataBase){
 
     bufferDatabase  = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(float)*(dataBase->numRegistros)*(dataBase->numVariaveis), NULL, &status);
     check_cl(status, "Erro ao criar buffer de memoria bufferDatabase");   
+    
 }
 
 void carrega_bancoDeDados(Database *dataBase){
@@ -418,16 +520,22 @@ void avaliacao_init(t_regra *gramatica, Database *dataBase){
     carrega_bancoDeDados(dataBase);
 }
 
-void avaliacao_paralela(individuo * pop, t_prog * programas){
+void avaliacao_paralela(individuo * pop, t_prog * programas, int geracao, t_regra * gramatica){
     
     check(pop != NULL, "A população não pode ser nula");
 
     //printf("Iniciando a avaliação paralela...\n");    
     //printf("Compilando a população...\n");
     
-    compila_programa(programas);
+    printf("1.1\n");
+    
+    compila_programa(pop, geracao, gramatica);
+    
+    printf("1.2\n");
     
     avaliacao_kernel(fitness, bufferA);
+    
+    printf("1.3\n");
     
     int i;
     for(i=0; i < TAMANHO_POPULACAO; i++){        

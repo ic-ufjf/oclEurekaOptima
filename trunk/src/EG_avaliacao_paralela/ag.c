@@ -29,10 +29,21 @@ void torneio(int indice_participante, individuo *populacao, individuo *retorno) 
     for(i=0; i < TAMANHO_TORNEIO; i++) {
 
         aleatorio = rand() % TAMANHO_POPULACAO;
+        
+        #ifndef DESABILITA_PRESSAO_SELECAO
+            if(populacao[aleatorio].aptidao > vencedor.aptidao){
+                vencedor = populacao[aleatorio];
+            }        
+        #else
+        
+            //gera um número entre 0 e 1
+            float r = (float)rand()/RAND_MAX;
 
-        if(populacao[aleatorio].aptidao > vencedor.aptidao){
-            vencedor = populacao[aleatorio];
-        }
+            if (r < 0.5f) {            
+                vencedor = populacao[aleatorio];
+            } 
+        
+        #endif
     }
 
     for(i=0;i< TAMANHO_INDIVIDUO;i++){
@@ -72,6 +83,8 @@ void sort(individuo * pop){
 void cria_nova_populacao(individuo * pop, individuo * newPop){
 
 	int i;
+	
+	#ifndef POPULACAO_ALEATORIA
 
 	for(i=0;i<TAMANHO_POPULACAO-1;i++) {
 
@@ -93,12 +106,20 @@ void cria_nova_populacao(individuo * pop, individuo * newPop){
 
 		i++;
 	 }
+	 
+	 #else
+	 
+	 cria_populacao_inicial(newPop);	 
+	 
+	 #endif
 }
 
 void substitui_populacao(individuo *pop, individuo * newPop){
 	
-	sort(pop);
-	sort(newPop);
+	#ifndef DESABILITA_PRESSAO_SELECAO
+	  	sort(pop);
+    	sort(newPop);	
+	#endif
 
 	/* Mantém elite */
 	int j = 0, l, i;

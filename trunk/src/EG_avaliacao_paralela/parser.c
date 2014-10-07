@@ -115,7 +115,7 @@ void LeVariaveis(char s[]){
 	idVariavel--;
 }
 
-
+/*
 void database_read_line(char s[], Database *bancoDeDados, int indice){
 
 	char * valorPtr, *saveptr;
@@ -138,7 +138,40 @@ void database_read_line(char s[], Database *bancoDeDados, int indice){
 	#ifdef DEBUG
 		//printf("\n");
 	#endif
+}*/
+
+
+void database_read_line(char s[], Database *bancoDeDados, int i){
+
+	char * valorPtr, *saveptr;
+	short j=0;
+
+	valorPtr = strtok_r(s, "\t", &saveptr);
+
+	while(j <= GetQtdVariaveis()){
+
+        /*
+            Armazenamento por linha e coluna: i*bancoDeDados->numVariaveis + j
+            Armazenamento por coluna e linha (transposta): j*bancoDeDados->numRegistros + i
+        */
+
+        int idx = j * bancoDeDados->numRegistros + i;
+
+		bancoDeDados->registros[idx] = atof(valorPtr);
+
+		valorPtr = strtok_r(NULL, "\t", &saveptr);
+
+		#ifdef DEBUG
+			//printf("%f\t", bancoDeDados->registros[idx]);
+		#endif
+        j++;
+	}
+
+	#ifdef DEBUG
+		//printf("\n");
+	#endif
 }
+
 
 Database *database_read(char nomeArquivo[]){
 
@@ -488,7 +521,7 @@ void GetProgramaInfixo(t_item_programa *programa, char * textoPrograma){
                strcat(aux1,  " ");
                
                if(programa[i].t.v[1] == T_MUL || programa[i].t.v[1] == T_DIV){               
-                   strcat(aux1,  "+(0.0)");
+                  // strcat(aux1,  "+(0.0)");
                }               
                
                strcat(aux1,  ")");

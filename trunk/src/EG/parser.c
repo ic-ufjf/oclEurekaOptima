@@ -437,7 +437,7 @@ void ImprimeInfixa(t_item_programa *programa){
 
    int i=0;
 
-   char aux1[TAMANHO_MAX_PROGRAMA];
+   char aux1[10*TAMANHO_MAX_PROGRAMA];
    char aux2[20];
 
    while(i != FIM_PROGRAMA){

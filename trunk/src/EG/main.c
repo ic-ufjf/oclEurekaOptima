@@ -22,6 +22,8 @@ void print_usage(){
 
 int main(int argc, char * argv[])
 {
+    setenv("CUDA_CACHE_DISABLE", "1", 1);
+
     /* Variáveis */
 	t_regra Gramatica[10];
     individuo * populacao = (individuo*) malloc(sizeof(individuo)*TAMANHO_POPULACAO);

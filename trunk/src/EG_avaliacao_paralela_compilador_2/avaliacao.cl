@@ -1,7 +1,3 @@
-#include "representacao.h"
-#include "utils.cl"
-#define FUNCAO_OBJETIVO(x1) ((x1*x1*x1*x1)+(x1*x1*x1)+(x1*x1)+(x1))
-
 __kernel void avaliacao_gpu(
 			    __global float * fitness,			
          		__global float * dataBase,
@@ -12,18 +8,14 @@ __kernel void avaliacao_gpu(
    	    gid = get_group_id(0),
 	    local_size = get_local_size(0);
 	
-     erros[lid] = 0.0;
-     
- 	 //#define TAMANHO_DATABASE 1
-     
-     //Avaliação paralela entre work-itens do mesmo work-group
-
      #ifndef NUM_POINTS_IS_NOT_DIVISIBLE_BY_LOCAL_SIZE
        for( uint iter = 0; iter < TAMANHO_DATABASE/local_size; ++iter )
        {	
+           int line = iter * local_size + lid;          
      #else
        for( uint iter = 0; iter < ceil( TAMANHO_DATABASE / (float) local_size ); ++iter )
        {
+          
           if( iter * local_size + lid < TAMANHO_DATABASE)
           {
      #endif	
@@ -31,11 +23,6 @@ __kernel void avaliacao_gpu(
            
             float result = funcaoobjetivo(gid, dataBase, line);
             float y = DATABASE(line, NUM_VARIAVEIS-1);
-            
-//            float x = -1.000117;
-//            float y = 0.000234;
-            
-//            float result = ( x / ( ( 1.0+1.0 ) * ( ( ( x  + (x * x + (0.0))) * ( 1.0 - x) ) ) ) );                	        
             erros[lid] += pown(result-y, 2);
 
       #ifdef NUM_POINTS_IS_NOT_DIVISIBLE_BY_LOCAL_SIZE

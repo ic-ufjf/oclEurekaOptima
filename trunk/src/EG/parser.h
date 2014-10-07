@@ -55,7 +55,7 @@ typedef struct{
 
 
 typedef struct NoExpressao{
-    char expr[TAMANHO_MAX_PROGRAMA];
+    char expr[10*TAMANHO_MAX_PROGRAMA];
     struct NoExpressao * proximo;
 } No;
 

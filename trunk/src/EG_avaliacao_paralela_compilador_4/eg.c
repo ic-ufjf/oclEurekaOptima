@@ -5,6 +5,8 @@
 #include "gramatica.h"
 #include "utils.h"
 
+using namespace std;
+
 void imprime_melhor(individuo * pop, t_regra * gramatica){
 	
 	int indice_melhor;
@@ -29,7 +31,7 @@ void imprime_melhor(individuo * pop, t_regra * gramatica){
 	Decodifica(gramatica, fenotipo, programa);
 
 	printf("\nMelhor:\n");
-	ImprimeInfixa(programa);	
+	ImprimeInfixa(programa);
 	printf("\nAptidao: %.10f\n", pop[indice_melhor].aptidao);	
 
 }
@@ -68,25 +70,32 @@ void avaliacao(individuo * pop, t_prog * programas, t_regra * gramatica){
     int i;
     short fenotipo[DIMENSOES_PROBLEMA];    
     
+    long tamanhoProgramas  = 0;
+    
     for(i=0; i < TAMANHO_POPULACAO; i++){
         
        obtem_fenotipo_individuo(&pop[i], fenotipo);
        int program_ctr = Decodifica(gramatica, fenotipo, programas[i].programa);       
        
-       //Programa inválido
-       if(program_ctr==-1){
+        //Programa inválido
+        if(program_ctr==-1){
             programas[i].programa[0].t.v[0]=-1;
-       }
+        }
+        else{
+            tamanhoProgramas+=program_ctr;
+        }
        /*else{
            printf("%d \t", i);
            ImprimeInfixa(programas[i].programa);           
        }*/
     }
+    
+    printf("Tamanho médio:\t%f\n", (float)tamanhoProgramas/(float)TAMANHO_POPULACAO);
             
     avaliacao_paralela(pop, programas);    
 }
 
-using namespace std;
+
 
 void eg(individuo * pop, t_regra *gramatica, Database *dataBase){
 	

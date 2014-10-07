@@ -158,8 +158,6 @@ cl_program* compila_programa(t_prog * pop, int inicio, int fim){
          }
     }
            
-  
-           
     //Caso o programa seja inválido, será selecionado o caso default, que retorna MAXFLOAT
     fitness_string+= "default: return MAXFLOAT; break; \n } \n } \n";
     
@@ -186,7 +184,7 @@ cl_program* compila_programa(t_prog * pop, int inicio, int fim){
  	size_t programSize = (size_t)strlen(kernel_srt);
 
 	//Cria o programa
-	/*program*/ *programa = clCreateProgramWithSource(context,
+	*programa = clCreateProgramWithSource(context,
 							   1,
 							   (const char **)&kernel_srt,
 							   &programSize,
@@ -440,7 +438,7 @@ void avaliacao_paralela(individuo * pop, t_prog * programas){
     //printf("Iniciando a avaliação paralela...\n");    
     //printf("Compilando a população...\n");
     
-    int i,k = 200;
+    int i,k = 1400; //TAMANHO_POPULACAO;
     int iteracoes = ceil((float)TAMANHO_POPULACAO / (float)k);
     
     vector<cl_program> programasCompilados;

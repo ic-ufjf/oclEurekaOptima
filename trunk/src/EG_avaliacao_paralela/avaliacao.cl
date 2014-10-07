@@ -1,5 +1,6 @@
 
-#define DATABASE(x,y) dataBase[x*NUM_VARIAVEIS + y]
+//#define DATABASE(x,y) dataBase[x*NUM_VARIAVEIS + y]
+#define DATABASE(row,column) dataBase[(column)*TAMANHO_DATABASE + row]
 
 #include "representacao.h"
 #include "parser.cl"
@@ -65,8 +66,6 @@ __kernel void avaliacao_gpu(__global t_prog *pop,
 			#endif 
 			float * dataBase,
 			__local float * erros){
-			
-	  
 	
 	int tid = get_global_id(0),
    	    lid = get_local_id(0),
@@ -75,8 +74,6 @@ __kernel void avaliacao_gpu(__global t_prog *pop,
                 
 	__local t_item_programa programa[100]; 	 	
     
-	//#define TAMANHO_DATABASE 1000
-
    	//1 workitem realiza a cópia do programa da memória global -> local
 	if(lid==0){		
 		
@@ -112,7 +109,7 @@ __kernel void avaliacao_gpu(__global t_prog *pop,
               {
     	#endif
     	        float result = Avalia(programa, dataBase, iter * local_size + lid);
-			    erros[lid]  += pown (result,2);
+			    erros[lid]  += pown(result,2);
 		
 		#ifdef NUM_POINTS_IS_NOT_DIVISIBLE_BY_LOCAL_SIZE
 		      }

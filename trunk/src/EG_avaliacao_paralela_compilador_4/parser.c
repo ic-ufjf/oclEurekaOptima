@@ -115,7 +115,6 @@ void LeVariaveis(char s[]){
 	idVariavel--;
 }
 
-
 void database_read_line(char s[], Database *bancoDeDados, int i){
 
 	char * valorPtr, *saveptr;
@@ -545,8 +544,6 @@ void GetProgramaInfixo(t_item_programa *programa, char * textoPrograma){
    }
     
    strcpy(textoPrograma, p->expr);
-
-//   puts(p->expr);
 
    free(p);
 

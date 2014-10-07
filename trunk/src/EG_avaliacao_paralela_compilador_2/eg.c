@@ -63,12 +63,12 @@ void imprime_populacao(individuo * pop, t_regra * gramatica){
 	printf("Inválidos: %d\n", invalidos);
 }	
 
-void avaliacao(individuo * pop, t_prog * programas, t_regra * gramatica){
+void avaliacao(individuo * pop, t_prog * programas, t_regra * gramatica, int geracao){
 
     int i;
-    short fenotipo[DIMENSOES_PROBLEMA];    
+    //short fenotipo[DIMENSOES_PROBLEMA];    
     
-    for(i=0; i < TAMANHO_POPULACAO; i++){
+   /* for(i=0; i < TAMANHO_POPULACAO; i++){
         
        obtem_fenotipo_individuo(&pop[i], fenotipo);
        int program_ctr = Decodifica(gramatica, fenotipo, programas[i].programa);       
@@ -81,15 +81,18 @@ void avaliacao(individuo * pop, t_prog * programas, t_regra * gramatica){
            printf("%d \t", i);
            ImprimeInfixa(programas[i].programa);           
        }*/
-    }
-            
-    avaliacao_paralela(pop, programas);    
+    /*}*/
+
+          
+    avaliacao_paralela(pop, programas, geracao, gramatica);   
+
+    
 }
 
 void eg(individuo * pop, t_regra *gramatica, Database *dataBase){
 	
 	individuo newPop[TAMANHO_POPULACAO];
-	t_prog programas[TAMANHO_POPULACAO];
+	t_prog programas[1];//TAMANHO_POPULACAO];
 
 	int geracao=1;
     
@@ -98,10 +101,10 @@ void eg(individuo * pop, t_regra *gramatica, Database *dataBase){
     avaliacao_init(gramatica, dataBase);    
     
 	cria_populacao_inicial(pop);
-	
-	avaliacao(pop, programas, gramatica);
+
+	avaliacao(pop, programas, gramatica, geracao);
 	sort(pop);
-	
+
 	while(geracao <= NUMERO_DE_GERACOES){
 
 	    printf("-------------------------------------\n");
@@ -109,13 +112,15 @@ void eg(individuo * pop, t_regra *gramatica, Database *dataBase){
 		imprime_melhor(pop, gramatica);
 		        
 		cria_nova_populacao(pop, newPop);
-    	avaliacao(newPop, programas, gramatica);
+    	avaliacao(newPop, programas, gramatica, geracao);
 		substitui_populacao(pop, newPop);
 		
         //imprime_populacao(pop, gramatica);
 
 		geracao++;
-	}	
+	}
+	
+	//imprime_populacao(pop, gramatica);	
 
     opencl_dispose();	
 }

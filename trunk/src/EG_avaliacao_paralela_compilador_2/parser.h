@@ -7,7 +7,7 @@
 #define IS_OPERADOR_ARITMETICO(C)( C == '+' || C == '-' || C == '*' || C == '/')
 
 #define FIM_PROGRAMA -1
-#define TAMANHO_MAX_PROGRAMA 1000
+#define TAMANHO_MAX_PROGRAMA 128
 
 typedef enum { DEFAULT, NAOTERMINAL, OPERADOR_BINARIO, OPERADOR_UNARIO, NUMERO_INTEIRO, NUMERO_COM_PONTO, VARIAVEL} TipoSimbolo;
 
@@ -54,9 +54,8 @@ typedef struct{
 
 }Database;
 
-
 typedef struct NoExpressao{
-    char expr[TAMANHO_MAX_PROGRAMA];
+    char expr[TAMANHO_MAX_PROGRAMA*10];
     struct NoExpressao * proximo;
 } No;
 

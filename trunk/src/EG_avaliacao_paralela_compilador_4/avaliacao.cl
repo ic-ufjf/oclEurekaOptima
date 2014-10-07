@@ -23,8 +23,7 @@ __kernel void avaliacao_gpu(
           uint line = iter * local_size + lid;
           if( line < TAMANHO_DATABASE)
           {
-     #endif	
-                      
+     #endif           
             float result = funcaoobjetivo(offset+gid, dataBase, line);
             float y = DATABASE(line, NUM_VARIAVEIS-1);
 

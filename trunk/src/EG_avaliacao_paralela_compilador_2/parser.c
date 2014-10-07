@@ -115,7 +115,7 @@ void LeVariaveis(char s[]){
 	idVariavel--;
 }
 
-
+/*
 void database_read_line(char s[], Database *bancoDeDados, int indice){
 
 	char * valorPtr, *saveptr;
@@ -133,6 +133,38 @@ void database_read_line(char s[], Database *bancoDeDados, int indice){
 			//printf("%f\t", bancoDeDados->registros[indice*bancoDeDados->numVariaveis + countValor]);
 		#endif
         countValor++;
+	}
+
+	#ifdef DEBUG
+		//printf("\n");
+	#endif
+}*/
+
+
+void database_read_line(char s[], Database *bancoDeDados, int i){
+
+	char * valorPtr, *saveptr;
+	short j=0;
+
+	valorPtr = strtok_r(s, "\t", &saveptr);
+
+	while(j <= GetQtdVariaveis()){
+
+        /*
+            Armazenamento por linha e coluna: i*bancoDeDados->numVariaveis + j
+            Armazenamento por coluna e linha (transposta): j*bancoDeDados->numRegistros + i
+        */
+
+        int idx = j * bancoDeDados->numRegistros + i;
+
+		bancoDeDados->registros[idx] = atof(valorPtr);
+
+		valorPtr = strtok_r(NULL, "\t", &saveptr);
+
+		#ifdef DEBUG
+			//printf("%f\t", bancoDeDados->registros[idx]);
+		#endif
+        j++;
 	}
 
 	#ifdef DEBUG
@@ -431,7 +463,7 @@ void ImprimePosfixa(t_item_programa * programa){
 
 void ImprimeInfixa(t_item_programa *programa){
 
-   char text[TAMANHO_MAX_PROGRAMA];
+   char text[10*TAMANHO_MAX_PROGRAMA];
   
    GetProgramaInfixo(programa, text);
     
@@ -439,14 +471,15 @@ void ImprimeInfixa(t_item_programa *programa){
 
 }
 
+
 void GetProgramaInfixo(t_item_programa *programa, char * textoPrograma){
 
    No * p = NULL;
 
    int i=0;
 
-   char aux1[TAMANHO_MAX_PROGRAMA];
-   char aux2[20];
+   char aux1[TAMANHO_MAX_PROGRAMA*10];
+   char aux2[TAMANHO_MAX_PROGRAMA*10];
 
    while(i != FIM_PROGRAMA){
 
@@ -530,7 +563,6 @@ void GetProgramaInfixo(t_item_programa *programa, char * textoPrograma){
     
    strcpy(textoPrograma, p->expr);
 
-//   puts(p->expr);
-
    free(p);
+
 }

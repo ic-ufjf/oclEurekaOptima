@@ -247,7 +247,5 @@ int Decodifica(t_regra * Gramatica, short * fenotipo, t_item_programa * programa
 		ImprimeIndividuo(programa);
 	#endif
 
-	printf("pc=%d, fc=%d", program_ctr, fenotipo_ctr);
-
 	return program_ctr;
 }

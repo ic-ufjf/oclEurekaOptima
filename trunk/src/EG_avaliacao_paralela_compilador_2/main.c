@@ -25,6 +25,8 @@ int main(int argc, char * argv[])
     #ifdef PROFILING
         desabilita_cache_compilacao();    
     #endif
+    
+    srand(0);
 
     /* Variáveis */
     t_regra Gramatica[10];

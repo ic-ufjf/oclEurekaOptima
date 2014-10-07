@@ -10,8 +10,6 @@
 #include "gramatica.h"
 #include "utils.h"
 
-#define NUM 30000
-
 #ifndef INT64_C
     #define INT64_C(c) (c ## LL)
     #define UINT64_C(c) (c ## ULL)
@@ -87,6 +85,7 @@ cl_context context = NULL;
 cl_device_id * devices = NULL, * subDevices = NULL;
 cl_uint numDevices = 0, numSubDevices=0;
 cl_kernel kernelIteracao, kernelAvaliacao, kernelInicializacao, kernelSubstituicao;
+cl_kernel kernelSelecao, kernelCrossOverMutacao;
 cl_program program;
 
 size_t globalWorkSizeIteracao[1],localWorkSizeIteracao[1];
@@ -108,11 +107,14 @@ int seed;
 #ifdef PROFILING
 
 float tempoTotalProcessamento=0;
+float tempoInicializacaoPopulacao=0;
 float tempoTotalAvaliacao=0;
 float tempoTotalSubstituicao=0;
 float tempoTotalAG=0;
 float tempoTotalTransfMemoria=0;
 float tempoTransfMemoriaInicial=0;
+float tempoTotalSelecao=0;
+float tempoTotalCrossOverMutacao=0;
 
 #endif
 
@@ -401,7 +403,7 @@ void opencl_init(int cores, int kernel, Database *dataBase){
         bufferCounter = clCreateBuffer(context, CL_MEM_READ_WRITE , TAMANHO_POPULACAO * sizeof(r123array4x32) * 4, NULL, &status);
     }
     else{
-        bufferCounter = clCreateBuffer(context, CL_MEM_READ_WRITE , TAMANHO_POPULACAO * sizeof(r123array4x32), NULL, &status);
+        bufferCounter = clCreateBuffer(context, CL_MEM_READ_WRITE , TAMANHO_POPULACAO * TAMANHO_INDIVIDUO * sizeof(r123array4x32), NULL, &status);
     }
 
     check_cl(status, "Erro ao criar buffer de memoria bufferCounter");
@@ -410,7 +412,7 @@ void opencl_init(int cores, int kernel, Database *dataBase){
 	// 7: Criação do kernel
 	//---------------------------------------------
 
-    kernelInicializacao = clCreateKernel(program, "inicializa_populacao", &status);
+    kernelInicializacao = clCreateKernel(program, "inicializa_populacao2", &status);
 
     check_cl(status, "Erro ao criar kernel kernelInicializacao");
 
@@ -501,6 +503,13 @@ void opencl_init(int cores, int kernel, Database *dataBase){
 
     kernelSubstituicao = clCreateKernel(program, "substituicao", &status);
     check_cl(status, "Erro ao criar kernel 'substituicao'");
+    
+    kernelSelecao = clCreateKernel(program, "selecao", &status);
+    check_cl(status, "Erro ao criar kernel 'selecao'");
+    
+    kernelCrossOverMutacao = clCreateKernel(program, "crossOverEMutacao", &status);
+    check_cl(status, "Erro ao criar kernel 'crossOverEMutacao'");    
+    
 }
 
 void exibe_melhor(individuo * melhor, t_regra * gramatica){
@@ -530,11 +539,6 @@ void exibe_melhor(individuo * melhor, t_regra * gramatica){
     obtem_fenotipo_individuo2(melhor, fenotipo);
 
     Decodifica(gramatica, fenotipo, programa);
-
-    printf("\n");
-    ImprimePosfixa(programa);
-
-    printf("\nEm ordem infixa:");
 
     ImprimeInfixa(programa);
     printf("\n");
@@ -637,14 +641,15 @@ void inicializa_populacao(individuo * pop){
 							&seed);
     check_cl(status, "Erro ao adicionar 1 argumento ao kernel");
 
-   size_t globalWorkSize[1] = {TAMANHO_POPULACAO};
+    size_t globalWorkSize[1] = {TAMANHO_POPULACAO*TAMANHO_INDIVIDUO};
+    size_t localWorkSize[1]  = {TAMANHO_INDIVIDUO};
 
     status = clEnqueueNDRangeKernel(cmdQueue,
 									kernelInicializacao,
 									1,
                                     NULL,
 									globalWorkSize,
-									NULL,
+									localWorkSize,
 									0,
 									NULL,
 									&eventoInicializacao);
@@ -655,9 +660,9 @@ void inicializa_populacao(individuo * pop){
 
 	#ifdef PROFILING
 
-      float tempoInicializacao = getTempoDecorrido(eventoInicializacao) / 1000000000.0 ;
-      tempoTotal += tempoInicializacao;
-      tempoTotalProcessamento += tempoInicializacao;
+      tempoInicializacaoPopulacao = getTempoDecorrido(eventoInicializacao) / 1000000000.0 ;
+      tempoTotal += tempoInicializacaoPopulacao;
+      tempoTotalProcessamento += tempoInicializacaoPopulacao;
 
     #endif
 }
@@ -675,6 +680,7 @@ void avaliacao(individuo *pop, t_regra * gramatica, cl_mem bufferPop){
     status = clSetKernelArg(kernelAvaliacao,  2, sizeof(bufferDatabase),  &bufferDatabase);
     check_cl(status, "Erro ao adicionar argumento ao kernel");
 
+    
     if(!CPU)
     {
         size_t localWorkSize[1];
@@ -739,10 +745,12 @@ void avaliacao(individuo *pop, t_regra * gramatica, cl_mem bufferPop){
         tempoTotalProcessamento += tempoAvaliacao;
 
      #endif
+
+     
 }
 
 void substituicao(individuo *pop, t_regra * gramatica){
-
+    
     cl_event eventoSubstituicao;
 
     status = clSetKernelArg(kernelSubstituicao,  0, sizeof(bufferA), &bufferA);
@@ -755,6 +763,7 @@ void substituicao(individuo *pop, t_regra * gramatica){
     check_cl(status, "Erro ao adicionar argumento 2 ao kernel");
 
     size_t globalWorkSize[1] = {TAMANHO_POPULACAO};
+    size_t localWorkSize[1] = {1};
 
     clEnqueueNDRangeKernel(cmdQueue,
                                kernelSubstituicao,
@@ -769,8 +778,8 @@ void substituicao(individuo *pop, t_regra * gramatica){
     check_cl(status, "Erro ao enfileirar o kernel para execucao");
 
     /*
-    Troca os buffers A e C, de forma que a população gerada na etapa de substituição
-    passe a ser a população atual
+        Troca os buffers A e C, de forma que a população gerada na etapa de substituição
+        passe a ser a população atual
     */
 
     cl_mem aux = bufferA;
@@ -781,10 +790,9 @@ void substituicao(individuo *pop, t_regra * gramatica){
 
     size_t offset = {sizeof(individuo) * ELITE};
 
-    /*clEnqueueReadBuffer(cmdQueue, bufferA, CL_TRUE, 0,
+    clEnqueueReadBuffer(cmdQueue, bufferA, CL_TRUE, 0,
                         datasize, pop,
-                        0, NULL, &event3);
-    */
+                        0, NULL, &event3);    
 
     cl_event eventoTroca1, eventoTroca2;
 
@@ -808,13 +816,15 @@ void substituicao(individuo *pop, t_regra * gramatica){
     }
     else{
        exibe_melhor(melhor2, gramatica);
-    }
+    }   
+    
 
     #ifdef PROFILING
 
     float tempoSubs = getTempoDecorrido(eventoSubstituicao) / 1000000000.0 ;
     //tempoTotal += tempoSubs;
     tempoTotalProcessamento += tempoSubs;
+    tempoTotalSubstituicao += tempoSubs;
 
     //printf("Tempo de substituicao: \t %.10f\n", tempoSubs);
 
@@ -823,7 +833,169 @@ void substituicao(individuo *pop, t_regra * gramatica){
 
     tempoTotalTransfMemoria+=troca1+troca2;
 
-   #endif
+    #endif
+}
+
+
+
+void iteracao2(individuo * populacao, t_regra * gramatica){
+
+    cl_event eventoSelecao, eventoCrossOver;
+
+
+    status = clSetKernelArg(kernelSelecao,
+                            0,
+                            sizeof(bufferA),
+                            &bufferA);
+    check_cl(status, "Erro ao adicionar argumento ao kernel");
+
+    status = clSetKernelArg(kernelSelecao,
+                            1,
+                            sizeof(geracao),
+                            &geracao);
+    check_cl(status, "Erro ao adicionar argumento ao kernel");
+    
+    
+    status = clSetKernelArg(kernelSelecao,
+                            2,
+                            sizeof(seed),
+                            &seed);
+    check_cl(status, "Erro ao adicionar argumento ao kernel");
+
+   
+
+    status =  clSetKernelArg(kernelSelecao,
+                            3,
+                            sizeof(bufferB),
+                            &bufferB);
+    check_cl(status, "Erro ao adicionar argumento ao kernel");
+   
+
+    status = clSetKernelArg(kernelSelecao,
+                            4,
+                            sizeof(bufferCounter),
+                            &bufferCounter);
+    check_cl(status, "Erro ao adicionar argumento ao kernel");    
+
+    
+    localWorkSizeIteracao[0]  = TAMANHO_INDIVIDUO/2;
+    globalWorkSizeIteracao[0] = localWorkSizeIteracao[0]*TAMANHO_POPULACAO;
+    
+
+    status = clEnqueueNDRangeKernel(cmdQueue,
+                                kernelSelecao,
+                                1,
+                                NULL,
+                                globalWorkSizeIteracao,
+                                localWorkSizeIteracao,
+                                0,
+                                NULL,
+                                &eventoSelecao);
+    
+
+    check_cl(status, "Erro ao enfileirar o kernel para execucao");
+
+    /*status = clEnqueueReadBuffer(cmdQueue, bufferB, CL_TRUE, 0,
+						 datasize, populacao, 0, NULL, &event3);*/
+
+    check_cl(status, "Erro ao enfileirar leitura de buffer de memoria");
+
+    //Espera o término da fila de execução
+    clFinish(cmdQueue);
+    
+   /* int i;
+    
+    for(i=0;i<TAMANHO_POPULACAO;i++){
+        int j;
+        for(j=0;j<TAMANHO_INDIVIDUO/2;j++){
+            cout <<  populacao[i].genotipo[j] << " ";
+        }
+        cout << endl;        
+    } */
+
+    size_t localWorkSizeCrossOver[1]  = {TAMANHO_INDIVIDUO};
+    size_t globalWorkSizeCrossOver[1] = {(TAMANHO_POPULACAO*TAMANHO_INDIVIDUO)/2};    
+    
+
+    status = clSetKernelArg(kernelCrossOverMutacao,
+                            0,
+                            sizeof(bufferA),
+                            &bufferA);
+    check_cl(status, "Erro ao adicionar argumento ao kernel"); 
+    
+    status = clSetKernelArg(kernelCrossOverMutacao,
+                            1,
+                            sizeof(geracao),
+                            &geracao);
+    check_cl(status, "Erro ao adicionar argumento ao kernel");    
+    
+    
+    status = clSetKernelArg(kernelCrossOverMutacao,
+                            2,
+                            sizeof(seed),
+                            &seed);
+    check_cl(status, "Erro ao adicionar argumento ao kernel");
+
+    status =  clSetKernelArg(kernelCrossOverMutacao,
+                            3,
+                            sizeof(bufferB),
+                            &bufferB);
+    check_cl(status, "Erro ao adicionar argumento ao kernel");
+
+    
+    status = clSetKernelArg(kernelCrossOverMutacao,
+                            4,
+                            sizeof(bufferCounter),
+                            &bufferCounter);
+    check_cl(status, "Erro ao adicionar argumento ao kernel");
+    
+    
+    status = clEnqueueNDRangeKernel(cmdQueue,
+                                kernelCrossOverMutacao,
+                                1,
+                                NULL,
+                                globalWorkSizeCrossOver,
+                                localWorkSizeCrossOver,
+                                0,
+                                NULL,
+                                &eventoCrossOver);
+    
+    status = clEnqueueReadBuffer(cmdQueue, bufferB, CL_FALSE, 0,
+						 datasize, populacao, 0, NULL, &event3);
+    check_cl(status, "Erro ao enfileirar leitura de buffer de memoria");
+    
+    
+    //Espera o término da fila de execução
+    clFinish(cmdQueue);
+        
+    /*  int i;
+    for(i=0;i<TAMANHO_POPULACAO;i++){
+        int j;
+        for(j=0;j<TAMANHO_INDIVIDUO;j++){
+            cout << populacao[i].genotipo[j] << " ";           
+        }
+        cout << endl;        
+    } */  
+    
+
+    #ifdef PROFILING
+
+    float kernelSelecao = getTempoDecorrido(eventoSelecao) / 1000000000.0 ;
+    float tempoCrossOver = getTempoDecorrido(eventoCrossOver) / 1000000000.0 ;
+    tempoTotal += kernelSelecao+tempoCrossOver;
+    tempoTotalProcessamento += kernelSelecao+tempoCrossOver;
+    tempoTotalAG+=kernelSelecao+tempoCrossOver;
+    tempoTotalSelecao +=kernelSelecao;
+    tempoTotalCrossOverMutacao+=tempoCrossOver;
+
+    #endif
+        
+        
+    //Avalia a nova geração
+    avaliacao(populacao, gramatica, bufferB);  
+
+    //Política de substituição dos indivíduos da geração
+    substituicao(populacao, gramatica);
 }
 
 void iteracao(individuo * populacao, t_regra * gramatica){
@@ -962,15 +1134,17 @@ void eg_paralela(individuo * pop, t_regra *gramatica, Database *dataBase, int pc
 
    #ifdef PROFILING
 
-      //printf("Tempos\nAvaliação:\tProcessamento\tTransf memoria\tTransf memoria inicial\tProc+Memoria\n");
+      printf("Inicializacao\tAG\tSubstituição\tAvaliação\tProcessamento Total\tTransf memoria\tTransf memoria inicial\tProc+Memoria\n");
 
+      printf("%.10f\t", tempoInicializacaoPopulacao);
+      printf("%.10f\t", tempoTotalAG);      
+      printf("%.10f\t", tempoTotalSubstituicao);
       printf("%.10f\t", tempoTotalAvaliacao);
       printf("%.10f\t", tempoTotalProcessamento);
       printf("%.10f\t", tempoTotalTransfMemoria);
       printf("%.10f\t", tempoTransfMemoriaInicial);
       printf("%.10f\n", tempoTotalProcessamento + tempoTotalTransfMemoria);
-      //printf("kernel substituicao: \t %.10f\n", tempoTotalSubstituicao);
-      //printf("kernel ag: \t %.10f\n", tempoTotalAG);
+      
 
    #endif
 }

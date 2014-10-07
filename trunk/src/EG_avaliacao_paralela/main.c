@@ -2,9 +2,7 @@
 #include <stdio.h>
 #include <time.h>
 
-
 #include "ag.h"
-//#include "eg_opencl.h"
 #include "eg.h"
 
 //getopt
@@ -25,6 +23,8 @@ int main(int argc, char * argv[])
     #ifdef PROFILING
         desabilita_cache_compilacao();    
     #endif
+    
+    srand(0);
 
     /* Variáveis */
     t_regra Gramatica[10];
@@ -106,7 +106,7 @@ int main(int argc, char * argv[])
 
     double fim = getTime()-inicio;
     
-    printf("%lf\n", fim);    
+    printf("%lf\n", fim);
     
     free(dataBase->registros);
     free(dataBase);

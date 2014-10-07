@@ -14,7 +14,7 @@ int torneio(__global individuo *populacao, int indice_participante, cburng4x32 *
 
     while(i < TAMANHO_TORNEIO) {
 	
- 	aleatorio = rand(rng) % (TAMANHO_POPULACAO);
+ 	    aleatorio = rand(rng) % (TAMANHO_POPULACAO);
 	
         if(populacao[aleatorio].aptidao > populacao[vencedor].aptidao){
             vencedor = aleatorio;
@@ -196,7 +196,7 @@ __kernel void inicializa_populacao(__global individuo *pop, const int seed){
     int tid = get_global_id(0),
         lid = get_local_id(0);
 
-    int lseed = seed+tid;    
+    int lseed = seed+tid;
 
     //Inicializa RNG
     cburng4x32 rng;
@@ -210,6 +210,202 @@ __kernel void inicializa_populacao(__global individuo *pop, const int seed){
     }
 }
 
+__kernel void inicializa_populacao2(__global individuo *pop, const int seed){  
+    
+    int tid = get_global_id(0),
+        lid = get_local_id(0),
+        gid = get_group_id(0);
+
+    int lseed = seed+tid;
+
+    //Inicializa RNG
+    cburng4x32 rng;
+    cburng4x32_init(&rng);
+    rng.key.v[0] = lseed;
+    rng.ctr.v[1] = 0;
+
+    /*
+        Vantagem: granularidade mais fina e acesso coalescido à memória global.
+    */    
+    pop[gid].genotipo[lid] = rand(&rng) % 2;
+}
+
+
+__kernel void selecao(__global individuo *pop, 
+			const int geracao, 
+			const int fixed_seed, 
+			__global individuo *newPop,
+			__global struct r123array4x32 *counter){
+									
+			
+    int tid  = get_global_id(0)*2, 
+        lid  = get_local_id(0),
+        gid  = get_group_id(0),
+	    seed = fixed_seed + tid;
+
+    //Inicializa RNG  
+    cburng4x32 rng;
+    cburng4x32_init(&rng);
+    rng.key.v[0] = seed;
+    
+    if(geracao <= 1){
+    	 rng.ctr.v[0] = rng.ctr.v[1] = 0;
+    }
+    else{
+    	rng.ctr = counter[tid];
+    } 
+ 
+    /*
+        Seleção
+    */
+    
+    //individuo pais[2];
+    
+    /* DOCUMENTAR ALTERAÇÃO NO TORNEIO E NA SELEÇÃO (speedup de 1.29) */
+    /* REVER GRANULARIDADE */
+    
+    __local int indicePais[2];    
+    __local int melhores1[TAMANHO_TORNEIO];
+    __local float aptidoes1[TAMANHO_TORNEIO];
+    __local int melhores2[TAMANHO_TORNEIO];
+    __local float aptidoes2[TAMANHO_TORNEIO];
+    
+    if(lid < TAMANHO_TORNEIO){
+    
+        int aleatorio = 0;
+        
+        aleatorio = rand(&rng) % TAMANHO_POPULACAO;
+	    
+	    melhores1[lid] = aleatorio;
+        aptidoes1[lid] = pop[aleatorio].aptidao;
+        
+        aleatorio = rand(&rng) % TAMANHO_POPULACAO;
+        
+        melhores2[lid] = aleatorio;
+        aptidoes2[lid] = pop[aleatorio].aptidao;     
+    }    
+
+    barrier(CLK_LOCAL_MEM_FENCE);  
+    
+    if(lid == 0){      
+      
+        int idmelhor1=0, idmelhor2=0;
+        
+        for(int i=1; i < TAMANHO_TORNEIO; i++){
+        
+            if(aptidoes1[i] > aptidoes1[idmelhor1]){
+                idmelhor1 = i;
+            }
+            
+            if(aptidoes2[i] > aptidoes2[idmelhor2]){
+                idmelhor2 = i;
+            }
+        }  
+        
+        indicePais[0] = melhores1[idmelhor1];
+        indicePais[1] = melhores2[idmelhor2];
+    }   
+    
+    /*if(lid == 0){        
+        indicePais[0] = torneio(pop, gid, &rng);
+        indicePais[1] = torneio(pop, gid+1, &rng);        
+    }*/
+    
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+    //pais[0] = pop[torneio(pop, tid, &rng)];
+    //pais[1] = pop[torneio(pop, tid+1, &rng)];
+    
+    newPop[gid].genotipo[2*lid]   = pop[indicePais[0]].genotipo[2*lid];
+    newPop[gid].genotipo[2*lid+1] = pop[indicePais[1]].genotipo[2*lid+1];        
+			
+    //newPop[tid]   = pais[0];
+    //newPop[tid+1] = pais[1];
+    
+    //if(lid==0)
+    counter[tid] = rng.ctr;
+}
+
+
+__kernel void crossOverEMutacao(__global individuo *pop, 
+			const int geracao, 
+			const int fixed_seed, 
+			__global individuo *newPop,
+			__global struct r123array4x32 *counter)
+{
+     int tid  = get_global_id(0)*2, 
+        lid   = get_local_id(0),
+        gid   = get_group_id(0),
+	    seed  = fixed_seed + tid;
+
+    //Inicializa RNG  
+    cburng4x32 rng;
+    cburng4x32_init(&rng);
+    rng.key.v[0] = seed;
+    
+    if(geracao <= 1){
+    	 rng.ctr.v[0] = rng.ctr.v[1] = 0;
+    }
+    else{
+    	rng.ctr = counter[tid];
+    }
+    
+    /* Cada grupo de trabalho realiza o crossover entre os elementos pop[2*gid]
+     e pop[2*gid+1];
+     Cada item de trabalho é responsável por um bit do cromossomo;
+     A decisão de realizar o xover e o ponto de corte são tomadas pelo item 0. 
+    */
+
+    __local int crossOver;
+    __local int ponto;
+    
+    if(lid == 0){
+        //Gera um número entre 0 e 1
+        float aleatorio = u_rand(&rng);
+        if(aleatorio <= (float)TAXA_DE_RECOMBINACAO){
+            crossOver = 1;            
+            ponto = rand(&rng) % TAMANHO_INDIVIDUO;            
+        }        
+        else{
+            crossOver = 0;
+        }
+    }    
+    
+    barrier(CLK_LOCAL_MEM_FENCE);
+    
+    int bitFilho1, bitFilho2;    
+    
+    if(crossOver){
+    
+        if(lid > ponto){           
+            bitFilho1 = newPop[2*gid+1].genotipo[lid];
+            bitFilho2 = newPop[2*gid].genotipo[lid];
+        }
+        else{
+            bitFilho1 = newPop[2*gid].genotipo[lid];
+            bitFilho2 = newPop[2*gid+1].genotipo[lid];
+        }
+    } 
+    else{
+        bitFilho1 = newPop[2*gid].genotipo[lid];
+        bitFilho2 = newPop[2*gid+1].genotipo[lid];
+    } 
+        
+    /* MUTAÇÃO */
+   
+    if(u_rand(&rng) <= (float)TAXA_DE_MUTACAO){
+        bitFilho1 = 1 - bitFilho1;
+    }
+    
+    if(u_rand(&rng) <= (float)TAXA_DE_MUTACAO){
+        bitFilho2 = 1 - bitFilho2;        
+    }
+    
+    newPop[2*gid].genotipo[lid]   = bitFilho1;
+    newPop[2*gid+1].genotipo[lid] = bitFilho2;
+    
+    counter[tid] = rng.ctr;
+}
 
 /*
  KERNEL 0:
@@ -240,7 +436,7 @@ __kernel void iteracao_2_por_work_item(__global individuo *pop,
     } 
  
     /*
-	Seleção
+	    Seleção
     */
 
     individuo pais[2], filhos[2]; 	
@@ -261,15 +457,6 @@ __kernel void iteracao_2_por_work_item(__global individuo *pop,
     mutacao(&filhos[0], TAXA_DE_MUTACAO, &rng);
     mutacao(&filhos[1], TAXA_DE_MUTACAO, &rng);
 	
-    /*
-       Avaliação
-    */
-
-    //__private short fenotipo[DIMENSOES_PROBLEMA];
-
-    //filhos[0].aptidao = funcao_de_avaliacao(filhos[0], fenotipo);
-    //filhos[1].aptidao = funcao_de_avaliacao(filhos[1], fenotipo);    		
-
     newPop[tid]   = filhos[0];
     newPop[tid+1] = filhos[1]; 
 
@@ -322,7 +509,7 @@ __kernel void iteracao_2_por_work_group(__global individuo *pop,
       
         pontoCrossOver = rand(&rng)  % (TAMANHO_INDIVIDUO);
 
-	recombinar = aleatorio < TAXA_DE_RECOMBINACAO;	
+	    recombinar = aleatorio < TAXA_DE_RECOMBINACAO;	
     }       
 
     barrier(CLK_LOCAL_MEM_FENCE);    
