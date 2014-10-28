@@ -2,19 +2,19 @@
 #define PARAMETROS_AG_H_INCLUDED
 
 #ifndef NUMERO_DE_GERACOES
-    #define NUMERO_DE_GERACOES 1500
+    #define NUMERO_DE_GERACOES 1000
 #endif
 
 #ifndef DIMENSOES_PROBLEMA
-    #define DIMENSOES_PROBLEMA 1
+    #define DIMENSOES_PROBLEMA 128
 #endif
 
 #ifndef TAMANHO_POPULACAO
-    #define TAMANHO_POPULACAO 100
+    #define TAMANHO_POPULACAO 64
 #endif
 
 #ifndef TAMANHO_VALOR
-    #define TAMANHO_VALOR 10
+    #define TAMANHO_VALOR 8
 #endif
 
 //#define TAMANHO_INDIVIDUO DIMENSOES_PROBLEMA*TAMANHO_VALOR
@@ -23,20 +23,19 @@
 #define CRITERIO_DE_PARADA  n >= NUMERO_DE_GERACOES
 
 #ifndef TAXA_DE_MUTACAO
-    #define TAXA_DE_MUTACAO 0.001
+    #define TAXA_DE_MUTACAO 0.05
 #endif
 
 #ifndef TAXA_DE_RECOMBINACAO
-    #define TAXA_DE_RECOMBINACAO 0.7
+    #define TAXA_DE_RECOMBINACAO 0.9
 #endif
 
 #ifndef TAMANHO_TORNEIO
-    #define TAMANHO_TORNEIO 5
+    #define TAMANHO_TORNEIO 3
 #endif
 
 #ifndef ELITE
     #define ELITE 1
 #endif
-
 
 #endif // PARAMETROS_AG_H_INCLUDED

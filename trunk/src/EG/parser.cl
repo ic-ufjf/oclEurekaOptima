@@ -25,13 +25,13 @@ typedef struct{
 
 typedef struct{
 	int num_simbolos;
-	type_simbolo simbolos[50];
+	type_simbolo simbolos[5];
 } t_escolha;
 
 typedef struct{
 	type_simbolo simbolo;
 	int num_escolhas;
-	t_escolha escolhas[20];
+	t_escolha escolhas[5];
 } t_regra;
 
 typedef struct{
@@ -117,7 +117,7 @@ float Avalia(__local t_item_programa programa[],
    }
 
    //Erro absoluto
-   return fabs( pilha[topo] - DATABASE(linha, NUM_VARIAVEIS-1));
+   return ( pilha[topo] - DATABASE(linha, NUM_VARIAVEIS-1));
 }
 
 

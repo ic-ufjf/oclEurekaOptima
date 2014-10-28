@@ -6,7 +6,6 @@
 #include <math.h>
 #include "utils.h"
 
-
 t_elemento naoTerminais[20];
 
 t_elemento operadores_binarios[20] = {
@@ -83,8 +82,6 @@ short GetQtdVariaveis(){
 	return idVariavel+1;
 }
 
-
-
 void LeVariaveis(char s[]){
 
 	char * pntVariaveis, * saveptr;
@@ -118,38 +115,29 @@ void LeVariaveis(char s[]){
 }
 
 
-
-void database_read_line(char s[], Database *bancoDeDados, int i){
+void database_read_line(char s[], Database *bancoDeDados, int indice){
 
 	char * valorPtr, *saveptr;
-	short j=0;
+	short countValor=0;
 
 	valorPtr = strtok_r(s, "\t", &saveptr);
 
-	while(j <= GetQtdVariaveis()){
+	while(countValor <= GetQtdVariaveis()){
 
-        /*
-            Armazenamento por linha e coluna: i*bancoDeDados->numVariaveis + j
-            Armazenamento por coluna e linha (transposta): j*bancoDeDados->numRegistros + i
-        */
-
-        int idx = j*bancoDeDados->numRegistros + i;
-
-		bancoDeDados->registros[idx] = atof(valorPtr);
+		bancoDeDados->registros[indice*bancoDeDados->numVariaveis + countValor] = atof(valorPtr);
 
 		valorPtr = strtok_r(NULL, "\t", &saveptr);
 
 		#ifdef DEBUG
-			//printf("%f\t", bancoDeDados->registros[idx]);
+			//printf("%f\t", bancoDeDados->registros[indice*bancoDeDados->numVariaveis + countValor]);
 		#endif
-        j++;
+        countValor++;
 	}
 
 	#ifdef DEBUG
 		//printf("\n");
 	#endif
 }
-
 
 Database *database_read(char nomeArquivo[]){
 
@@ -213,6 +201,8 @@ void GetNomeElemento(type_simbolo *s, char *nome){
 
 		case NUMERO_COM_PONTO:
 			sprintf(nome, "%f", s->v[1]);
+            strcat(nome, "f");
+            //printf("número com ponto flutuante: %s\n",nome);
 			break;
 
 		default:
@@ -235,6 +225,7 @@ char * GetSimboloNT(char * origem){
         }
 
         token[i] = '\0';
+
         return token;
 	}
 
@@ -342,7 +333,8 @@ float OperaBinario(float a, float b, float x){
 	if(x == T_MUL)
 		return a*b;
 	if(x == T_DIV){
-		if(b!=0) return a/b;
+		if(b!=0)
+            return a/b;
 		else return 1;
 	}
 
@@ -364,46 +356,47 @@ float OperaUnario(float a, float x){
 	return 0;
 }
 
-float Avalia(t_item_programa programa[], float registro[]) {
+#define DATABASE(y) (dataBase[linha*NUM_VARIAVEIS + y])
+
+float Avalia(t_item_programa programa[], float dataBase[], int linha) {
 
    float pilha[TAMANHO_MAX_PROGRAMA];
    int topo   = -1;
    float erro = 0;
 
-   short indiceY = GetQtdVariaveis();
+   short NUM_VARIAVEIS = GetQtdVariaveis()+1;
 
-   int i=0;
+   int idx=0;
 
-   while(i != FIM_PROGRAMA){
+   while(idx != FIM_PROGRAMA){
 
-	   switch((int)programa[i].t.v[0])
+       switch((int)programa[idx].t.v[0])
 	   {
 	   	   case NUMERO_INTEIRO:
 	   		   //printf(" (num) ");
-	   		   pilha[++topo] = programa[i].t.v[1];
+	   		   pilha[++topo] = programa[idx].t.v[1];
 	   		   break;
 	   	   case NUMERO_COM_PONTO:
 	   		   //printf(" (num) ");
-	   		   pilha[++topo] = programa[i].t.v[1];
+	   		   pilha[++topo] = programa[idx].t.v[1];
 			   break;
 	   	   case VARIAVEL:
 	   		   //printf(" (Variável) ");
-	   		   pilha[++topo] = registro[(int)programa[i].t.v[1]];
+	   		   pilha[++topo] = DATABASE((int)programa[idx].t.v[1]);
 	   		   break;
 	   	   case OPERADOR_BINARIO:
 	   		   //printf(" (op) ");
-	   		   pilha[topo-1] = OperaBinario(pilha[topo-1], pilha[topo], programa[i].t.v[1]);
+	   		   pilha[topo-1] = OperaBinario(pilha[topo-1], pilha[topo], programa[idx].t.v[1]);
 	   		   topo--;
 	   		   break;
 	   	   case OPERADOR_UNARIO:
 			   //printf(" (op unario) ");
-			   pilha[topo] = OperaUnario(pilha[topo], programa[i].t.v[1]);
+			   pilha[topo] = OperaUnario(pilha[topo], programa[idx].t.v[1]);
 			   break;
 	   }
 
-	   //printf("Topo (%d): %f\n",topo, pilha[topo]);
-
-	   i = programa[i].proximo;
+	   // printf("Topo (%d): %f\n",topo, pilha[topo]);
+	   idx = programa[idx].proximo;
    }
 
    #ifdef DEBUG
@@ -411,7 +404,7 @@ float Avalia(t_item_programa programa[], float registro[]) {
    #endif
 
    //Erro absoluto
-   return fabs( pilha[topo] - registro[indiceY] );
+   return pilha[topo] - DATABASE(NUM_VARIAVEIS-1);
 }
 
 No * EmpilhaExpressao(No * pilha, char * expressao){
@@ -422,7 +415,6 @@ No * EmpilhaExpressao(No * pilha, char * expressao){
 
     return novo;
 }
-
 
 void ImprimePosfixa(t_item_programa * programa){
 
@@ -442,11 +434,21 @@ void ImprimePosfixa(t_item_programa * programa){
 
 void ImprimeInfixa(t_item_programa *programa){
 
+   char text[TAMANHO_MAX_PROGRAMA];
+
+   GetProgramaInfixo(programa, text);
+
+   puts(text);
+
+}
+
+void GetProgramaInfixo(t_item_programa *programa, char * textoPrograma){
+
    No * p = NULL;
 
    int i=0;
 
-   char aux1[10*TAMANHO_MAX_PROGRAMA];
+   char aux1[TAMANHO_MAX_PROGRAMA];
    char aux2[20];
 
    while(i != FIM_PROGRAMA){
@@ -454,7 +456,6 @@ void ImprimeInfixa(t_item_programa *programa){
 	   switch((int)programa[i].t.v[0])
 	   {
 	   	   case NUMERO_INTEIRO:
-	   		   //pilha[++topo] = programa[i].t.v[1];
 
 	   		   GetNomeElemento(&programa[i].t, aux2);
 	   		   p = EmpilhaExpressao(p, aux2);
@@ -462,14 +463,12 @@ void ImprimeInfixa(t_item_programa *programa){
 	   		   break;
 
 	   	   case NUMERO_COM_PONTO:
-	   		   //pilha[++topo] = programa[i].t.v[1];
 
                GetNomeElemento(&programa[i].t, aux2);
 	   		   p = EmpilhaExpressao(p, aux2);
 
 			   break;
 	   	   case VARIAVEL:
-	   		   //pilha[++topo] = 1;
 
                GetNomeElemento(&programa[i].t, aux2);
 	   		   p = EmpilhaExpressao(p, aux2);
@@ -478,8 +477,7 @@ void ImprimeInfixa(t_item_programa *programa){
 
 	   	   case OPERADOR_BINARIO:
 
-	   		   //pilha[topo-1] = OperaBinario(pilha[topo-1], pilha[topo], programa[i].t.v[1]);
-
+               //strcpy(aux1, "((float)( ");
                strcpy(aux1, "( ");
 	   		   strcat(aux1,  p->proximo->expr);
 
@@ -491,6 +489,11 @@ void ImprimeInfixa(t_item_programa *programa){
                strcat(aux1,  " ");
                strcat(aux1,  p->expr);
                strcat(aux1,  " ");
+
+               /*if(programa[i].t.v[1] == T_MUL || programa[i].t.v[1] == T_DIV){
+                   strcat(aux1,  "+(0.0)");
+               }*/
+
                strcat(aux1,  ")");
 
                No * aux;
@@ -505,12 +508,11 @@ void ImprimeInfixa(t_item_programa *programa){
 
 	   	   case OPERADOR_UNARIO:
 
-			   //pilha[topo] = OperaUnario(pilha[topo], programa[i].t.v[1]);
-
 			   strcpy(aux1, "");
 
 			   GetNomeElemento(&programa[i].t, aux1);
 
+              // strcat(aux1, "((float)(");
                strcat(aux1, "(");
                strcat(aux1,  p->expr);
                strcat(aux1, ")");
@@ -521,11 +523,11 @@ void ImprimeInfixa(t_item_programa *programa){
 	   }
 
 	   i = programa[i].proximo;
-
-       //puts(p->expr);
    }
 
-   puts(p->expr);
+   strcpy(textoPrograma, p->expr);
+
+//   puts(p->expr);
 
    free(p);
 }

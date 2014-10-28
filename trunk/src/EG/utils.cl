@@ -7,12 +7,28 @@ float u_rand(cburng4x32 *rng){
     return u01_closed_closed_32_24(cburng4x32_rand(rng));
 }
 
+int rand2(int *seed){
+
+    int s  = *seed;
+
+    s = abs((s * 16807) % (int)(pown(2.0, 31)-1));
+    
+    *seed = s;
+        
+    return s;
+}
+
+float u_rand2(int * seed){
+    return (float)rand2(seed) / pown(2.0, 31);
+}
 
 int rand(cburng4x32 *rng){
     return abs((int)cburng4x32_rand(rng));
 }
 
-int binario_para_decimal(short binario[], int inicio, int fim){
+
+
+int binario_para_decimal(__local short binario[], int inicio, int fim){
 
     int i,n=1; int valorNumerico=0;
 
@@ -23,7 +39,7 @@ int binario_para_decimal(short binario[], int inicio, int fim){
     return valorNumerico;
 }
 
-void gray_para_binario(short gray[], short binarios[]){
+void gray_para_binario(short gray[], __local short binarios[]){
 
         int i,j;
 

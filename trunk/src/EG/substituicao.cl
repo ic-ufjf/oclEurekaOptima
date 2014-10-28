@@ -1,7 +1,7 @@
 typedef individuo data_t;
 #define getKey(a) (a.aptidao)
 #define getValue(a) (0)
-
+/*
 __kernel void RankSort(__global const data_t * in,__global data_t * out)
 {
   int i = get_global_id(0); 
@@ -19,72 +19,110 @@ __kernel void RankSort(__global const data_t * in,__global data_t * out)
   }
 
   out[pos] = iData;
-}
-
+}*/
+/*
 __kernel void teste_async_copy( __global int* pop, __local int* program){
  
-  __local uint program_size;
-  
-  program_size = 10;
-  
-  program[get_global_id(0)] = -1;
+    __local uint program_size;  
  
-  event_t e_copy = async_work_group_copy(program, pop, program_size, 0 );
-  
-  wait_group_events( 1, &e_copy );
-  
-  e_copy = async_work_group_copy(pop, program, program_size, 0 );
-  
-  wait_group_events( 1, &e_copy ); 
-}
+    program_size = 10;  
+    program[get_global_id(0)] = -1; 
+    event_t e_copy = async_work_group_copy(program, pop, program_size, 0 );  
+    wait_group_events( 1, &e_copy );  
+    e_copy = async_work_group_copy(pop, program, program_size, 0 );  
+    wait_group_events( 1, &e_copy ); 
+}*/
 
 
-__kernel void substituicao(__global data_t * geracaoAtual, __global data_t * novaGeracao, __global data_t * saida)
+__kernel void substituicao(__global data_t * geracaoAtual, 
+                           __global data_t * novaGeracao, 
+                           __global data_t * saida)
 {
-    int i = get_global_id(0); 
-    int n = get_global_size(0);
+
+    int tid  = get_global_id(0), 
+        lid  = get_local_id(0),
+        gid  = get_group_id(0);    
+    int localSize = get_local_size(0);
+    int n = TAMANHO_POPULACAO;
     
-    //Obtém o item geracaoAtual[i]
-    data_t atualData = geracaoAtual[i];
-    float itemGeracaoAtual = getKey(atualData);
+    __local int pos1, pos2;
+    
+    if(lid==0){
+    
+        //Obtém o item geracaoAtual[gid]
+        data_t atualData = geracaoAtual[gid];
+        float itemGeracaoAtual = getKey(atualData);
 	
-    //Obtém o item novaGeracao[i]
-    data_t novaData = novaGeracao[i];
-    float itemNovaGeracao = getKey(novaData);
+        //Obtém o item novaGeracao[i]
+        data_t novaData = novaGeracao[gid];
+        float itemNovaGeracao = getKey(novaData);
 
-    // Encontra a posição da entrada geracaoAtual[i] e novaGeracao[i] no vetor ordenado utilizando rank sort
-    int pos1 = 0, pos2 = 0;
-    float jKey1, jKey2;
-    bool maior=0;
+        //Encontra a posição da entrada geracaoAtual[i] e novaGeracao[i] no vetor ordenado utilizando rank sort
+        pos1 = 0;
+        pos2 = 0;
+        
+        float jKey1, jKey2;
+        bool maior=0;
 
-    for (int j=0;j<n;j++)
-    {
-        //Conta elementos menores que itemGeracaoAtual
-        jKey1 = getKey(geracaoAtual[j]);
-        maior = (jKey1 > itemGeracaoAtual) || (jKey1 == itemGeracaoAtual && j > i);
-        pos1 += (maior) ? 1:0;
+        for (int j=0;j<n;j++)
+        {
+            //Conta elementos menores que itemGeracaoAtual
+            jKey1 = getKey(geracaoAtual[j]);
+            maior = (jKey1 > itemGeracaoAtual) || (jKey1 == itemGeracaoAtual && j > gid);
+            pos1 += (maior) ? 1:0;
 
-        //Conta elementos menores que itemNovaGeracao
-        jKey2 = getKey(novaGeracao[j]);
-        maior = (jKey2 > itemNovaGeracao)  || (jKey2 == itemNovaGeracao &&  j > i);
-        pos2 += (maior) ? 1:0;
+            //Conta elementos menores que itemNovaGeracao
+            jKey2 = getKey(novaGeracao[j]);
+            maior = (jKey2 > itemNovaGeracao)  || (jKey2 == itemNovaGeracao &&  j > gid);
+            pos2 += (maior) ? 1:0;
+        }        
     }
- 
+    
+    barrier(CLK_LOCAL_MEM_FENCE);
+    
     //Mantém a elite da geração atual
     if(pos1 < ELITE){
-        saida[pos1] = geracaoAtual[i];
+    
+        //saida[pos1] = geracaoAtual[gid];
+        
+        /*for(int j = 0; j < TAMANHO_INDIVIDUO; j++){
+            saida[pos1].genotipo[j] = geracaoAtual[gid].genotipo[j];
+        }*/  
+          
+        for(int j = lid; j < TAMANHO_INDIVIDUO; j+=localSize){
+            saida[pos1].genotipo[j] = geracaoAtual[gid].genotipo[j];
+        }          
+        
+        saida[pos1].aptidao = geracaoAtual[gid].aptidao; 
+                
+        //saida[pos1].genotipo[lid] = novaGeracao[gid].genotipo[lid];        
+        //saida[pos1].aptidao = novaGeracao[gid].aptidao;
     }
 
     //Substitui o elemento pelo indivíduo da geração atual.
     //No total serão substitúidos N-ELITE elementos.
     if(pos2 < n-ELITE){
-        saida[pos2+ELITE] = novaGeracao[i];	
-    }
+    
+        //saida[pos2+ELITE] = novaGeracao[gid];	
+        
+        /*for(int j = 0; j < TAMANHO_INDIVIDUO; j++){
+            saida[pos2+ELITE].genotipo[j] = novaGeracao[gid].genotipo[j];
+        }
+        
+        saida[pos2+ELITE].aptidao = novaGeracao[gid].aptidao;*/
+        
+        for(int j = lid; j < TAMANHO_INDIVIDUO; j+=localSize){
+            saida[pos2+ELITE].genotipo[j] = novaGeracao[gid].genotipo[j];
+        }
+        
+        saida[pos2+ELITE].aptidao = novaGeracao[gid].aptidao;        
+        //saida[pos2+ELITE].genotipo[lid] = novaGeracao[gid].genotipo[lid];
+    }    
 }
 
-
+/*
 __kernel void substituicao_gpu(__global data_t * geracaoAtual, 
-			    __global data_t * novaGeracao,
+			        __global data_t * novaGeracao,
 	    		    __global data_t * saida, 
 	    		    __local int *aux1, 
 	    		    __local int *aux2)
@@ -151,4 +189,4 @@ __kernel void substituicao_gpu(__global data_t * geracaoAtual,
 	    saida[pos2+ELITE] = novaGeracao[i];	
         }
     }
-}
+}*/

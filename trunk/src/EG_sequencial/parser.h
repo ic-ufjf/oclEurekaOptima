@@ -7,7 +7,7 @@
 #define IS_OPERADOR_ARITMETICO(C)( C == '+' || C == '-' || C == '*' || C == '/')
 
 #define FIM_PROGRAMA -1
-#define TAMANHO_MAX_PROGRAMA 128
+#define TAMANHO_MAX_PROGRAMA 1000
 
 typedef enum { DEFAULT, NAOTERMINAL, OPERADOR_BINARIO, OPERADOR_UNARIO, NUMERO_INTEIRO, NUMERO_COM_PONTO, VARIAVEL} TipoSimbolo;
 
@@ -30,15 +30,16 @@ typedef struct{
 	int proximo;
 } t_item_programa;
 
+
 typedef struct{
 	int num_simbolos;
-	type_simbolo simbolos[5];
+	type_simbolo simbolos[50];
 } t_escolha;
 
 typedef struct{
 	type_simbolo simbolo;
 	int num_escolhas;
-	t_escolha escolhas[5];
+	t_escolha escolhas[20];
 } t_regra;
 
 typedef struct{
@@ -55,7 +56,7 @@ typedef struct{
 
 
 typedef struct NoExpressao{
-    char expr[10*TAMANHO_MAX_PROGRAMA];
+    char expr[TAMANHO_MAX_PROGRAMA];
     struct NoExpressao * proximo;
 } No;
 
@@ -79,10 +80,11 @@ void GetNomeElemento2(int type, int value, char *nome);
 
 Database *database_read(char nomeArquivo[]);
 
-float Avalia(t_item_programa programa[], float registro[]);
+float Avalia(t_item_programa programa[], float registro[], int linha);
 
 void ImprimePosfixa(t_item_programa * programa);
 void ImprimeInfixa(t_item_programa * programa);
+void GetProgramaInfixo(t_item_programa *programa, char * textoPrograma);
 
 
 #endif // PARSER_H_INCLUDED

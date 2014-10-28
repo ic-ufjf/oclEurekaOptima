@@ -92,7 +92,7 @@ void avaliacao(individuo * pop, t_prog * programas, t_regra * gramatica, int ger
 void eg(individuo * pop, t_regra *gramatica, Database *dataBase){
 	
 	individuo newPop[TAMANHO_POPULACAO];
-	t_prog programas[1];//TAMANHO_POPULACAO];
+	t_prog programas[1];
 
 	int geracao=1;
     

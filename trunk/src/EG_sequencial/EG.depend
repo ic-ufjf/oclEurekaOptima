@@ -1,0 +1,175 @@
+# depslib dependency file v1.0
+1414415908 source:/home/igorsr/projetos/oclEurekaOptima/trunk/src/EG_sequencial/ag.c
+	<stdio.h>
+	"representacao.h"
+	"parametros_ag.h"
+	"operadores_geneticos.h"
+	"ag.h"
+	<math.h>
+	<stdlib.h>
+
+1414420689 /home/igorsr/projetos/oclEurekaOptima/trunk/src/EG_sequencial/representacao.h
+	"parametros_ag.h"
+
+1414434221 /home/igorsr/projetos/oclEurekaOptima/trunk/src/EG_sequencial/parametros_ag.h
+
+1414372973 /home/igorsr/projetos/oclEurekaOptima/trunk/src/EG_sequencial/operadores_geneticos.h
+	"parametros_ag.h"
+	"representacao.h"
+
+1414367423 /home/igorsr/projetos/oclEurekaOptima/trunk/src/EG_sequencial/ag.h
+	"representacao.h"
+
+1414430352 source:/home/igorsr/projetos/oclEurekaOptima/trunk/src/EG_sequencial/eg.c
+	"eg.h"
+	"ag.h"
+	"parser.h"
+	"gramatica.h"
+	"utils.h"
+
+1414370263 /home/igorsr/projetos/oclEurekaOptima/trunk/src/EG_sequencial/eg.h
+	"representacao.h"
+	"gramatica.h"
+	"parser.h"
+
+1401072014 /home/igorsr/projetos/oclEurekaOptima/trunk/src/EG_sequencial/gramatica.h
+	"parser.h"
+	<string.h>
+	<stdlib.h>
+
+1414372359 /home/igorsr/projetos/oclEurekaOptima/trunk/src/EG_sequencial/parser.h
+	<stdio.h>
+
+1403452416 /home/igorsr/projetos/oclEurekaOptima/trunk/src/EG_sequencial/utils.h
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	"representacao.h"
+
+1414430028 source:/home/igorsr/projetos/oclEurekaOptima/trunk/src/EG_sequencial/gramatica.c
+	"gramatica.h"
+	<stdio.h>
+	<string.h>
+	<stdlib.h>
+	"utils.h"
+
+1414434060 source:/home/igorsr/projetos/oclEurekaOptima/trunk/src/EG_sequencial/main.c
+	<stdio.h>
+	<time.h>
+	"ag.h"
+	"eg.h"
+	<getopt.h>
+	"parser.h"
+	"gramatica.h"
+	"utils.h"
+
+1414415893 source:/home/igorsr/projetos/oclEurekaOptima/trunk/src/EG_sequencial/operadores_geneticos.c
+	<stdlib.h>
+	"representacao.h"
+	"parametros_ag.h"
+
+1414430264 source:/home/igorsr/projetos/oclEurekaOptima/trunk/src/EG_sequencial/parser.c
+	"parser.h"
+	<stdio.h>
+	<string.h>
+	<ctype.h>
+	<stdlib.h>
+	<math.h>
+	"utils.h"
+
+1403452400 source:/home/igorsr/projetos/oclEurekaOptima/trunk/src/EG_sequencial/utils.c
+	<ctype.h>
+	<string.h>
+	<stdio.h>
+	<stdlib.h>
+	"utils.h"
+	<sys/time.h>
+	"representacao.h"
+
+1414415908 source:/home/igorsr/projects/oclEurekaOptima/trunk/src/EG_sequencial/ag.c
+	<stdio.h>
+	"representacao.h"
+	"parametros_ag.h"
+	"operadores_geneticos.h"
+	"ag.h"
+	<math.h>
+	<stdlib.h>
+
+1414420689 /home/igorsr/projects/oclEurekaOptima/trunk/src/EG_sequencial/representacao.h
+	"parametros_ag.h"
+
+1414434221 /home/igorsr/projects/oclEurekaOptima/trunk/src/EG_sequencial/parametros_ag.h
+
+1414372973 /home/igorsr/projects/oclEurekaOptima/trunk/src/EG_sequencial/operadores_geneticos.h
+	"parametros_ag.h"
+	"representacao.h"
+
+1414367423 /home/igorsr/projects/oclEurekaOptima/trunk/src/EG_sequencial/ag.h
+	"representacao.h"
+
+1414430352 source:/home/igorsr/projects/oclEurekaOptima/trunk/src/EG_sequencial/eg.c
+	"eg.h"
+	"ag.h"
+	"parser.h"
+	"gramatica.h"
+	"utils.h"
+
+1414370263 /home/igorsr/projects/oclEurekaOptima/trunk/src/EG_sequencial/eg.h
+	"representacao.h"
+	"gramatica.h"
+	"parser.h"
+
+1401072014 /home/igorsr/projects/oclEurekaOptima/trunk/src/EG_sequencial/gramatica.h
+	"parser.h"
+	<string.h>
+	<stdlib.h>
+
+1414372359 /home/igorsr/projects/oclEurekaOptima/trunk/src/EG_sequencial/parser.h
+	<stdio.h>
+
+1403452416 /home/igorsr/projects/oclEurekaOptima/trunk/src/EG_sequencial/utils.h
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	"representacao.h"
+
+1414430028 source:/home/igorsr/projects/oclEurekaOptima/trunk/src/EG_sequencial/gramatica.c
+	"gramatica.h"
+	<stdio.h>
+	<string.h>
+	<stdlib.h>
+	"utils.h"
+
+1414435388 source:/home/igorsr/projects/oclEurekaOptima/trunk/src/EG_sequencial/main.c
+	<stdio.h>
+	<time.h>
+	"ag.h"
+	"eg.h"
+	<getopt.h>
+	"parser.h"
+	"gramatica.h"
+	"utils.h"
+
+1414415893 source:/home/igorsr/projects/oclEurekaOptima/trunk/src/EG_sequencial/operadores_geneticos.c
+	<stdlib.h>
+	"representacao.h"
+	"parametros_ag.h"
+
+1414430264 source:/home/igorsr/projects/oclEurekaOptima/trunk/src/EG_sequencial/parser.c
+	"parser.h"
+	<stdio.h>
+	<string.h>
+	<ctype.h>
+	<stdlib.h>
+	<math.h>
+	"utils.h"
+
+1403452400 source:/home/igorsr/projects/oclEurekaOptima/trunk/src/EG_sequencial/utils.c
+	<ctype.h>
+	<string.h>
+	<stdio.h>
+	<stdlib.h>
+	"utils.h"
+	<sys/time.h>
+	"representacao.h"
+
