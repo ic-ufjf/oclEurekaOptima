@@ -50,12 +50,12 @@ __kernel void substituicao(__global data_t * geracaoAtual,
     if(lid==0){
     
         //Obtém o item geracaoAtual[gid]
-        data_t atualData = geracaoAtual[gid];
-        float itemGeracaoAtual = getKey(atualData);
+        //data_t atualData = geracaoAtual[gid];
+        float itemGeracaoAtual = getKey(geracaoAtual[gid]);
 	
         //Obtém o item novaGeracao[i]
-        data_t novaData = novaGeracao[gid];
-        float itemNovaGeracao = getKey(novaData);
+        //data_t novaData = novaGeracao[gid];
+        float itemNovaGeracao = getKey(novaGeracao[gid]);
 
         //Encontra a posição da entrada geracaoAtual[i] e novaGeracao[i] no vetor ordenado utilizando rank sort
         pos1 = 0;
